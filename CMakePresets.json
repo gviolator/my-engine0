@@ -1,0 +1,173 @@
+{
+    "version": 5,
+    "configurePresets": [
+        {
+            "name": "config_base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/dist/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_SYSTEM_VERSION": "10.0",
+                "BUILD_SHARED_LIBS": false,
+                "JSONCPP_WITH_TESTS": false,
+                "JSONCPP_WITH_POST_BUILD_UNITTEST": false,
+                "JSONCPP_WITH_CMAKE_PACKAGE": false,
+                "JSONCPP_WITH_PKGCONFIG_SUPPORT": false
+
+            }
+        },
+
+        {
+            "name": "vs_2022_x64_base",
+            "inherits": ["config_base"],
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+
+            "toolset": {
+                "strategy": "set",
+                "value": "v143,host=x64"
+            },
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            },
+
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo"
+            },
+
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": ["Windows"],
+                    "intelliSenseMode": "windows-msvc-x64"
+                }
+            }
+        },
+     
+        {
+            "name": "win_vs2022_x64",
+            "inherits": ["vs_2022_x64_base"],
+            "displayName": "VS 2022 x64",
+            "description": "Configure for Visual Studio 17 2022",
+            "hidden": false
+        },
+        {
+            "name": "win_vs2022_x64_dll",
+            "inherits": ["win_vs2022_x64"],
+            "displayName": "VS 2022 x64 DLL",
+            "description": "Configure DLL for Visual Studio 17 2022",
+            "hidden": false,
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
+            }
+        },
+        {
+            "name": "win_vs2022_x64_dll_asan",
+            "inherits": ["win_vs2022_x64"],
+            "displayName": "VS 2022 x64 DLL Asan",
+            "description": "Configure DLL Asan for Visual Studio 17 2022",
+            "hidden": false,
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true,
+                "BUILD_DEBUG_WITH_ASAN": true
+            }
+        },
+
+        {
+            "name": "win_clangcl_base",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "clang-cl.exe",
+                "CMAKE_C_COMPILER": "clang-cl.exe",
+                
+                "CMAKE_RC_COMPILER": "rc.exe",
+                "CMAKE_CL_SHOWINCLUDES_PREFIX": "Note: including file:"
+            },
+            
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": ["Windows"],
+                    "intelliSenseMode": "windows-clang-x64"
+                }
+            }
+        },
+
+        {
+            "name": "win_clangcl-debug",
+            "inherits": ["config_base", "win_clangcl_base"],
+            "displayName": "Clang-Cl (Debug)",
+            "description": "Configure for ninja with clang-cl compiler",
+            "hidden": false,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "win_clangcl-debug_dll",
+            "inherits": ["win_clangcl-debug"],
+            "displayName": "ClangCl (Debug, DLL)",
+            "description": "Dll configure for ninja with clang-cl compiler",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "VS Debug",
+            "displayName": "VS 2022 x64 Debug",
+            "configurePreset": "win_vs2022_x64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "VS Debug DLL",
+            "displayName": "VS 2022 x64 Debug DLL",
+            "configurePreset": "win_vs2022_x64_dll",
+            "configuration": "Debug"
+        },
+        {
+            "name": "VS Debug DLL Asan",
+            "displayName": "VS 2022 x64 Debug DLL Asan",
+            "configurePreset": "win_vs2022_x64_dll_asan",
+            "configuration": "Debug"
+        },
+        {
+            "name": "VS Release",
+            "displayName": "VS 2022 x64 Release",
+            "configurePreset": "win_vs2022_x64",
+            "configuration": "Release"
+        },
+        {
+            "name": "VS RelWithDebugInfo",
+            "displayName": "VS 2022 x64 RelWithDebInfo",
+            "configurePreset": "win_vs2022_x64",
+            "configuration": "RelWithDebInfo"
+        },
+        {
+            "name": "VS Release DLL",
+            "displayName": "VS 2022 x64 Release DLL",
+            "configurePreset": "win_vs2022_x64_dll",
+            "configuration": "Release"
+        },
+        {
+            "name": "VS RelWithDebugInfo DLL",
+            "displayName": "VS 2022 x64 RelWithDebInfo DLL",
+            "configurePreset": "win_vs2022_x64_dll",
+            "configuration": "RelWithDebInfo"
+        },
+        {
+            "name": "ClangCl Debug",
+            "displayName": "Ninja ClangCl (Debug)",
+            "configurePreset": "win_clangcl-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "ClangCl Debug Dll",
+            "displayName": "Ninja ClangCl Dll (Debug)",
+            "configurePreset": "win_clangcl-debug_dll",
+            "configuration": "Debug"
+        }
+    ]
+}

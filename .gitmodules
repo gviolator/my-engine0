@@ -1,0 +1,6 @@
+[submodule "engine/3rdparty/googletest"]
+	path = engine/3rdparty/googletest
+	url = https://github.com/google/googletest.git
+[submodule "engine/3rdparty/jsoncpp"]
+	path = engine/3rdparty/jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git

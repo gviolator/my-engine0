@@ -1,0 +1,47 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+ 
+    {
+      "name": "CMake Default Target",
+      "type": "cppvsdbg",
+      "request": "launch",
+
+      "program": "${command:cmake.launchTargetPath}",
+      "cwd": "${workspaceRoot}",
+      "args": [
+        "--gtest_filter=TestPtr.UniToMyPtr",
+        "--gtest_repeat=1"
+      ],
+      "environment": [
+      ],
+
+      "console": "integratedTerminal",
+
+      "symbolOptions": {
+        "searchPaths": [],
+        "searchMicrosoftSymbolServer": true,
+        "cachePath": "L:\\_SymbolCache",
+        "moduleFilter": {
+          "mode": "loadAllButExcluded",
+          "excludedModules": [
+            "System.*.dll",
+            "Windows.*.dll",
+            "win*.dll",
+            "nv*.dll",
+            "*.drv",
+            "TextInputFramework.dll",
+            "mfplat.dll",
+            "cfgmgr32.dll",
+            "avrt.dll",
+            "ksuser.dll",
+            "devenum.dll"
+          ]
+        }
+      }
+    }
+  ]
+}

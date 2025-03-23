@@ -1,0 +1,59 @@
+{
+  "cmake.allowCommentsInPresetsFile": true,
+  "cmake.clearOutputBeforeBuild": true,
+  "cmake.configureOnEdit": false,
+  "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "cmake.buildBeforeRun": true,
+  "cmake.useVsDeveloperEnvironment": "auto",
+  
+  "C_Cpp.autocomplete": "disabled",
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "C_Cpp.enhancedColorization": "disabled",
+
+  "clangd.path": "l:/Programs/llvm-20/bin/clangd.exe",
+  "clangd.restartAfterCrash": true,
+  "clangd.arguments": [
+    "--compile-commands-dir", "${workspaceFolder}/build",
+    "--header-insertion=never",
+    "--pch-storage=memory",
+    "--log=verbose",
+    "-j=8"
+  ],
+
+  "[cpp]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.autoClosingComments": "never"
+  },
+
+  "[cmake]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.autoClosingComments": "never"
+  },
+
+  "search.exclude": {
+    "**/build": true,
+    "**/.git": true
+  },
+
+  "git.ignoredRepositories": [
+    "${workspaceFolder}/engine/libs/googletest"
+  ],
+
+  "git.autoRepositoryDetection": false,
+
+  "cSpell.ignoreWords": [
+    "DXGI", "IDXGI", "HRESULT", "HWND", "gltf", "XMMATRIX", "XMVECTOR"
+  ],
+
+  "cSpell.words": [
+    "descendands",
+    "renderable"
+  ],
+
+  "gitlab.duoChat.enabled": false,
+  "gitlab.duoCodeSuggestions.enabled": false,
+  "editor.tabSize": 4
+  
+}
