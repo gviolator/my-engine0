@@ -1,10 +1,9 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
-#include <EASTL/span.h>
-
 #include <array>
+#include <span>
 #include <type_traits>
 
 #include "my/kernel/kernel_config.h"
@@ -12,7 +11,8 @@
 #include "my/rtti/weak_ptr.h"
 #include "my/serialization/native_runtime_value/native_value_base.h"
 #include "my/serialization/native_runtime_value/native_value_forwards.h"
-#include "my/string/string_utils.h"
+#include "my/utils/string_utils.h"
+
 
 namespace my::ser_detail
 {
@@ -21,9 +21,9 @@ namespace my::ser_detail
     class RuntimeFieldAccessor
     {
     public:
-        using FieldFactory = RuntimeValue::Ptr (*)(const RuntimeValue& runtimeValue, void* objectPtr, const void* fieldInfoPtr) noexcept;
+        using FieldFactory = RuntimeValuePtr (*)(const RuntimeValue& runtimeValue, void* objectPtr, const void* fieldInfoPtr) noexcept;
 
-        RuntimeFieldAccessor(std::string_view name, const void* field, FieldFactory factory):
+        RuntimeFieldAccessor(std::string_view name, const void* field, FieldFactory factory) :
             m_name(name),
             m_fieldMetaInfo(field),
             m_factory(factory)
@@ -35,7 +35,7 @@ namespace my::ser_detail
             return m_name;
         }
 
-        RuntimeValue::Ptr getRuntimeValue(const RuntimeValue& parent, void* obj) const
+        RuntimeValuePtr getRuntimeValue(const RuntimeValue& parent, void* obj) const
         {
             return m_factory(parent, obj, m_fieldMetaInfo);
         }
@@ -57,11 +57,11 @@ namespace my::ser_detail
 
         std::string_view getKey(size_t index) const;
 
-        RuntimeValue::Ptr getValue(const RuntimeValue& parent, const void* obj, std::string_view key) const;
+        RuntimeValuePtr getValue(const RuntimeValue& parent, const void* obj, std::string_view key) const;
 
         bool containsKey(std::string_view key) const;
 
-        Result<> setFieldValue(const RuntimeValue& parent, const void* obj, std::string_view key, const RuntimeValue::Ptr& value);
+        Result<> setFieldValue(const RuntimeValue& parent, const void* obj, std::string_view key, const RuntimeValuePtr& value);
 
     protected:
         virtual std::span<RuntimeFieldAccessor> getFields() const = 0;
@@ -102,7 +102,7 @@ namespace my::ser_detail
         template <typename FieldMetaInfo>
         static RuntimeFieldAccessor makeField(const FieldMetaInfo& fieldMetaInfo)
         {
-            FieldFactory factory = [](const RuntimeValue& parent, void* objPtr, const void* fieldPtr) noexcept -> RuntimeValue::Ptr
+            FieldFactory factory = [](const RuntimeValue& parent, void* objPtr, const void* fieldPtr) noexcept -> RuntimeValuePtr
             {
                 MY_DEBUG_FATAL(objPtr);
                 MY_DEBUG_FATAL(fieldPtr);
@@ -117,9 +117,9 @@ namespace my::ser_detail
 
                 auto fieldRuntimeValue = makeValueRef(fieldValue);
 
-                if(auto* const childValue = fieldRuntimeValue->template as<ser_detail::NativeChildValue*>())
+                if (auto* const childValue = fieldRuntimeValue->template as<ser_detail::NativeChildValue*>())
                 {
-                    if(auto* const parentValue = parent.template as<const NativeParentValue*>())
+                    if (auto* const parentValue = parent.template as<const NativeParentValue*>())
                     {
                         childValue->setParent(parentValue->getThisMutabilityGuard());
                     }
@@ -155,7 +155,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeObject>;
         using ValueType = std::decay_t<T>;
 
-        MY_CLASS_(NativeObject<T>, Base, RuntimeNativeValue)
+        MY_REFCOUNTED_CLASS(NativeObject<T>, Base, RuntimeNativeValue)
 
     public:
         static inline constexpr bool IsMutable = !std::is_const_v<std::remove_reference_t<T>>;
@@ -197,7 +197,7 @@ namespace my::ser_detail
             return m_state.getKey(index);
         }
 
-        RuntimeValue::Ptr getValue(std::string_view key) override
+        RuntimeValuePtr getValue(std::string_view key) override
         {
             return m_state.getValue(*this, &m_object, key);
         }
@@ -207,9 +207,9 @@ namespace my::ser_detail
             return m_state.containsKey(key);
         }
 
-        Result<> setValue(std::string_view key, const RuntimeValue::Ptr& value) override
+        Result<> setValue(std::string_view key, const RuntimeValuePtr& value) override
         {
-            if constexpr(!IsMutable)
+            if constexpr (!IsMutable)
             {
                 return MakeError("Object is non mutable");
             }
@@ -228,7 +228,7 @@ namespace my::ser_detail
 
         const rtti::TypeInfo* getValueTypeInfo() const override
         {
-            if constexpr(rtti::HasTypeInfo<ValueType>)
+            if constexpr (rtti::HasTypeInfo<ValueType>)
             {
                 return &rtti::getTypeInfo<ValueType>();
             }
@@ -244,7 +244,7 @@ namespace my::ser_detail
         void* getValuePtr() override
         {
             MY_DEBUG_CHECK(isMutable());
-            if constexpr(IsMutable)
+            if constexpr (IsMutable)
             {
                 return reinterpret_cast<ValueType*>(&m_object);
             }
@@ -261,34 +261,34 @@ namespace my::ser_detail
 namespace my
 {
     template <NauClassWithFields T>
-    RuntimeObject::Ptr makeValueRef(T& obj, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeObject> makeValueRef(T& obj, MemAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T&>;
 
-        return rtti::createInstanceWithAllocator<Object>(std::move(allocator), obj);
+        return rtti::createInstanceWithAllocator<Object>(allocator, obj);
     }
 
     template <NauClassWithFields T>
-    RuntimeObject::Ptr makeValueRef(const T& obj, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeObject> makeValueRef(const T& obj, MemAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<const T&>;
 
-        return rtti::createInstanceWithAllocator<Object>(std::move(allocator), obj);
+        return rtti::createInstanceWithAllocator<Object>(allocator, obj);
     }
 
     template <NauClassWithFields T>
-    RuntimeObject::Ptr makeValueCopy(const T& obj, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeObject> makeValueCopy(const T& obj, MemAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T>;
 
-        return rtti::createInstanceWithAllocator<Object>(std::move(allocator), obj);
+        return rtti::createInstanceWithAllocator<Object>(allocator, obj);
     }
 
     template <NauClassWithFields T>
-    RuntimeObject::Ptr makeValueCopy(T&& obj, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeObject> makeValueCopy(T&& obj, MemAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T>;
 
-        return rtti::createInstanceWithAllocator<Object>(std::move(allocator), std::move(obj));
+        return rtti::createInstanceWithAllocator<Object>(allocator, std::move(obj));
     }
 }  // namespace my

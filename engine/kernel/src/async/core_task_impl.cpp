@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "core_task_impl.h"
 
 #include "my/memory/fixed_size_block_allocator.h"
@@ -27,7 +27,7 @@ namespace my::async
                 m_blockAllocators[3] = createAlloc(1024);
             }
 
-            IMemAllocator& getAllocator(size_t size)
+            MemAllocator& getAllocator(size_t size)
             {
                 for (auto& [blockSize, allocator] : m_blockAllocators)
                 {
@@ -156,7 +156,7 @@ namespace my::async
 
     CoreTask::~CoreTask() = default;
 
-    CoreTaskImpl::CoreTaskImpl(IMemAllocator& allocator, void* allocatedStorage, size_t dataSize, StateDestructorCallback destructor) :
+    CoreTaskImpl::CoreTaskImpl(MemAllocator& allocator, void* allocatedStorage, size_t dataSize, StateDestructorCallback destructor) :
         m_allocator(allocator),
         m_allocatedStorage(allocatedStorage),
         m_dataSize(dataSize),
@@ -456,7 +456,7 @@ namespace my::async
 
         // storageSize must be sufficient to store any properly aligned object.
         const size_t storageSize = getCoreTaskStorageSize(dataSize, dataAlignment);
-        IMemAllocator& allocator = g_taskAllocatorHolder.getAllocator(storageSize);
+        MemAllocator& allocator = g_taskAllocatorHolder.getAllocator(storageSize);
 
         // the allocated storage may be different from where the CoreTaskImpl will actually be created.
         void* const allocatedStorage = allocator.alloc(storageSize);

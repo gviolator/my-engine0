@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <concepts>
@@ -17,7 +17,7 @@ namespace my::ser_detail
     {
         using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>;
 
-        MY_CLASS_(NativeBasicStringValue<T>, Base)
+        MY_REFCOUNTED_CLASS(NativeBasicStringValue<T>, Base)
     public:
         using UnderlyingString = std::decay_t<T>;
 
@@ -92,7 +92,7 @@ namespace my::ser_detail
     {
         using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>;
 
-        MY_CLASS_(NativeStringParsableValue<T>, Base)
+        MY_REFCOUNTED_CLASS(NativeStringParsableValue<T>, Base)
     public:
         using ValueType = std::decay_t<T>;
 
@@ -160,7 +160,7 @@ namespace my::ser_detail
 namespace my
 {
     template <typename... Traits>
-    RuntimeStringValue::Ptr makeValueRef(std::basic_string<char, Traits...>& str, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueRef(std::basic_string<char, Traits...>& str, MemAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char, Traits...>&>;
 
@@ -168,54 +168,54 @@ namespace my
     }
 
     template <typename... Traits>
-    RuntimeStringValue::Ptr makeValueRef(const std::basic_string<char, Traits...>& str, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueRef(const std::basic_string<char, Traits...>& str, MemAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<const std::basic_string<char, Traits...>&>;
 
         return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
     }
 
-    inline RuntimeStringValue::Ptr makeValueCopy(std::string_view str, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeStringValue> makeValueCopy(std::string_view str, MemAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
         return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str.data(), str.size());
     }
 
-    template <typename C, typename... Traits>
-    requires(sizeof(C) == sizeof(char))
-    RuntimeStringValue::Ptr makeValueRef(std::basic_string<C, Traits...>& str, IMemAllocator::Ptr allocator)
-    {
-        using StringType = ser_detail::NativeBasicStringValue<std::basic_string<C, Traits...>&>;
+    // template <typename C, typename... Traits>
+    // requires(sizeof(C) == sizeof(char))
+    // Ptr<RuntimeStringValue> makeValueRef(std::basic_string<C, Traits...>& str, MemAllocator* allocator)
+    // {
+    //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<C, Traits...>&>;
 
-        return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
-    }
+    //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
+    // }
 
-    template <typename C, typename... Traits>
-    requires(sizeof(C) == sizeof(char))
-    RuntimeStringValue::Ptr makeValueRef(const std::basic_string<C, Traits...>& str, IMemAllocator::Ptr allocator)
-    {
-        using StringType = ser_detail::NativeBasicStringValue<const std::basic_string<C, Traits...>&>;
+    // template <typename C, typename... Traits>
+    // requires(sizeof(C) == sizeof(char))
+    // Ptr<RuntimeStringValue> makeValueRef(const std::basic_string<C, Traits...>& str, MemAllocator* allocator)
+    // {
+    //     using StringType = ser_detail::NativeBasicStringValue<const std::basic_string<C, Traits...>&>;
 
-        return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
-    }
+    //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
+    // }
 
-    inline RuntimeStringValue::Ptr makeValueCopy(std::string_view str, IMemAllocator::Ptr allocator)
-    {
-        using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
+    // inline Ptr<RuntimeStringValue> makeValueCopy(std::string_view str, MemAllocator* allocator)
+    // {
+    //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
-        return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str.data(), str.size());
-    }
+    //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str.data(), str.size());
+    // }
 
-    inline RuntimeStringValue::Ptr makeValueCopy(std::u8string_view str, IMemAllocator::Ptr allocator)
-    {
-        using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
+    // inline Ptr<RuntimeStringValue> makeValueCopy(std::u8string_view str, MemAllocator* allocator)
+    // {
+    //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
-        return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), reinterpret_cast<const char*>(str.data()), str.size());
-    }
+    //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), reinterpret_cast<const char*>(str.data()), str.size());
+    // }
 
     template <AutoStringRepresentable T>
-    RuntimeStringValue::Ptr makeValueRef(T& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueRef(T& value, MemAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T&>;
 
@@ -223,7 +223,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    RuntimeStringValue::Ptr makeValueRef(const T& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueRef(const T& value, MemAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<const T&>;
 
@@ -231,7 +231,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    RuntimeStringValue::Ptr makeValueCopy(const T& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueCopy(const T& value, MemAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T>;
 
@@ -239,7 +239,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    RuntimeStringValue::Ptr makeValueCopy(T&& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeStringValue> makeValueCopy(T&& value, MemAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T>;
 

@@ -1,14 +1,14 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/memory/mem_allocator.h"
 #include "my/rtti/rtti_impl.h"
 
 namespace my
 {
 
-    class CrtAllocator final : public IAlignedMemAllocator
+    class CrtAllocator final : public AlignedMemAllocator
     {
     public:
-        MY_REFCOUNTED_CLASS_(my::CrtAllocator, IAlignedMemAllocator)
+        MY_REFCOUNTED_CLASS(my::CrtAllocator, AlignedMemAllocator)
 
         ~ CrtAllocator() = default;
 
@@ -121,15 +121,15 @@ Allocator& AllocatorMemoryResource::allocator() const
 }
 #endif
 
-    //my::IMemAllocator::Ptr g_defaultAllocatorInstance;
+    //my::MemAllocatorPtr g_defaultAllocatorInstance;
 
-    IAlignedMemAllocator& getSystemAllocator()
+    AlignedMemAllocator& getSystemAllocator()
     {
         static Ptr<CrtAllocator> crtAllocator = rtti::createInstanceSingleton<CrtAllocator>();
         return *crtAllocator;
     }
 
-    //const IMemAllocator::Ptr& getDefaultAllocator()
+    //const MemAllocatorPtr& getDefaultAllocator()
     //{
     //    return g_defaultAllocatorInstance ? g_defaultAllocatorInstance : getCrtAllocator();
     //}

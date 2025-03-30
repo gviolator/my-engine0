@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/async/work_queue.h"
 
 #include "my/async/task_base.h"
@@ -15,7 +15,7 @@ namespace my
     class WorkQueueImpl final : public WorkQueue,
                                 public IRuntimeComponent
     {
-        MY_REFCOUNTED_CLASS_(my::WorkQueueImpl, WorkQueue, IRuntimeComponent)
+        MY_REFCOUNTED_CLASS(my::WorkQueueImpl, WorkQueue, IRuntimeComponent)
 
     public:
         WorkQueueImpl();

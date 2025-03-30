@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/memory/host_memory.h"
 
 #include "my/diag/check.h"

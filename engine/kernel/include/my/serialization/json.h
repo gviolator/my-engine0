@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <EASTL/optional.h>
@@ -32,21 +32,21 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    Result<> jsonWrite(io::IStreamWriter&, const RuntimeValue::Ptr&, JsonSettings = {});
+    Result<> jsonWrite(io::IStreamWriter&, const RuntimeValuePtr&, JsonSettings = {});
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValue::Ptr> jsonParse(io::IStreamReader&, IMemAllocator::Ptr = nullptr);
+    Result<RuntimeValuePtr> jsonParse(io::IStreamReader&, MemAllocatorPtr = nullptr);
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValue::Ptr> jsonParseString(std::string_view, IMemAllocator::Ptr = nullptr);
+    Result<RuntimeValuePtr> jsonParseString(std::string_view, MemAllocatorPtr = nullptr);
 
     /**
      */
-    inline Result<RuntimeValue::Ptr> jsonParseString(std::u8string_view str, IMemAllocator::Ptr allocator = nullptr)
+    inline Result<RuntimeValuePtr> jsonParseString(std::u8string_view str, MemAllocatorPtr allocator = nullptr)
     {
         return jsonParseString(std::string_view{reinterpret_cast<const char*>(str.data()), str.size()}, std::move(allocator));
     }
@@ -84,7 +84,7 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValue::Ptr jsonToRuntimeValue(Json::Value&& root, IMemAllocator::Ptr = nullptr);
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocatorPtr = nullptr);
 
     /**
      */
@@ -103,16 +103,16 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValue::Ptr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator::Ptr = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocatorPtr = nullptr);
 
     MY_KERNEL_EXPORT
-    RuntimeValue::Ptr jsonAsRuntimeValue(Json::Value& root, IMemAllocator::Ptr = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocatorPtr = nullptr);
 
     MY_KERNEL_EXPORT
-    Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValue::Ptr&, JsonSettings = {});
+    Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValuePtr&, JsonSettings = {});
 
     MY_KERNEL_EXPORT
-    Json::Value runtimeToJsonValue(const RuntimeValue::Ptr&, JsonSettings = {});
+    Json::Value runtimeToJsonValue(const RuntimeValuePtr&, JsonSettings = {});
 
     MY_KERNEL_EXPORT
     Result<> jsonWrite(io::IStreamWriter&, const Json::Value&, JsonSettings = {});

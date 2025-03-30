@@ -5,7 +5,7 @@
 #include "nau/serialization/json.h"
 #include "nau/serialization/json_utils.h"
 
-namespace nau::test
+namespace my::test
 {
     /**
      */
@@ -104,7 +104,7 @@ namespace nau::test
      */
     TEST(TestSerializationJsonMutability, Merge)
     {
-        using namespace nau::serialization;
+        using namespace my::serialization;
 
         std::u8string_view json1 =
             u8R"--(
@@ -149,8 +149,8 @@ namespace nau::test
             return jsonValue.find(fieldName.data(), fieldName.data() + fieldName.size()) != nullptr;
         };
 
-        const RuntimeValue::Ptr value1 = *jsonParseString(json1);
-        const RuntimeValue::Ptr value2 = *jsonParseString(json2);
+        const RuntimeValuePtr value1 = *jsonParseString(json1);
+        const RuntimeValuePtr value2 = *jsonParseString(json2);
 
         ASSERT_TRUE(RuntimeValue::assign(value1, value2, ValueAssignOption::MergeCollection));
 
@@ -199,5 +199,5 @@ namespace nau::test
 #endif
     }
 
-}  // namespace nau::test
+}  // namespace my::test
 #endif

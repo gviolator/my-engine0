@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/rtti/ptr.h"
 #include "my/rtti/rtti_impl.h"
 #include "my/rtti/weak_ptr.h"
@@ -56,7 +56,7 @@ namespace my::test
 
     class RcService : public MyRefCounted, public WithDestructor
     {
-      MY_REFCOUNTED_CLASS_(RcService, MyRefCounted);
+      MY_REFCOUNTED_CLASS(RcService, MyRefCounted);
     public:
       using WithDestructor::WithDestructor;
 

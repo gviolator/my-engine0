@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include <memory>
 
@@ -16,4 +16,4 @@ namespace my::test
         virtual void reset() = 0;
     };
 
-}  // namespace nau::test
+}  // namespace my::test

@@ -261,7 +261,7 @@ StatementMacros:
   - MY_INTERFACE
   - MY_RTTI_CLASS
   - MY_CLASS
-  - MY_CLASS_
+  - MY_REFCOUNTED_CLASS
   - MY_TYPEID
   - MY_ASSERT
   - MY_FATAL

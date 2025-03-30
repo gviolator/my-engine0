@@ -8,7 +8,7 @@
 
 using namespace ::testing;
 
-namespace nau::test
+namespace my::test
 {
     /**
      */
@@ -272,7 +272,7 @@ namespace nau::test
     TEST(TestSerializationMath, VecAsMutableRefCollection)
     {
         math::vec4 vec1{11.f, 22.f, 33.f, 44.f};
-        const RuntimeValue::Ptr vecValue = makeValueRef(vec1);
+        const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_TRUE(vecValue->isMutable());
 
         RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
@@ -301,7 +301,7 @@ namespace nau::test
     TEST(TestSerializationMath, VecAsConstRefCollection)
     {
         const math::vec4 vec1{11.f, 22.f, 33.f, 44.f};
-        const RuntimeValue::Ptr vecValue = makeValueRef(vec1);
+        const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_FALSE(vecValue->isMutable());
 
         RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
@@ -317,7 +317,7 @@ namespace nau::test
      */
     TEST(TestSerializationMath, VecAsValueCollection)
     {
-        const RuntimeValue::Ptr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
+        const RuntimeValuePtr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
         ASSERT_TRUE(vecValue->isMutable());
 
         RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
@@ -334,7 +334,7 @@ namespace nau::test
     TEST(TestSerializationMath, VecAsMutableDictionary)
     {
         math::vec4 vec1{11.f, 22.f, 33.f, 44.f};
-        const RuntimeValue::Ptr vecValue = makeValueRef(vec1);
+        const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_TRUE(vecValue->isMutable());
 
         RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
@@ -369,7 +369,7 @@ namespace nau::test
     TEST(TestSerializationMath, VecAsConstRefDictionary)
     {
         const math::vec4 vec1{11.f, 22.f, 33.f, 44.f};
-        const RuntimeValue::Ptr vecValue = makeValueRef(vec1);
+        const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_FALSE(vecValue->isMutable());
 
         RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
@@ -391,7 +391,7 @@ namespace nau::test
      */
     TEST(TestSerializationMath, VecAsValueDictionary)
     {
-        const RuntimeValue::Ptr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
+        const RuntimeValuePtr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
         ASSERT_TRUE(vecValue->isMutable());
 
         RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
@@ -414,7 +414,7 @@ namespace nau::test
     TEST(TestSerializationMath, VecValueTrackChanges)
     {
         math::vec4 vec1{11.f, 22.f, 33.f, 44.f};
-        const RuntimeValue::Ptr vecValue = makeValueRef(vec1);
+        const RuntimeValuePtr vecValue = makeValueRef(vec1);
 
         size_t changesCounter = 0;
 
@@ -462,6 +462,6 @@ namespace nau::test
         ASSERT_THAT(vec2.getZ(), Eq(0.f));
         ASSERT_THAT(vec2.getW(), Eq(1.f));
     }
-}  // namespace nau::test
+}  // namespace my::test
 
 #endif

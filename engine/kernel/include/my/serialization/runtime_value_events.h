@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 
 #include <atomic>
@@ -134,7 +134,7 @@ namespace my::ser_detail
     template <std::invocable<const RuntimeValue&, std::string_view> F>
     class ChangesHandlerFunctorWrapper final : public my::IRuntimeValueChangesHandler
     {
-        MY_REFCOUNTED_CLASS_(my::ser_detail::ChangesHandlerFunctorWrapper<F>, my::IRuntimeValueChangesHandler)
+        MY_REFCOUNTED_CLASS(my::ser_detail::ChangesHandlerFunctorWrapper<F>, my::IRuntimeValueChangesHandler)
 
     public:
         ChangesHandlerFunctorWrapper(F&& handler) :

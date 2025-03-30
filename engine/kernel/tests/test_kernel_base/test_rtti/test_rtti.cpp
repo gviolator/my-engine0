@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "my/test/helpers/check_guard.h"
 //#include "my/math/math.h"
@@ -140,7 +140,7 @@ namespace my::test
           public Interface2,
           public Interface3
     {
-        MY_REFCOUNTED_CLASS_(my::test::MyRttiClass, Interface1, Interface2, Interface3)
+        MY_REFCOUNTED_CLASS(my::test::MyRttiClass, Interface1, Interface2, Interface3)
 
     public:
         using Callback = Functor<void()>;
@@ -187,7 +187,7 @@ namespace my::test
      */
     class CustomAlignedType : public IRefCounted
     {
-        MY_REFCOUNTED_CLASS_(CustomAlignedType, IRefCounted)
+        MY_REFCOUNTED_CLASS(CustomAlignedType, IRefCounted)
     public:
         CustomAlignedType()
         {
@@ -223,9 +223,9 @@ namespace my::test
         return (stream);
     }
 
-    class TestAllocator final : public IMemAllocator
+    class TestAllocator final : public MemAllocator
     {
-        MY_REFCOUNTED_CLASS_(TestAllocator, IMemAllocator)
+        MY_REFCOUNTED_CLASS(TestAllocator, MemAllocator)
     public:
         void* alloc(size_t size) override
         {
@@ -319,7 +319,7 @@ namespace my::test
             MY_DEBUG_CHECK(allocationType == RcClassAllocationType::CustomAllocator);
             m_customAllocator = rtti::createInstance<TestAllocator>();
 
-            return rtti::createInstanceWithAllocator<T, IRefCounted>(*m_customAllocator);
+            return rtti::createInstanceWithAllocator<T, IRefCounted>(m_customAllocator.get());
         }
 
     private:
@@ -468,7 +468,7 @@ namespace my::test
                            public BaseWithRtti2,
                            public my::IRefCounted
     {
-        MY_CLASS_(my::test::MyClass1, BaseWithRtti1, BaseWithRtti2, my::IRefCounted)
+        MY_REFCOUNTED_CLASS(my::test::MyClass1, BaseWithRtti1, BaseWithRtti2, my::IRefCounted)
 
     public:
         ~MyClass1()

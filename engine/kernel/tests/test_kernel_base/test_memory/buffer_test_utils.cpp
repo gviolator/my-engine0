@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "buffer_test_utils.h"
 #include "my/diag/check.h"
@@ -52,4 +52,4 @@ namespace my::test
     }
 #endif
 
-}  // namespace nau::test
+}  // namespace my::test

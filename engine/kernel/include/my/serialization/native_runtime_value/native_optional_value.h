@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -19,7 +19,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeOptionalValue>;
         using OptionalType = std::decay_t<T>;
 
-        MY_CLASS_(StdOptionalValue<T>, Base)
+        MY_REFCOUNTED_CLASS(StdOptionalValue<T>, Base)
 
     public:
         static_assert(LikeStdOptional<OptionalType>);
@@ -57,7 +57,7 @@ namespace my::ser_detail
             return m_optional.has_value();
         }
 
-        RuntimeValue::Ptr getValue() override
+        RuntimeValuePtr getValue() override
         {
             if(!hasValue())
             {
@@ -67,7 +67,7 @@ namespace my::ser_detail
             return this->makeChildValue(makeValueRef(m_optional.value()));
         }
 
-        Result<> setValue(RuntimeValue::Ptr value) override
+        Result<> setValue(RuntimeValuePtr value) override
         {
             if constexpr(IsMutable)
             {
@@ -103,31 +103,31 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdOptional T>
-    RuntimeOptionalValue::Ptr makeValueRef(T& opt, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeOptionalValue> makeValueRef(T& opt, MemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T&>;
 
-        return rtti::createInstanceWithAllocator<Optional>(std::move(allocator), opt);
+        return rtti::createInstanceWithAllocator<Optional>(allocator, opt);
     }
 
     template <LikeStdOptional T>
-    RuntimeOptionalValue::Ptr makeValueRef(const T& opt, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeOptionalValue> makeValueRef(const T& opt, MemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<const T&>;
 
-        return rtti::createInstanceWithAllocator<Optional>(std::move(allocator), opt);
+        return rtti::createInstanceWithAllocator<Optional>(allocator, opt);
     }
 
     template <LikeStdOptional T>
-    RuntimeOptionalValue::Ptr makeValueCopy(const T& opt, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeOptionalValue> makeValueCopy(const T& opt, MemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 
-        return rtti::createInstanceWithAllocator<Optional>(std::move(allocator), opt);
+        return rtti::createInstanceWithAllocator<Optional>(allocator, opt);
     }
 
     template <LikeStdOptional T>
-    RuntimeOptionalValue::Ptr makeValueCopy(T&& opt, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeOptionalValue> makeValueCopy(T&& opt, MemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 

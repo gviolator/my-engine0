@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "my/memory/buffer.h"
 
@@ -76,7 +76,7 @@ namespace my
                 m_blockAllocators[3] = createAlloc(2048);
             }
 
-            IMemAllocator& getAllocator(size_t size)
+            MemAllocator& getAllocator(size_t size)
             {
                 for (auto& [blockSize, allocator] : m_blockAllocators)
                 {
@@ -115,13 +115,13 @@ namespace my
             return reinterpret_cast<std::byte*>(mutableHeader) + ClientDataOffset;
         }
 
-        IMemAllocator& getBufferAllocator(size_t storageSize)
+        MemAllocator& getBufferAllocator(size_t storageSize)
         {
             static BufferAllocatorHolder g_bufferAllocatorHolder;
             return g_bufferAllocatorHolder.getAllocator(storageSize);
         }
 
-        IMemAllocator& getBufferAllocator(const BufferBase::Header& header)
+        MemAllocator& getBufferAllocator(const BufferBase::Header& header)
         {
             MY_DEBUG_FATAL(header.capacity > 0);
 
@@ -138,7 +138,7 @@ namespace my
         const size_t storageSize = alignedSize(HeaderSize + clientSize, granuleSize);
         const size_t capacity = storageSize - HeaderSize;
 
-        IMemAllocator& allocator = getBufferAllocator(storageSize);
+        MemAllocator& allocator = getBufferAllocator(storageSize);
         void* const storage = allocator.alloc(storageSize);
         MY_FATAL(storage);
         MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);

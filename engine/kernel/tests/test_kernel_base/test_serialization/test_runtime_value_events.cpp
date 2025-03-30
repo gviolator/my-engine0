@@ -8,7 +8,7 @@
 #include "nau/serialization/runtime_value_builder.h"
 #include "nau/serialization/runtime_value_events.h"
 
-namespace nau::test
+namespace my::test
 {
     namespace
     {
@@ -33,7 +33,7 @@ namespace nau::test
         }
 
         template <typename T>
-        requires(nau::HasRuntimeValueRepresentation<T>)
+        requires(my::HasRuntimeValueRepresentation<T>)
         auto makeValueRefAndSubscribe(T& value)
         {
             auto runtimeValue = makeValueRef(value);
@@ -245,7 +245,7 @@ namespace nau::test
         runtimeValue.reset();
         resetSubscription();
     }
-}  // namespace nau::test
+}  // namespace my::test
 
 
 #endif

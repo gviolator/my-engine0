@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -24,19 +24,19 @@ namespace my
     /**
      *
      */
-    inline RuntimeValueRef::Ptr makeValueRef(const RuntimeValue::Ptr& value, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, MemAllocator* allocator)
     {
-        return RuntimeValueRef::create(value, std::move(allocator));
+        return RuntimeValueRef::create(std::cref(value), allocator);
     }
 
-    inline RuntimeValueRef::Ptr makeValueRef(RuntimeValue::Ptr& value, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, MemAllocator* allocator)
     {
-        return RuntimeValueRef::create(value, std::move(allocator));
+        return RuntimeValueRef::create(value, allocator);
     }
 
 
     template <typename T>
-    Result<> runtimeValueApply(T& target, const RuntimeValue::Ptr& rtValue)
+    Result<> runtimeValueApply(T& target, const RuntimeValuePtr& rtValue)
     {
         static_assert(!std::is_const_v<T>, "Const type is passed. Use remove_const_t on call site");
         return RuntimeValue::assign(makeValueRef(target), rtValue);
@@ -44,7 +44,7 @@ namespace my
 
     template <typename T>
     [[nodiscard]]
-    Result<T> runtimeValueCast(const RuntimeValue::Ptr& rtValue)
+    Result<T> runtimeValueCast(const RuntimeValuePtr& rtValue)
     {
         static_assert(std::is_default_constructible_v<T>, "Default constructor required or use my::RuntimeValueApply");
         static_assert(!std::is_reference_v<T>, "Reference type is passed");
@@ -58,7 +58,7 @@ namespace my
     template<typename T>
     requires(std::is_arithmetic_v<T>)
     [[nodiscard]]
-    Result<T> runtimeValueCast(const RuntimeValue::Ptr& rtValue)
+    Result<T> runtimeValueCast(const RuntimeValuePtr& rtValue)
     {
         if (const auto* const floatValue = rtValue->as<const RuntimeFloatValue*>())
         {
@@ -79,7 +79,4 @@ namespace my
 
         return MakeError("Can not convert to arithmetic type");
     }
-
-
-
 }  // namespace my

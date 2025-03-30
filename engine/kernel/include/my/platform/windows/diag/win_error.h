@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include "my/diag/error.h"
 #include "my/kernel/kernel_config.h"

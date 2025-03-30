@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <type_traits>
@@ -19,7 +19,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeFloatValue>;
         using FloatValueType = std::remove_const_t<std::remove_reference_t<T>>;
 
-        MY_CLASS_(NativeFloatValue<T>, Base)
+        MY_REFCOUNTED_CLASS(NativeFloatValue<T>, Base)
 
     public:
         static inline constexpr bool IsMutable = !std::is_const_v<std::remove_reference_t<T>>;
@@ -88,20 +88,20 @@ namespace my
 {
 
     template <std::floating_point T>
-    RuntimeFloatValue::Ptr makeValueRef(T& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeFloatValue> makeValueRef(T& value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T&>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    RuntimeFloatValue::Ptr makeValueRef(const T& value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeFloatValue> makeValueRef(const T& value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<const T&>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<const T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    RuntimeFloatValue::Ptr makeValueCopy(T value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeFloatValue> makeValueCopy(T value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T>>(allocator, value);
     }
 }  // namespace my

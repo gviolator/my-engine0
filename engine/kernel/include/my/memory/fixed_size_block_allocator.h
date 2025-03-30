@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include "my/kernel/kernel_config.h"
 #include "my/memory/host_memory.h"

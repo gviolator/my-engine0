@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 // nau/serialization/json_utils.h
 
 
@@ -54,7 +54,7 @@ namespace my::serialization
         {
             // rtstack();
 
-            Result<RuntimeValue::Ptr> parseResult = jsonParseString(jsonString, getDefaultAllocator());
+            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getDefaultAllocator());
             if(!parseResult)
             {
                 return parseResult.getError();
@@ -70,7 +70,7 @@ namespace my::serialization
         {
             // rtstack();
 
-            Result<RuntimeValue::Ptr> parseResult = jsonParseString(jsonString, getDefaultAllocator());
+            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getDefaultAllocator());
             if(!parseResult)
             {
                 return parseResult.getError();

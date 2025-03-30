@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/rtti/rtti_impl.h"
 
 namespace my::rtti_detail
@@ -34,7 +34,7 @@ namespace my::rtti_detail
         }
     }  // namespace
 
-    RttiClassSharedState::RttiClassSharedState(IMemAllocator* allocator, AcquireFunc acquire, DestructorFunc destructor, std::byte* allocatedPtr) :
+    RttiClassSharedState::RttiClassSharedState(MemAllocator* allocator, AcquireFunc acquire, DestructorFunc destructor, std::byte* allocatedPtr) :
         m_allocator(allocator),
         m_acquireFunc(acquire),
         m_destructorFunc(destructor),
@@ -46,7 +46,7 @@ namespace my::rtti_detail
         MY_DEBUG_CHECK(m_instanceCounter.load(std::memory_order_relaxed) == 1);
     }
 
-    IMemAllocator* RttiClassSharedState::getAllocator() const
+    MemAllocator* RttiClassSharedState::getAllocator() const
     {
         return m_allocator;
     }
@@ -125,9 +125,9 @@ namespace my::rtti_detail
         return m_instanceCounter.load(std::memory_order_relaxed) == 0;
     }
 
-    void* RttiClassStorage::allocateStateAndInstance(void* inplaceMemBlock, IMemAllocator* allocator, size_t instanceSize, size_t instanceAlignment, AcquireFunc acquireFunc, DestructorFunc destructorFunc)
+    void* RttiClassStorage::allocateStateAndInstance(void* inplaceMemBlock, MemAllocator* allocator, size_t instanceSize, size_t instanceAlignment, AcquireFunc acquireFunc, DestructorFunc destructorFunc)
     {
-        // static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_CLASS_/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
+        // static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_REFCOUNTED_CLASS/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
         // static_assert((alignof(T) <= alignof(SharedState)) || (alignof(T) % alignof(SharedState) == 0), "Unsupported type alignment.");
         MY_DEBUG_CHECK(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
 

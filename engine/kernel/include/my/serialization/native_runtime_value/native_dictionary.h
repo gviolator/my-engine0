@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -16,7 +16,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeDictionary>;
         using DictionaryType = std::decay_t<T>;
 
-        MY_CLASS_(MapLikeNativeDictionary<T>, Base)
+        MY_REFCOUNTED_CLASS(MapLikeNativeDictionary<T>, Base)
 
     public:
         static_assert(LikeStdMap<DictionaryType>);
@@ -62,7 +62,7 @@ namespace my::ser_detail
             return std::string_view{head->first.data(), head->first.size()};
         }
 
-        RuntimeValue::Ptr getValue(std::string_view key) override
+        RuntimeValuePtr getValue(std::string_view key) override
         {
             auto iter = m_dict.find(typename DictionaryType::key_type{key.data(), key.size()});
             if(iter == m_dict.end())
@@ -93,7 +93,7 @@ namespace my::ser_detail
             }
         }
 
-        Result<> setValue([[maybe_unused]] std::string_view key, [[maybe_unused]] const RuntimeValue::Ptr& newValue) override
+        Result<> setValue([[maybe_unused]] std::string_view key, [[maybe_unused]] const RuntimeValuePtr& newValue) override
         {
             if constexpr(IsMutable)
             {
@@ -117,7 +117,7 @@ namespace my::ser_detail
             return {};
         }
 
-        RuntimeValue::Ptr erase([[maybe_unused]] std::string_view key) override
+        RuntimeValuePtr erase([[maybe_unused]] std::string_view key) override
         {
             if constexpr(IsMutable)
             {
@@ -141,35 +141,35 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdMap T>
-    RuntimeDictionary::Ptr makeValueRef(T& dict, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeDictionary> makeValueRef(T& dict, MemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T&>;
 
-        return rtti::createInstanceWithAllocator<Dict>(std::move(allocator), dict);
+        return rtti::createInstanceWithAllocator<Dict>(allocator, dict);
     }
 
     template <LikeStdMap T>
-    RuntimeDictionary::Ptr makeValueRef(const T& dict, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeDictionary> makeValueRef(const T& dict, MemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<const T&>;
 
-        return rtti::createInstanceWithAllocator<Dict>(std::move(allocator), dict);
+        return rtti::createInstanceWithAllocator<Dict>(allocator, dict);
     }
 
     template <LikeStdMap T>
-    RuntimeDictionary::Ptr makeValueCopy(const T& dict, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeDictionary> makeValueCopy(const T& dict, MemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 
-        return rtti::createInstanceWithAllocator<Dict>(std::move(allocator), dict);
+        return rtti::createInstanceWithAllocator<Dict>(allocator, dict);
     }
 
     template <LikeStdMap T>
-    RuntimeDictionary::Ptr makeValueCopy(T&& dict, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeDictionary> makeValueCopy(T&& dict, MemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 
-        return rtti::createInstanceWithAllocator<Dict>(std::move(allocator), std::move(dict));
+        return rtti::createInstanceWithAllocator<Dict>(allocator, std::move(dict));
     }
 
 }  // namespace my

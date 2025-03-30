@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include "my/diag/logging_base.h"
 #include "my/containers/intrusive_list.h"

@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <concepts>
@@ -50,7 +50,7 @@ namespace my::rtti_detail
 
         RttiClassSharedState(const RttiClassSharedState&) = delete;
 
-        RttiClassSharedState(IMemAllocator* allocator_, AcquireFunc, DestructorFunc, std::byte* ptr);
+        RttiClassSharedState(MemAllocator* allocator_, AcquireFunc, DestructorFunc, std::byte* ptr);
 
         RttiClassSharedState operator=(const RttiClassSharedState&) = delete;
 
@@ -62,7 +62,7 @@ namespace my::rtti_detail
 
         IWeakRef* acquireWeakRef();
 
-        IMemAllocator* getAllocator() const;
+        MemAllocator* getAllocator() const;
 
     private:
         void releaseStorageRef();
@@ -82,7 +82,7 @@ namespace my::rtti_detail
     private:
 #endif
 
-        IMemAllocator* m_allocator;
+        MemAllocator* m_allocator;
         AcquireFunc m_acquireFunc;
         DestructorFunc m_destructorFunc;
         std::byte* const m_allocatedPtr;
@@ -127,7 +127,7 @@ namespace my::rtti_detail
             return sharedState;
         }
 
-        static void* allocateStateAndInstance(void* inplaceMemBlock, IMemAllocator* allocator, size_t size, size_t alignment, AcquireFunc, DestructorFunc);
+        static void* allocateStateAndInstance(void* inplaceMemBlock, MemAllocator* allocator, size_t size, size_t alignment, AcquireFunc, DestructorFunc);
 
         static void* getInstancePtr(SharedState& state);
         // {
@@ -145,9 +145,9 @@ namespace my::rtti_detail
         }
 
         template <typename T, typename... Args>
-        static T* instanceFactory(void* inplaceMemBlock, IMemAllocator* allocator, Args&&... args)
+        static T* instanceFactory(void* inplaceMemBlock, MemAllocator* allocator, Args&&... args)
         {
-            static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_CLASS_/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
+            static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_REFCOUNTED_CLASS/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
             static_assert((alignof(T) <= alignof(SharedState)) || (alignof(T) % alignof(SharedState) == 0), "Unsupported type alignment.");
             MY_DEBUG_CHECK(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
 
@@ -214,7 +214,7 @@ namespace my::rtti_detail
         }
 
         template <typename T, typename... Args>
-        static T* createInstanceWithAllocator(IMemAllocator* allocator, Args&&... args)
+        static T* createInstanceWithAllocator(MemAllocator* allocator, Args&&... args)
         {
             if (!allocator)
             {
@@ -276,11 +276,11 @@ namespace my::rtti
 
     template <typename ClassImpl, typename Interface_ = ClassImpl, typename... Args>
     // requires ComInterface<Interface_>
-    Ptr<Interface_> createInstanceWithAllocator(IMemAllocator& allocator, Args&&... args)
+    Ptr<Interface_> createInstanceWithAllocator(MemAllocator* allocator, Args&&... args)
     {
         using namespace ::my::rtti_detail;
 
-        ClassImpl* const instance = RttiClassStorage::template createInstanceWithAllocator<ClassImpl>(&allocator, std::forward<Args>(args)...);
+        ClassImpl* const instance = RttiClassStorage::template createInstanceWithAllocator<ClassImpl>(allocator, std::forward<Args>(args)...);
         auto const itf = rtti::staticCast<Interface_*>(instance);
         MY_DEBUG_CHECK(itf);
         return rtti::TakeOwnership(itf);
@@ -346,7 +346,7 @@ public:                                                                        \
         return RttiClassStorage::getSharedState(*this).getInstanceRefsCount(); \
     }                                                                          \
                                                                                \
-    const ::my::IMemAllocator* getRttiClassInstanceAllocator() const           \
+    const ::my::MemAllocator* getRttiClassInstanceAllocator() const           \
     {                                                                          \
         return RttiClassStorage::getSharedState(*this).getAllocator();         \
     }
@@ -361,7 +361,7 @@ public:                                                                        \
     MY_RTTI_CLASS(ClassImpl, __VA_ARGS__)   \
     MY_IMPLEMENT_REFCOUNTED(ClassImpl)
 
-#define MY_REFCOUNTED_CLASS_(ClassImpl, ...) MY_REFCOUNTED_CLASS(ClassImpl, __VA_ARGS__)
+//#define MY_REFCOUNTED_CLASS_(ClassImpl, ...) MY_REFCOUNTED_CLASS(ClassImpl, __VA_ARGS__)
 
 #define MY_CLASS_ALLOW_PRIVATE_CONSTRUCTOR \
     template <my::RefCountedConcept>       \

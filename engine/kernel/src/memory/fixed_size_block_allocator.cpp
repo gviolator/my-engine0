@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "my/memory/fixed_size_block_allocator.h"
 
@@ -103,10 +103,10 @@ namespace my
      *
      */
     template <typename Mutex>
-    class FixedSizeBlockAllocator final : public IMemAllocator
+    class FixedSizeBlockAllocator final : public MemAllocator
     {
     public:
-        MY_REFCOUNTED_CLASS_(FixedSizeBlockAllocator, IMemAllocator)
+        MY_REFCOUNTED_CLASS(FixedSizeBlockAllocator, MemAllocator)
 
         FixedSizeBlockAllocator(HostMemoryPtr memory, size_t blockSize) :
             m_memory(memory),
@@ -203,18 +203,12 @@ namespace my
         using ThreadSafeAllocator = FixedSizeBlockAllocator<threading::SpinLock>;
         using ThreadUnsafeAllocator = FixedSizeBlockAllocator<threading::NoLockMutex>;
 
-        /*auto aa = new ThreadSafeAllocator(std::move(hostMemory), alignedBlockSize);
-
-        IRefCounted& aa1 = static_cast<IRefCounted&>(*aa);*/
-
-
-
         if (threadSafe)
         {
-            return rtti::createInstanceWithAllocator<ThreadSafeAllocator>(getSystemAllocator(), std::move(hostMemory), alignedBlockSize);
+            return rtti::createInstance<ThreadSafeAllocator>(std::move(hostMemory), alignedBlockSize);
         }
 
-        return rtti::createInstanceWithAllocator<ThreadUnsafeAllocator>(getSystemAllocator(), std::move(hostMemory), alignedBlockSize);
+        return rtti::createInstance<ThreadUnsafeAllocator>(std::move(hostMemory), alignedBlockSize);
     }
 
 }  // namespace my

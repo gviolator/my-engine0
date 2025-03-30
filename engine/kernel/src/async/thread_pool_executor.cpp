@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/async/thread_pool_executor.h"
 
 #include "my/rtti/rtti_impl.h"
@@ -35,7 +35,7 @@ namespace my::async
     class ThreadPoolExecutor final : public Executor,
                                      public IRuntimeComponent
     {
-        MY_REFCOUNTED_CLASS_(my::async::ThreadPoolExecutor, Executor, IRuntimeComponent)
+        MY_REFCOUNTED_CLASS(my::async::ThreadPoolExecutor, Executor, IRuntimeComponent)
 
     public:
         ThreadPoolExecutor(std::optional<size_t> threadsCount)

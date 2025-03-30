@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include <shared_mutex>
 
@@ -14,7 +14,7 @@ namespace my::diag
     class LoggerImpl final : public Logger
     {
     public:
-        MY_REFCOUNTED_CLASS_(LoggerImpl, Logger)
+        MY_REFCOUNTED_CLASS(LoggerImpl, Logger)
 
         ~LoggerImpl();
 

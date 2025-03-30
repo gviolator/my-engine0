@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -15,9 +15,9 @@
 namespace my
 {
 
-    struct MY_ABSTRACT_TYPE IMemAllocator : IRefCounted
+    struct MY_ABSTRACT_TYPE MemAllocator : IRefCounted
     {
-        MY_INTERFACE(my::IMemAllocator, IRefCounted)
+        MY_INTERFACE(my::MemAllocator, IRefCounted)
 
         [[nodiscard]] virtual void* alloc(size_t size) = 0;
 
@@ -36,9 +36,9 @@ namespace my
         }
     };
 
-    struct MY_ABSTRACT_TYPE IAlignedMemAllocator : IMemAllocator
+    struct MY_ABSTRACT_TYPE AlignedMemAllocator : MemAllocator
     {
-        MY_INTERFACE(my::IAlignedMemAllocator, IMemAllocator)
+        MY_INTERFACE(my::AlignedMemAllocator, MemAllocator)
 
         [[nodiscard]] virtual void* allocAligned(size_t size, size_t alignment) = 0;
 
@@ -47,13 +47,13 @@ namespace my
         virtual void freeAligned(void* ptr, size_t alignment) = 0;
     };
 
-    using MemAllocatorPtr = my::Ptr<IMemAllocator>;
+    using MemAllocatorPtr = my::Ptr<MemAllocator>;
 
 #if 0
 
     template <typename T>
     concept MemAllocatorProvider = requires {
-        { T::getAllocator() } -> std::assignable_from<IMemAllocator&>;
+        { T::getAllocator() } -> std::assignable_from<MemAllocator&>;
     };
 
     /*
@@ -91,8 +91,8 @@ namespace my
         template <typename U, MemAllocatorProvider UProvider>
         bool operator==(const StatelessStdAllocator<U, UProvider>&) const
         {
-            const IMemAllocator& a1 = UProvider::GetAllocator();
-            const IMemAllocator& a2 = Provider::GetAllocator();
+            const MemAllocator& a1 = UProvider::GetAllocator();
+            const MemAllocator& a2 = Provider::GetAllocator();
 
             return &a1 == &a2;
         }
@@ -107,7 +107,7 @@ namespace my
         using value_type = T;
         using propagate_on_container_move_assignment = std::true_type;
 
-        MemAllocatorStdWrapper(IMemAllocator& alloc) noexcept :
+        MemAllocatorStdWrapper(MemAllocator& alloc) noexcept :
             m_allocator(std::move(alloc))
         {
             G_ASSERT(m_allocator);
@@ -161,15 +161,15 @@ namespace my
             return m_allocator.get() == other.get();
         }
 
-        const IMemAllocator::Ptr m_allocator;
+        const MemAllocatorPtr m_allocator;
     };
 
 #endif
 
-    MY_KERNEL_EXPORT IAlignedMemAllocator& getSystemAllocator();
+    MY_KERNEL_EXPORT AlignedMemAllocator& getSystemAllocator();
 
     //MY_KERNEL_EXPORT MemAllocatorPtr createSystemAllocator(bool threadSafe);
 
-//    MY_KERNEL_EXPORT IMemAllocator& getDefaultAllocator();
+//    MY_KERNEL_EXPORT MemAllocator& getDefaultAllocator();
 
 }  // namespace my

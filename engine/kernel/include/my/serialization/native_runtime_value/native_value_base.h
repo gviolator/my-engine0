@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -60,7 +60,7 @@ namespace my::ser_detail
             }
         }
 
-        virtual std::string_view findFieldName(const RuntimeValue& value) const
+        virtual std::string_view findFieldName([[maybe_unused]] const RuntimeValue& value) const
         {
             return {};
         }
@@ -70,7 +70,7 @@ namespace my::ser_detail
             return nullptr;
         }
 
-        virtual void onThisValueChanged(std::string_view key)
+        virtual void onThisValueChanged([[maybe_unused]] std::string_view key)
         {}
 
     private:
@@ -128,21 +128,21 @@ namespace my::ser_detail
 
     class ParentMutabilityGuard final : public virtual IRefCounted
     {
-        MY_CLASS_(my::ser_detail::ParentMutabilityGuard, IRefCounted)
+        MY_REFCOUNTED_CLASS(my::ser_detail::ParentMutabilityGuard, IRefCounted)
 
     public:
-        const RuntimeValue::Ptr& getParent() const
+        const RuntimeValuePtr& getParent() const
         {
             return m_parent;
         }
 
-        ParentMutabilityGuard(RuntimeValue::Ptr parent) :
+        ParentMutabilityGuard(RuntimeValuePtr parent) :
             m_parent(std::move(parent))
         {
         }
 
      private:
-        const RuntimeValue::Ptr m_parent;
+        const RuntimeValuePtr m_parent;
     };
 
     /**
@@ -259,7 +259,7 @@ namespace my::ser_detail
             auto guard = m_mutabilityGuardRef.lock();
             if(!guard)
             {
-                RuntimeValue::Ptr mutableThis = const_cast<NativeRuntimeValueBase<T>*>(this);
+                RuntimeValuePtr mutableThis = const_cast<NativeRuntimeValueBase<T>*>(this);
                 m_mutabilityGuardRef.reset();
                 guard = rtti::createInstanceInplace<ParentMutabilityGuard>(m_mutabilityGuardStorage, mutableThis);
                 m_mutabilityGuardRef = guard;

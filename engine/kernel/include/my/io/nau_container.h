@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -22,7 +22,7 @@ namespace my::io
      * @param containerData A shared pointer to `RuntimeValue` containing the container data.
      */
     MY_KERNEL_EXPORT
-    void writeContainerHeader(IStreamWriter::Ptr outputStream, std::string_view kind, const RuntimeValue::Ptr& containerData);
+    void writeContainerHeader(IStreamWriter::Ptr outputStream, std::string_view kind, const RuntimeValuePtr& containerData);
 
     /**
      * @brief Reads the header for a container from the input stream.
@@ -32,9 +32,9 @@ namespace my::io
      *
      * @param stream A smart pointer to the `IStreamReader` used for reading the header.
      * @return A `Result` containing a tuple with:
-     *         - `RuntimeValue::Ptr`: A shared pointer to `RuntimeValue` representing the container data.
+     *         - `RuntimeValuePtr`: A shared pointer to `RuntimeValue` representing the container data.
      *         - `size_t`: The offset of the header data.
      */
     MY_KERNEL_EXPORT
-    Result<std::tuple<RuntimeValue::Ptr, size_t>> readContainerHeader(IStreamReader::Ptr stream);
+    Result<std::tuple<RuntimeValuePtr, size_t>> readContainerHeader(IStreamReader::Ptr stream);
 }  // namespace my::io

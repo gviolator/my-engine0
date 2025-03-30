@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "my/serialization/runtime_value.h"
 
@@ -14,7 +14,7 @@ namespace my
     {
         class RuntimeValueRefImpl final : public RuntimeValueRef
         {
-            MY_REFCOUNTED_CLASS_(my::RuntimeValueRefImpl, RuntimeValueRef)
+            MY_REFCOUNTED_CLASS(my::RuntimeValueRefImpl, RuntimeValueRef)
 
         public:
             RuntimeValueRefImpl(RuntimeValuePtr& valueRef) :
@@ -378,16 +378,12 @@ namespace my
         return MakeError("Do not known how to assign runtime value");
     }
 
-    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, IMemAllocator* allocator)
+    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, MemAllocator* allocator)
     {
-        if (allocator)
-        {
-            return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(*allocator, std::ref(value));
-        }
-        return rtti::createInstance<RuntimeValueRefImpl, RuntimeValueRef>(std::ref(value));
+        return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(allocator, std::ref(value));
     }
 
-    // Ptr<RuntimeValueRef> RuntimeValueRef::create(std::reference_wrapper<const RuntimeValuePtr> value, IMemAllocator::Ptr allocator)
+    // Ptr<RuntimeValueRef> RuntimeValueRef::create(std::reference_wrapper<const RuntimeValuePtr> value, MemAllocatorPtr allocator)
     // {
     //     return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(std::move(allocator), value);
     // }

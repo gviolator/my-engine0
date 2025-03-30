@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -18,7 +18,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
         using ContainerType = std::decay_t<T>;
 
-        MY_CLASS_(VectorLikeNativeCollection<T>, Base)
+        MY_REFCOUNTED_CLASS(VectorLikeNativeCollection<T>, Base)
 
     public:
         static_assert(LikeStdVector<ContainerType>);
@@ -56,14 +56,14 @@ namespace my::ser_detail
             return m_collection.size();
         }
 
-        RuntimeValue::Ptr getAt(size_t index) override
+        RuntimeValuePtr getAt(size_t index) override
         {
             MY_DEBUG_CHECK(index < m_collection.size());
 
             return this->makeChildValue(makeValueRef(m_collection[index]));
         }
 
-        Result<> setAt(size_t index, const RuntimeValue::Ptr& value) override
+        Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
             MY_DEBUG_CHECK(value);
             MY_DEBUG_CHECK(index < m_collection.size());
@@ -99,7 +99,7 @@ namespace my::ser_detail
             }
         }
 
-        Result<> append(const RuntimeValue::Ptr& value) override
+        Result<> append(const RuntimeValuePtr& value) override
         {
             if constexpr(!IsMutable)
             {
@@ -130,7 +130,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
         using ContainerType = std::decay_t<T>;
 
-        MY_CLASS_(ListLikeNativeCollection<T>, Base)
+        MY_REFCOUNTED_CLASS(ListLikeNativeCollection<T>, Base)
 
     public:
         static_assert(LikeStdList<ContainerType>);
@@ -168,7 +168,7 @@ namespace my::ser_detail
             return m_collection.size();
         }
 
-        RuntimeValue::Ptr getAt(size_t index) override
+        RuntimeValuePtr getAt(size_t index) override
         {
             MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
@@ -178,7 +178,7 @@ namespace my::ser_detail
             return this->makeChildValue(makeValueRef(*element));
         }
 
-        Result<> setAt(size_t index, const RuntimeValue::Ptr& value) override
+        Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
             MY_DEBUG_CHECK(value);
             MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
@@ -212,7 +212,7 @@ namespace my::ser_detail
             }
         }
 
-        Result<> append(const RuntimeValue::Ptr& value) override
+        Result<> append(const RuntimeValuePtr& value) override
         {
             if constexpr(!IsMutable)
             {
@@ -242,7 +242,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
         using ContainerType = std::decay_t<T>;
 
-        MY_CLASS_(SetLikeNativeCollection<T>, Base)
+        MY_REFCOUNTED_CLASS(SetLikeNativeCollection<T>, Base)
 
     public:
         static_assert(LikeSet<ContainerType>);
@@ -280,7 +280,7 @@ namespace my::ser_detail
             return m_collection.size();
         }
 
-        RuntimeValue::Ptr getAt(size_t index) override
+        RuntimeValuePtr getAt(size_t index) override
         {
             MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
@@ -290,7 +290,7 @@ namespace my::ser_detail
             return this->makeChildValue(makeValueRef(*element));
         }
 
-        Result<> setAt(size_t index, const RuntimeValue::Ptr& value) override
+        Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
             MY_DEBUG_CHECK(value);
             MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
@@ -324,7 +324,7 @@ namespace my::ser_detail
             }
         }
 
-        Result<> append(const RuntimeValue::Ptr& value) override
+        Result<> append(const RuntimeValuePtr& value) override
         {
             if constexpr(!IsMutable)
             {
@@ -354,31 +354,31 @@ namespace my
 {
 
     template <LikeStdVector T>
-    RuntimeCollection::Ptr makeValueRef(T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdVector T>
-    RuntimeCollection::Ptr makeValueRef(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<const T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdVector T>
-    RuntimeCollection::Ptr makeValueCopy(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdVector T>
-    RuntimeCollection::Ptr makeValueCopy(T&& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(T&& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T>;
 
@@ -386,31 +386,31 @@ namespace my
     }
 
     template <LikeStdList T>
-    RuntimeCollection::Ptr makeValueRef(T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdList T>
-    RuntimeCollection::Ptr makeValueRef(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<const T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdList T>
-    RuntimeCollection::Ptr makeValueCopy(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeStdList T>
-    RuntimeCollection::Ptr makeValueCopy(T&& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(T&& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T>;
 
@@ -418,31 +418,31 @@ namespace my
     }
 
     template <LikeSet T>
-    RuntimeCollection::Ptr makeValueRef(T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeSet T>
-    RuntimeCollection::Ptr makeValueRef(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueRef(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<const T&>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeSet T>
-    RuntimeCollection::Ptr makeValueCopy(const T& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(const T& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T>;
 
-        return rtti::createInstanceWithAllocator<Collection>(std::move(allocator), collection);
+        return rtti::createInstanceWithAllocator<Collection>(allocator, collection);
     }
 
     template <LikeSet T>
-    RuntimeCollection::Ptr makeValueCopy(T&& collection, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeCollection> makeValueCopy(T&& collection, MemAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T>;
 

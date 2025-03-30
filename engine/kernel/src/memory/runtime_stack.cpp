@@ -15,9 +15,9 @@ namespace my
         static thread_local RuntimeStackGuard* s_currentStackGuard = nullptr;
     }
 
-    class RuntimeStackAllocator final : public IMemAllocator
+    class RuntimeStackAllocator final : public MemAllocator
     {
-        NAU_CLASS_(my::RuntimeStackAllocator, IMemAllocator)
+        NAU_CLASS_(my::RuntimeStackAllocator, MemAllocator)
 
     public:
         RuntimeStackAllocator(const Kilobyte size) :
@@ -109,7 +109,7 @@ namespace my
 
     RuntimeStackGuard::RuntimeStackGuard(Kilobyte size) :
         m_prev(std::exchange(s_currentStackGuard, this)),
-        m_allocator(rtti::createInstance<RuntimeStackAllocator, IMemAllocator>(size))
+        m_allocator(rtti::createInstance<RuntimeStackAllocator, MemAllocator>(size))
     {
     }
 
@@ -123,9 +123,9 @@ namespace my
         G_ASSERT_ALWAYS(std::exchange(s_currentStackGuard, m_prev) == this);
     }
 
-    const IMemAllocator::Ptr& RuntimeStackGuard::getAllocator()
+    const MemAllocatorPtr& RuntimeStackGuard::getAllocator()
     {
-        const IMemAllocator::Ptr& allocator = (s_currentStackGuard && s_currentStackGuard->m_allocator) ? s_currentStackGuard->m_allocator : getCrtAllocator();
+        const MemAllocatorPtr& allocator = (s_currentStackGuard && s_currentStackGuard->m_allocator) ? s_currentStackGuard->m_allocator : getCrtAllocator();
         G_ASSERT(allocator);
 
         return (allocator);

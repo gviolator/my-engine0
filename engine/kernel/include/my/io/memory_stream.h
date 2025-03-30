@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 
@@ -44,7 +44,7 @@ namespace my::io
      * @return A smart pointer to the created `IMemoryStream` instance.
      */
     MY_KERNEL_EXPORT
-    IMemoryStream::Ptr createMemoryStream(AccessModeFlag accessMode = AccessMode::Write | AccessMode::Read, IMemAllocator::Ptr allocator = nullptr);
+    IMemoryStream::Ptr createMemoryStream(AccessModeFlag accessMode = AccessMode::Write | AccessMode::Read, MemAllocatorPtr allocator = nullptr);
 
     /**
      * @brief Creates a read-only in-memory stream from a given buffer.
@@ -53,7 +53,7 @@ namespace my::io
      * @return A smart pointer to the created `IMemoryStream` instance.
      */
     MY_KERNEL_EXPORT
-    IMemoryStream::Ptr createReadonlyMemoryStream(std::span<const std::byte> buffer, IMemAllocator::Ptr allocator = nullptr);
+    IMemoryStream::Ptr createReadonlyMemoryStream(std::span<const std::byte> buffer, MemAllocatorPtr allocator = nullptr);
 
     /**
      * @brief Creates a new in-memory stream from a `Buffer` with specified access modes.
@@ -63,5 +63,5 @@ namespace my::io
      * @return A smart pointer to the created `IMemoryStream` instance.
      */
     MY_KERNEL_EXPORT
-    IMemoryStream::Ptr createMemoryStream(Buffer buffer, AccessModeFlag accessMode = AccessMode::Write | AccessMode::Read, IMemAllocator::Ptr allocator = nullptr);
+    IMemoryStream::Ptr createMemoryStream(Buffer buffer, AccessModeFlag accessMode = AccessMode::Write | AccessMode::Read, MemAllocatorPtr allocator = nullptr);
 }  // namespace my::io

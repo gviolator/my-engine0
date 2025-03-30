@@ -8,7 +8,7 @@
 #include "nau/serialization/runtime_value_builder.h"
 #include "nau/utils/type_utility.h"
 
-namespace nau::math
+namespace my::math
 {
 
     float getVec3Value(const vec3& v, size_t index)
@@ -21,7 +21,7 @@ namespace nau::math
         v.setElem(index, elem);
     }
 
-}  // namespace nau::math
+}  // namespace my::math
 
 namespace nau
 {
@@ -55,14 +55,14 @@ namespace nau
                 return m_collection.size();
             }
 
-            RuntimeValue::Ptr getAt(size_t index) const override
+            RuntimeValuePtr getAt(size_t index) const override
             {
                 NAU_ASSERT(index < this->getSize());
 
                 return makeValueRef(m_collection[index]);  // this->makeChildValue(makeValueRef(el));
             }
 
-            Result<> setAt(size_t index, RuntimeValue::Ptr value) override
+            Result<> setAt(size_t index, RuntimeValuePtr value) override
             {
                 NAU_ASSERT(value);
                 NAU_ASSERT(index < this->getSize());
@@ -75,7 +75,7 @@ namespace nau
             {
             }
 
-            Result<> append(RuntimeValue::Ptr value) override
+            Result<> append(RuntimeValuePtr value) override
             {
                 decltype(auto) element = m_collection.emplace_back();
                 return RuntimeValue::assign(makeValueRef(element), value);
@@ -89,13 +89,13 @@ namespace nau
 }  // namespace nau
 
 #if 0
-namespace nau::math
+namespace my::math
 {
     template <typename T>
     class VecRuntimeValue : public RuntimeReadonlyCollection,
                             public RuntimeReadonlyDictionary
     {
-        NAU_CLASS_(nau::math::VecRuntimeValue<T>, RuntimeReadonlyCollection, RuntimeReadonlyDictionary)
+        NAU_CLASS_(my::math::VecRuntimeValue<T>, RuntimeReadonlyCollection, RuntimeReadonlyDictionary)
 
     public:
         using Type = std::decay_t<T>;
@@ -117,13 +117,13 @@ namespace nau::math
             return getKeysArray().size();
         }
 
-        RuntimeValue::Ptr getAt(size_t index) override
+        RuntimeValuePtr getAt(size_t index) override
         {
             NAU_ASSERT(index < getSize());
             return makeValueCopy(m_vec.getElem(index));
         }
 
-        Result<> setAt(size_t index, const RuntimeValue::Ptr& value) override
+        Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
             NAU_ASSERT(index < getSize());
             auto castResult = runtimeValueCast<float>(value);
@@ -140,7 +140,7 @@ namespace nau::math
             return getKeysArray()[index];
         }
 
-        RuntimeValue::Ptr getValue(std::string_view key) override
+        RuntimeValuePtr getValue(std::string_view key) override
         {
             if(const auto index = getElementIndex(key))
             {
@@ -151,7 +151,7 @@ namespace nau::math
             return nullptr;
         }
 
-        Result<> setValue(std::string_view key, const RuntimeValue::Ptr& value) override
+        Result<> setValue(std::string_view key, const RuntimeValuePtr& value) override
         {
             if(const auto index = getElementIndex(key))
             {
@@ -200,11 +200,11 @@ namespace nau::math
         Type m_vec;
     };
 
-}  // namespace nau::math
+}  // namespace my::math
 
 #endif
 
-namespace nau::test
+namespace my::test
 {
 
     struct MyObject
@@ -244,5 +244,5 @@ namespace nau::test
         std::cout << "Done\n";
     }
 
-}  // namespace nau::test
+}  // namespace my::test
 #endif

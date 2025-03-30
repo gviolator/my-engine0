@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "log_subscription_impl.h"
 
 #include "logger_impl.h"

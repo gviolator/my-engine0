@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "logger_impl.h"
 
 #include "my/threading/lock_guard.h"

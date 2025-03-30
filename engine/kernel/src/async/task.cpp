@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/async/task.h"
 
 #include "core_task_impl.h"
@@ -201,7 +201,7 @@ namespace my::async_detail
         ExpirationSubscription expirationSubscription;
         std::atomic<CompletionState> completionState = CompletionState::None;
 
-        static IMemAllocator& getAwaiterStateAllocator()
+        static MemAllocator& getAwaiterStateAllocator()
         {
             constexpr Byte StateBlockSize = std::bit_ceil(sizeof(AwaiterState));
 

@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 
 #include "my/kernel/kernel_config.h"
@@ -17,9 +17,9 @@ namespace my::rtti
     };
 
 
-    MY_KERNEL_EXPORT RuntimeValue::Ptr makeValueRef(TypeInfo& value, IMemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(TypeInfo& value, MemAllocator* allocator = nullptr);
 
-    MY_KERNEL_EXPORT RuntimeValue::Ptr makeValueRef(const TypeInfo& value, IMemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(const TypeInfo& value, MemAllocator* allocator = nullptr);
 
-    MY_KERNEL_EXPORT RuntimeValue::Ptr makeValueCopy(TypeInfo value, IMemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueCopy(TypeInfo value, MemAllocator* allocator = nullptr);
 }  // namespace my::rtti

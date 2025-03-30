@@ -13,7 +13,7 @@ namespace my
     class RuntimeStackGuard
     {
     public:
-        static const IMemAllocator::Ptr& getAllocator();
+        static const MemAllocatorPtr& getAllocator();
 
         RuntimeStackGuard();
         RuntimeStackGuard(Kilobyte size);
@@ -23,13 +23,13 @@ namespace my
 
     private:
         RuntimeStackGuard* const m_prev = nullptr;
-        IMemAllocator::Ptr m_allocator;
+        MemAllocatorPtr m_allocator;
         size_t m_top = 0;
     };
 
     struct RuntimeStackAllocatorProvider
     {
-        static inline IMemAllocator& getAllocator()
+        static inline MemAllocator& getAllocator()
         {
             return *RuntimeStackGuard::getAllocator();
         }

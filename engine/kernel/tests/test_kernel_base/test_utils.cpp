@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/utils/type_utility.h"
 
 namespace my::test

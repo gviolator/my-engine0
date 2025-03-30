@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <type_traits>
@@ -23,7 +23,7 @@ namespace my::ser_detail
         using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeIntegerValue>;
         using IntegralValueType = std::remove_const_t<std::remove_reference_t<T>>;
 
-        MY_CLASS_(NativeIntegerValue<T>, Base)
+        MY_REFCOUNTED_CLASS(NativeIntegerValue<T>, Base)
 
     public:
         static inline constexpr bool IsMutable = !std::is_const_v<std::remove_reference_t<T>>;
@@ -93,20 +93,20 @@ namespace my::ser_detail
 namespace my
 {
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(T& value, IMemAllocator* allocator)
+    Ptr<RuntimeIntegerValue> makeValueRef(T& value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T&>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(const T& value, IMemAllocator* allocator)
+    Ptr<RuntimeIntegerValue> makeValueRef(const T& value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<const T&>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<const T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueCopy(T value, IMemAllocator::Ptr allocator)
+    Ptr<RuntimeIntegerValue> makeValueCopy(T value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T>>(allocator, value);
     }
 }  // namespace my

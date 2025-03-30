@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/platform/windows/diag/win_error.h"
 
 #include "my/utils/scope_guard.h"

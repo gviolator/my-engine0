@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #pragma once
 #include <concepts>
@@ -17,7 +17,7 @@ namespace my
     {
         using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeBooleanValue>;
 
-        MY_CLASS_(NativeBooleanValue<T>, Base)
+        MY_REFCOUNTED_CLASS(NativeBooleanValue<T>, Base)
 
     public:
         static inline constexpr bool IsMutable = !std::is_const_v<std::remove_reference_t<T>>;
@@ -56,17 +56,17 @@ namespace my
 
     /**
     */
-    inline RuntimeBooleanValue::Ptr makeValueRef(bool& value, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueRef(bool& value, MemAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<NativeBooleanValue<bool&>>(std::move(allocator), value);
+        return rtti::createInstanceWithAllocator<NativeBooleanValue<bool&>>(allocator, value);
     }
 
-    inline RuntimeBooleanValue::Ptr makeValueRef(const bool& value, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueRef(const bool& value, MemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<const bool&>>(std::move(allocator), value);
     }
 
-    inline RuntimeBooleanValue::Ptr makeValueCopy(bool value, IMemAllocator::Ptr allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueCopy(bool value, MemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<bool>>(std::move(allocator), value);
     }

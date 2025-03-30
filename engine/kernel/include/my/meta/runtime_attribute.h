@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 
 #include <type_traits>
@@ -40,12 +40,12 @@ namespace my::meta
             @brief getting value associated with a key.
             If there is multiple attributes for that key - only first will be returned
          */
-        virtual RuntimeValue::Ptr getValue(std::string_view key) const = 0;
+        virtual RuntimeValuePtr getValue(std::string_view key) const = 0;
 
         /**
             @brief getting all values associated with a key.
          */
-        virtual std::vector<RuntimeValue::Ptr> getAllValues(std::string_view key) const = 0;
+        virtual std::vector<RuntimeValuePtr> getAllValues(std::string_view key) const = 0;
 
         /**
          */
@@ -61,7 +61,7 @@ namespace my::meta
         requires(HasRuntimeValueRepresentation<T> && std::is_default_constructible_v<T>)
         std::optional<T> get() const
         {
-            RuntimeValue::Ptr value = getValue(Key{}.strValue);
+            RuntimeValuePtr value = getValue(Key{}.strValue);
             if (!value)
             {
                 return std::nullopt;
@@ -79,7 +79,7 @@ namespace my::meta
         }
 
         template <std::derived_from<Attribute> Key>
-        std::vector<RuntimeValue::Ptr> getAll() const
+        std::vector<RuntimeValuePtr> getAll() const
         {
             return getAllValues(Key{}.strValue);
         }
@@ -110,12 +110,12 @@ namespace my::meta
 
         std::string_view getKey(size_t index) const override;
 
-        RuntimeValue::Ptr getValue(std::string_view key) const override;
+        RuntimeValuePtr getValue(std::string_view key) const override;
 
-        std::vector<RuntimeValue::Ptr> getAllValues(std::string_view key) const override;
+        std::vector<RuntimeValuePtr> getAllValues(std::string_view key) const override;
 
     private:
-        using AttributeEntry = std::pair<std::string_view, RuntimeValue::Ptr>;
+        using AttributeEntry = std::pair<std::string_view, RuntimeValuePtr>;
 
         void setupUniqueKeys();
 
@@ -142,7 +142,7 @@ namespace my::meta
                     // attribute must have defined string value.
                     if (const Key key{}; !key.strValue.empty())
                     {
-                        RuntimeValue::Ptr value =
+                        RuntimeValuePtr value =
                             makeValueCopy(std::move(field.value));
                         m_attributes.emplace_back(key.strValue, std::move(value));
                     }

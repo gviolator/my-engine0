@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #pragma once
 #include <functional>
 #include <optional>
@@ -52,10 +52,10 @@ namespace my
         MY_INTERFACE(my::RuntimeValueRef, RuntimeValue)
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, IMemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, MemAllocator* = nullptr);
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr&>, IMemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr>, MemAllocator* = nullptr);
 
         virtual void setValue(RuntimeValuePtr) = 0;
  
@@ -182,8 +182,6 @@ namespace my
     {
         MY_INTERFACE(my::RuntimeBooleanValue, RuntimePrimitiveValue)
 
-        using Ptr = my::Ptr<RuntimeBooleanValue>;
-
         virtual void setBool(bool) = 0;
 
         virtual bool getBool() const = 0;
@@ -195,8 +193,6 @@ namespace my
     struct MY_ABSTRACT_TYPE RuntimeOptionalValue : RuntimeValue
     {
         MY_INTERFACE(my::RuntimeOptionalValue, RuntimeValue)
-
-        using Ptr = my::Ptr<RuntimeOptionalValue>;
 
         virtual bool hasValue() const = 0;
 
@@ -221,8 +217,6 @@ namespace my
     {
         MY_INTERFACE(my::RuntimeReadonlyCollection, RuntimeValue)
 
-        using Ptr = my::Ptr<RuntimeReadonlyCollection>;
-
         virtual size_t getSize() const = 0;
 
         virtual RuntimeValuePtr getAt(size_t index) = 0;
@@ -241,8 +235,6 @@ namespace my
     {
         MY_INTERFACE(my::RuntimeCollection, RuntimeReadonlyCollection)
 
-        using Ptr = my::Ptr<RuntimeCollection>;
-
         virtual void clear() = 0;
 
         virtual void reserve(size_t) = 0;
@@ -255,8 +247,6 @@ namespace my
     struct MY_ABSTRACT_TYPE RuntimeReadonlyDictionary : virtual RuntimeValue
     {
         MY_INTERFACE(my::RuntimeReadonlyDictionary, RuntimeValue)
-
-        using Ptr = my::Ptr<RuntimeReadonlyDictionary>;
 
         virtual size_t getSize() const = 0;
 
@@ -287,8 +277,6 @@ namespace my
     {
         MY_INTERFACE(my::RuntimeDictionary, RuntimeReadonlyDictionary)
 
-        using Ptr = my::Ptr<RuntimeDictionary>;
-
         virtual void clear() = 0;
 
         virtual RuntimeValuePtr erase(std::string_view) = 0;
@@ -300,8 +288,6 @@ namespace my
     struct MY_ABSTRACT_TYPE RuntimeObject : virtual RuntimeReadonlyDictionary
     {
         MY_INTERFACE(my::RuntimeObject, RuntimeReadonlyDictionary)
-
-        using Ptr = my::Ptr<RuntimeObject>;
 
         struct FieldInfo
         {

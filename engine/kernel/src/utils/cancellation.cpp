@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 #include "my/utils/cancellation.h"
 
 #include "my/async/async_timer.h"
@@ -327,7 +327,7 @@ namespace my::kernel_detail
         std::optional<uintptr_t> m_cancellationSubscription;
     };
 
-}  // namespace nau::kernel_detail
+}  // namespace my::kernel_detail
 
 namespace my
 {

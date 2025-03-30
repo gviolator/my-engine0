@@ -11,7 +11,7 @@
 
 using namespace ::testing;
 
-namespace nau::test
+namespace my::test
 {
 
     namespace
@@ -20,8 +20,8 @@ namespace nau::test
         {
             int id = 0;
             std::string type;
-            RuntimeValue::Ptr data1;
-            RuntimeValue::Ptr data2;
+            RuntimeValuePtr data1;
+            RuntimeValuePtr data2;
 
 #pragma region Class info
             NAU_CLASS_FIELDS(
@@ -100,7 +100,7 @@ namespace nau::test
      */
     TEST(TestSerializationJson, JsonObjectToRuntimeValue)
     {
-        using namespace nau::serialization;
+        using namespace my::serialization;
 
         const std::string_view jsonStr = R"--(
             {
@@ -119,7 +119,7 @@ namespace nau::test
      */
     TEST(TestSerializationJson, JsonArrayToRuntimeValue)
     {
-        using namespace nau::serialization;
+        using namespace my::serialization;
 
         const std::string_view jsonStr = R"--(
             [1, 2, true, 77]
@@ -142,7 +142,7 @@ namespace nau::test
      */
     TEST(TestSerializationJson, JsonFloatToRuntimeValue)
     {
-        const RuntimeFloatValue::Ptr value = serialization::jsonToRuntimeValue(Json::Value{77.7f});
+        const Ptr<RuntimeFloatValue> value = serialization::jsonToRuntimeValue(Json::Value{77.7f});
         ASSERT_EQ(value->getSingle(), 77.7f);
     }
 
@@ -150,7 +150,7 @@ namespace nau::test
      */
     TEST(TestSerializationJson, JsonStringToRuntimeValue)
     {
-        const RuntimeStringValue::Ptr value = serialization::jsonToRuntimeValue(Json::Value{"text"});
+        const Ptr<RuntimeStringValue> value = serialization::jsonToRuntimeValue(Json::Value{"text"});
         ASSERT_EQ(value->getString(), std::string_view{"text"});
     }
 
@@ -158,7 +158,7 @@ namespace nau::test
      */
     TEST(TestSerializationJson, JsonBoolToRuntimeValue)
     {
-        const RuntimeBooleanValue::Ptr value = serialization::jsonToRuntimeValue(Json::Value{true});
+        const Ptr<RuntimeBooleanValue> value = serialization::jsonToRuntimeValue(Json::Value{true});
         ASSERT_TRUE(value->getBool());
     }
 
@@ -364,6 +364,6 @@ namespace nau::test
         ASSERT_EQ(jsonValue["type"].asString(), "array");
     }
 
-}  // namespace nau::test
+}  // namespace my::test
 
 #endif

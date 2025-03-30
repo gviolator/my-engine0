@@ -1,4 +1,4 @@
-// #my_engine_source_header
+// #my_engine_source_file
 
 #include "my/rtti/rtti_impl.h"
 #include "my/rtti/type_info.h"
