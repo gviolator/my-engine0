@@ -217,7 +217,7 @@ namespace my
                 dst.reserve(size);
                 for (size_t i = 0; i < size; ++i)
                 {
-                    NauCheckResult(dst.append(src.getAt(i)));
+                    CheckResult(dst.append(src.getAt(i)));
                 }
             }
 
@@ -235,7 +235,7 @@ namespace my
             {
                 auto key = src.getKey(i);
                 auto value = src.getValue(key);
-                NauCheckResult(dst.setValue(key, value));
+                CheckResult(dst.setValue(key, value));
             }
 
             return {};
@@ -248,7 +248,7 @@ namespace my
                 auto key = obj.getKey(i);
                 if (auto srcValue = srcDict.getValue(key))
                 {
-                    NauCheckResult(obj.setFieldValue(key, srcValue));
+                    CheckResult(obj.setFieldValue(key, srcValue));
                 }
             }
 
@@ -278,7 +278,7 @@ namespace my
             }
             else if (auto const dstStr = dst->as<RuntimeStringValue*>())
             {
-                NauCheckResult(dstStr->setString(""));
+                CheckResult(dstStr->setString(""));
             }
             else if (auto const dstCollection = dst->as<RuntimeCollection*>())
             {
@@ -355,7 +355,7 @@ namespace my
                     continue;
                 }
 
-                NauCheckResult(dstCollection->setAt(i, srcCollection->getAt(i)));
+                CheckResult(dstCollection->setAt(i, srcCollection->getAt(i)));
             }
 
             return {};

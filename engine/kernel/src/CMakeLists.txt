@@ -50,18 +50,22 @@ add_library(${TargetName} ${Sources} ${PublicHeaders})
 
 target_precompile_headers(${TargetName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pch.h)
 
+set(ThirdPartyPublicLibs
+  vectormath
+)
+
 if (NOT BUILD_SHARED_LIBS)
   target_compile_definitions(${TargetName} PUBLIC MY_STATIC_RUNTIME)
-else()
-
-  target_link_libraries(${TargetName} PUBLIC 
-    jsoncpp_lib
-    vectormath
+  list(APPEND ThirdPartyPublicLibs
+    jsoncpp_static
   )
-
-  #target_compile_definitions(${TargetName} PUBLIC MY_STATIC_RUNTIME=0)
+else()
+  list(APPEND ThirdPartyPublicLibs
+    jsoncpp_lib
+  )
 endif()
 
+target_link_libraries(${TargetName} PUBLIC ${ThirdPartyPublicLibs})
 target_compile_definitions(${TargetName} PRIVATE MY_KERNEL_BUILD)
 
 target_include_directories(${TargetName} PUBLIC

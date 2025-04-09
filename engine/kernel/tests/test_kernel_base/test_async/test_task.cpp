@@ -580,7 +580,7 @@ namespace my::test
 
         const auto makeErrorMessage = [](size_t index) -> std::string
         {
-            const std::string message = ::fmt::format("Error: {}", index);
+            const std::string message = std::format("Error: {}", index);
             return std::string{message.data(), message.size()};
         };
 

@@ -1,17 +1,15 @@
-#if 0
 // #my_engine_source_file
 
-#include "./json_to_runtime_value.h"
-#include "nau/io/stream.h"
-#include "nau/memory/bytes_buffer.h"
-
+#include "json_to_runtime_value.h"
+#include "my/io/stream.h"
+#include "my/memory/buffer.h"
 
 namespace my::json_detail
 {
-    inline eastl::unique_ptr<Json::CharReader> makeJsonCharReader()
+    inline std::unique_ptr<Json::CharReader> makeJsonCharReader()
     {
         Json::CharReaderBuilder builder;
-        return eastl::unique_ptr<Json::CharReader>{builder.newCharReader()};
+        return std::unique_ptr<Json::CharReader>{builder.newCharReader()};
     }
 }  // namespace my::json_detail
 
@@ -23,17 +21,18 @@ namespace my::serialization
         return (*parser);
     }
 
-    Result<RuntimeValue::Ptr> jsonParse(io::IStreamReader& reader, IMemAllocator::Ptr allocator)
+    Result<RuntimeValuePtr> jsonParse(io::IStreamReader& reader, MemAllocator* allocator)
     {
         constexpr size_t BlockSize = 256;
 
-        BytesBuffer buffer;
+        Buffer buffer;
         size_t totalRead = 0;
 
         do
         {
-            auto readResult = reader.read(buffer.append(BlockSize), BlockSize);
-            NauCheckResult(readResult);
+            std::byte* const ptr = reinterpret_cast<std::byte*>(buffer.append(BlockSize));
+            auto readResult = reader.read(ptr, BlockSize);
+            CheckResult(readResult);
 
             const size_t actualRead = *readResult;
             totalRead += actualRead;
@@ -46,15 +45,15 @@ namespace my::serialization
 
         } while (true);
 
-        eastl::u8string_view str{reinterpret_cast<const char8_t*>(buffer.data()), buffer.size()};
-        return jsonParseString(str, std::move(allocator));
+        std::string_view str{reinterpret_cast<const char*>(buffer.data()), buffer.size()};
+        return jsonParseString(str, allocator);
     }
 
-    Result<Json::Value> jsonParseToValue(eastl::string_view str)
+    Result<Json::Value> jsonParseToValue(std::string_view str)
     {
         if (str.empty())
         {
-            return NauMakeError("Empty string");
+            return MakeError("Empty string");
         }
 
         std::string message;
@@ -62,16 +61,16 @@ namespace my::serialization
 
         if (!jsonGetParser().parse(str.data(), str.data() + str.size(), &root, &message))
         {
-            return NauMakeErrorT(SerializationError)(eastl::string{message.data(), message.size()});
+            return MakeErrorT(SerializationError)(std::string{message.data(), message.size()});
         }
 
         return root;
     }
 
-    Result<RuntimeValue::Ptr> jsonParseString(eastl::string_view str, IMemAllocator::Ptr)
+    Result<RuntimeValuePtr> jsonParseString(std::string_view str, MemAllocator*)
     {
         auto root = jsonParseToValue(str);
-        NauCheckResult(root);
+        CheckResult(root);
 
         if (root->isObject())
         {
@@ -86,5 +85,3 @@ namespace my::serialization
     }
 
 }  // namespace my::serialization
-
-#endif

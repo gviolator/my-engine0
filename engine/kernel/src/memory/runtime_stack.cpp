@@ -17,7 +17,7 @@ namespace my
 
     class RuntimeStackAllocator final : public MemAllocator
     {
-        NAU_CLASS_(my::RuntimeStackAllocator, MemAllocator)
+        MY_REFCOUNTED_CLASS(my::RuntimeStackAllocator, MemAllocator)
 
     public:
         RuntimeStackAllocator(const Kilobyte size) :

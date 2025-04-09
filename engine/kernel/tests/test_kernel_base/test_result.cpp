@@ -466,7 +466,7 @@ namespace my::test
         const auto useResult = [](const auto& factory, bool& executeAfterCheck) -> Result<unsigned>
         {
             executeAfterCheck = false;
-            NauCheckResult(factory());
+            CheckResult(factory());
             executeAfterCheck = true;
 
             return 1;

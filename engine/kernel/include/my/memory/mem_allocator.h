@@ -168,6 +168,11 @@ namespace my
 
     MY_KERNEL_EXPORT AlignedMemAllocator& getSystemAllocator();
 
+    inline AlignedMemAllocator* getSystemAllocatorPtr()
+    {
+        return &getSystemAllocator();
+    }
+
     //MY_KERNEL_EXPORT MemAllocatorPtr createSystemAllocator(bool threadSafe);
 
 //    MY_KERNEL_EXPORT MemAllocator& getDefaultAllocator();

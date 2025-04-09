@@ -1,9 +1,9 @@
 // #my_engine_source_file
 
 #pragma once
-#include <EASTL/optional.h>
-#include <EASTL/string.h>
-#include <EASTL/string_view.h>
+#include <optional>
+#include <string>
+#include <string_view>
 
 #include "my/io/stream.h"
 #include "my/kernel/kernel_config.h"
@@ -13,11 +13,7 @@
 #include "my/utils/functor.h"
 #include "my/utils/result.h"
 
-
-#if __has_include(<json/json.h>)
-    #define HAS_JSONCPP
-    #include <json/json.h>
-#endif
+#include <json/json.h>
 
 namespace my::serialization
 {
@@ -37,21 +33,12 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParse(io::IStreamReader&, MemAllocatorPtr = nullptr);
+    Result<RuntimeValuePtr> jsonParse(io::IStreamReader&, MemAllocator* = nullptr);
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParseString(std::string_view, MemAllocatorPtr = nullptr);
-
-    /**
-     */
-    inline Result<RuntimeValuePtr> jsonParseString(std::u8string_view str, MemAllocatorPtr allocator = nullptr)
-    {
-        return jsonParseString(std::string_view{reinterpret_cast<const char*>(str.data()), str.size()}, std::move(allocator));
-    }
-
-#ifdef HAS_JSONCPP
+    Result<RuntimeValuePtr> jsonParseString(std::string_view, MemAllocator* = nullptr);
 
     /**
      */
@@ -84,18 +71,18 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocatorPtr = nullptr);
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocator* = nullptr);
 
     /**
      */
-    inline RuntimeDictionary::Ptr jsonCreateDictionary()
+    inline Ptr<RuntimeDictionary> jsonCreateDictionary()
     {
         return jsonToRuntimeValue(Json::Value{Json::ValueType::objectValue});
     }
 
     /**
      */
-    inline RuntimeCollection::Ptr jsonCreateCollection()
+    inline Ptr<RuntimeCollection> jsonCreateCollection()
     {
         return jsonToRuntimeValue(Json::Value{Json::ValueType::arrayValue});
     }
@@ -103,10 +90,10 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocatorPtr = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocatorPtr = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
     Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValuePtr&, JsonSettings = {});
@@ -117,10 +104,5 @@ namespace my::serialization
     MY_KERNEL_EXPORT
     Result<> jsonWrite(io::IStreamWriter&, const Json::Value&, JsonSettings = {});
 
-#endif
-
 }  // namespace my::serialization
 
-#ifdef HAS_JSONCPP
-    #undef HAS_JSONCPP
-#endif

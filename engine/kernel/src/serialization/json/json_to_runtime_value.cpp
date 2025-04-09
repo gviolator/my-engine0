@@ -1,23 +1,20 @@
-#if 0
-// Copyright 2024 N-GINN LLC. All rights reserved.
-// Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
+// #my_engine_source_file
 
+#include "json_to_runtime_value.h"
 
-#include "./json_to_runtime_value.h"
-
-#include "nau/io/stream.h"
-#include "nau/memory/bytes_buffer.h"
-#include "nau/serialization/json.h"
-#include "nau/serialization/runtime_value_builder.h"
+#include "my/io/stream.h"
+#include "my/memory/buffer.h"
+#include "my/serialization/json.h"
+#include "my/serialization/runtime_value_builder.h"
 
 namespace my::json_detail
 {
 
-    RuntimeValue::Ptr wrapJsonValueAsCollection(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
+    RuntimeValuePtr wrapJsonValueAsCollection(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
 
-    RuntimeValue::Ptr wrapJsonValueAsDictionary(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
+    RuntimeValuePtr wrapJsonValueAsDictionary(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
 
-    RuntimeValue::Ptr createJsonNullValue(const Ptr<JsonValueHolderImpl>& root);
+    RuntimeValuePtr createJsonNullValue(const Ptr<JsonValueHolderImpl>& root);
 
     Result<> setJsonValue(Json::Value& jsonValue, RuntimeValue& rtValue)
     {
@@ -25,7 +22,7 @@ namespace my::json_detail
         {
             if (optValue->hasValue())
             {
-                NauCheckResult(setJsonValue(jsonValue, *optValue->getValue()));
+                CheckResult(setJsonValue(jsonValue, *optValue->getValue()));
             }
             else
             {
@@ -70,9 +67,9 @@ namespace my::json_detail
             {
                 Json::Value elementJsonValue;
 
-                if (RuntimeValue::Ptr elementValue = coll->getAt(i))
+                if (RuntimeValuePtr elementValue = coll->getAt(i))
                 {
-                    NauCheckResult(setJsonValue(elementJsonValue, *elementValue));
+                    CheckResult(setJsonValue(elementJsonValue, *elementValue));
                 }
 
                 jsonValue.append(std::move(elementJsonValue));
@@ -90,11 +87,11 @@ namespace my::json_detail
                 const auto [key, fieldValue] = (*dict)[i];
 
                 Json::Value* const field = jsonValue.demand(key.data(), key.data() + key.size());
-                NAU_FATAL(field);
+                MY_FATAL(field);
 
                 if (fieldValue)
                 {
-                    NauCheckResult(setJsonValue(*field, *fieldValue));
+                    CheckResult(setJsonValue(*field, *fieldValue));
                 }
                 else
                 {
@@ -106,7 +103,7 @@ namespace my::json_detail
         return ResultSuccess;
     }
 
-    RuntimeValue::Ptr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
+    RuntimeValuePtr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
     {
         if (jsonValue.isNull())
         {
@@ -142,7 +139,7 @@ namespace my::json_detail
 
             if (root)
             {
-                if (auto newString = root->transformString(strings::toStringView(str)); newString)
+                if (std::optional<std::string> newString = root->transformString(str); newString)
                 {
                     return makeValueCopy(std::move(*newString));
                 }
@@ -159,7 +156,7 @@ namespace my::json_detail
             return wrapJsonValueAsDictionary(root, jsonValue);
         }
 
-        NAU_FAILURE("Don't known how to encode jsonValue. Type: ({})", static_cast<int>(jsonValue.type()));
+        MY_FAILURE("Don't known how to encode jsonValue. Type: ({})", static_cast<int>(jsonValue.type()));
         return nullptr;
     }
 
@@ -168,7 +165,7 @@ namespace my::json_detail
     class JsonNull final : public JsonValueHolderImpl,
                            public RuntimeOptionalValue
     {
-        NAU_CLASS_(my::json_detail::JsonNull, JsonValueHolderImpl, RuntimeOptionalValue)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonNull, JsonValueHolderImpl, RuntimeOptionalValue)
 
     public:
         JsonNull(const my::Ptr<JsonValueHolderImpl>& root) :
@@ -186,14 +183,14 @@ namespace my::json_detail
             return false;
         }
 
-        RuntimeValue::Ptr getValue() override
+        RuntimeValuePtr getValue() override
         {
             return nullptr;
         }
 
-        Result<> setValue([[maybe_unused]] RuntimeValue::Ptr value) override
+        Result<> setValue([[maybe_unused]] RuntimeValuePtr value) override
         {
-            return NauMakeError("Attempt to modify non mutable json value");
+            return MakeError("Attempt to modify non mutable json value");
         }
     };
 
@@ -202,7 +199,7 @@ namespace my::json_detail
     class JsonCollection final : public JsonValueHolderImpl,
                                  public RuntimeCollection
     {
-        NAU_CLASS_(my::json_detail::JsonCollection, JsonValueHolderImpl, RuntimeCollection)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonCollection, JsonValueHolderImpl, RuntimeCollection)
 
     public:
         JsonCollection() = default;
@@ -230,14 +227,14 @@ namespace my::json_detail
         size_t getSize() const override
         {
             const auto& jsonValue = getThisJsonValue();
-            NAU_ASSERT(jsonValue.type() == Json::ValueType::arrayValue);
+            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::arrayValue);
             return static_cast<size_t>(jsonValue.size());
         }
 
-        RuntimeValue::Ptr getAt(size_t index) override
+        RuntimeValuePtr getAt(size_t index) override
         {
-            NAU_ASSERT(getThisJsonValue().type() == Json::ValueType::arrayValue);
-            NAU_ASSERT(index < getSize(), "Invalid index [{}]", index);
+            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::arrayValue);
+            MY_DEBUG_CHECK(index < getSize(), "Invalid index [{}]", index);
             if (index >= getSize())
             {
                 return nullptr;
@@ -247,18 +244,18 @@ namespace my::json_detail
             return getValueFromJson(getRoot(), getThisJsonValue()[arrIndex]);
         }
 
-        Result<> setAt(size_t index, const RuntimeValue::Ptr& value) override
+        Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            NAU_ASSERT(value);
+            MY_DEBUG_CHECK(value);
             if (!value)
             {
-                return NauMakeError("Value is null");
+                return MakeError("Value is null");
             }
 
-            NAU_ASSERT(index < getSize());
+            MY_DEBUG_CHECK(index < getSize());
             if (index >= getSize())
             {
-                return NauMakeError("Invalid index ({})", index);
+                return MakeError("Invalid index ({})", index);
             }
 
             const auto arrIndex = static_cast<Json::ArrayIndex>(index);
@@ -274,17 +271,17 @@ namespace my::json_detail
         {
         }
 
-        Result<> append(const RuntimeValue::Ptr& value) override
+        Result<> append(const RuntimeValuePtr& value) override
         {
-            NAU_ASSERT(getThisJsonValue().type() == Json::ValueType::arrayValue);
-            NAU_ASSERT(value);
+            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::arrayValue);
+            MY_DEBUG_CHECK(value);
             if (!value)
             {
-                return NauMakeError("Value is null");
+                return MakeError("Value is null");
             }
 
             Json::Value newValue;
-            NauCheckResult(setJsonValue(newValue, *value));
+            CheckResult(setJsonValue(newValue, *value));
             getThisJsonValue().append(std::move(newValue));
 
             return ResultSuccess;
@@ -296,7 +293,7 @@ namespace my::json_detail
     class JsonDictionary : public JsonValueHolderImpl,
                            public RuntimeDictionary
     {
-        NAU_CLASS_(my::json_detail::JsonDictionary, JsonValueHolderImpl, RuntimeDictionary)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonDictionary, JsonValueHolderImpl, RuntimeDictionary)
     public:
         JsonDictionary() = default;
 
@@ -323,15 +320,15 @@ namespace my::json_detail
         size_t getSize() const override
         {
             const auto& jsonValue = getThisJsonValue();
-            NAU_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
             return static_cast<size_t>(jsonValue.size());
         }
 
         std::string_view getKey(size_t index) const override
         {
             const auto& jsonValue = getThisJsonValue();
-            NAU_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
-            NAU_ASSERT(index < jsonValue.size(), "Invalid index ({}) > size:({})", index, jsonValue.size());
+            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_CHECK(index < jsonValue.size(), "Invalid index ({}) > size:({})", index, jsonValue.size());
 
             auto iter = jsonValue.begin();
             std::advance(iter, index);
@@ -340,7 +337,7 @@ namespace my::json_detail
             return std::string_view{start, static_cast<size_t>(end - start)};
         }
 
-        RuntimeValue::Ptr getValue(std::string_view key) override
+        RuntimeValuePtr getValue(std::string_view key) override
         {
             if (key.empty())
             {
@@ -348,7 +345,7 @@ namespace my::json_detail
             }
 
             auto& jsonValue = getThisJsonValue();
-            NAU_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
 
             if (jsonValue.find(key.data(), key.data() + key.size()) == nullptr)
             {
@@ -357,27 +354,27 @@ namespace my::json_detail
 
             // Value::demand will insert empty default value, so it used only after find.
             Json::Value* const field = jsonValue.demand(key.data(), key.data() + key.size());
-            NAU_FATAL(field);
+            MY_FATAL(field);
 
             return getValueFromJson(getRoot(), *field);
         }
 
-        Result<> setValue(std::string_view key, const RuntimeValue::Ptr& value) override
+        Result<> setValue(std::string_view key, const RuntimeValuePtr& value) override
         {
-            NAU_ASSERT(value);
+            MY_DEBUG_CHECK(value);
             if (!value)
             {
-                return NauMakeError("Value is null");
+                return MakeError("Value is null");
             }
 
-            NAU_ASSERT(!key.empty());
+            MY_DEBUG_CHECK(!key.empty());
             if (key.empty())
             {
-                return NauMakeError("key is empty");
+                return MakeError("key is empty");
             }
 
             Json::Value* const field = getThisJsonValue().demand(key.data(), key.data() + key.size());
-            NAU_FATAL(field);
+            MY_FATAL(field);
 
             return setJsonValue(*field, *value);
         }
@@ -389,55 +386,55 @@ namespace my::json_detail
                 return false;
             }
 
-            NAU_ASSERT(getThisJsonValue().type() == Json::ValueType::objectValue);
+            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::objectValue);
 
             return getThisJsonValue().find(key.data(), key.data() + key.size()) != nullptr;
         }
 
         void clear() override
         {
-            NAU_ASSERT(getThisJsonValue().type() == Json::ValueType::objectValue);
+            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::objectValue);
             getThisJsonValue().clear();
         }
 
-        RuntimeValue::Ptr erase(std::string_view key) override
+        RuntimeValuePtr erase(std::string_view key) override
         {
-            NAU_FAILURE("JsonDictionary::erase({}) is not implemented", key);
+            MY_FAILURE("JsonDictionary::erase({}) is not implemented", key);
             return nullptr;
         }
     };
 
-    RuntimeValue::Ptr wrapJsonValueAsCollection(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
+    RuntimeValuePtr wrapJsonValueAsCollection(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonCollection>(root, jsonValue);
     }
 
-    RuntimeValue::Ptr wrapJsonValueAsDictionary(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
+    RuntimeValuePtr wrapJsonValueAsDictionary(const Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonDictionary>(root, jsonValue);
     }
 
-    RuntimeValue::Ptr createJsonNullValue(const Ptr<JsonValueHolderImpl>& root)
+    RuntimeValuePtr createJsonNullValue(const Ptr<JsonValueHolderImpl>& root)
     {
         return rtti::createInstance<JsonNull>(root);
     }
 
-    RuntimeDictionary::Ptr createJsonDictionary(Json::Value&& jsonValue)
+    Ptr<RuntimeDictionary> createJsonDictionary(Json::Value&& jsonValue)
     {
         return rtti::createInstance<JsonDictionary>(std::move(jsonValue));
     }
 
-    RuntimeCollection::Ptr createJsonCollection(Json::Value&& jsonValue)
+    Ptr<RuntimeCollection> createJsonCollection(Json::Value&& jsonValue)
     {
         return rtti::createInstance<JsonCollection>(std::move(jsonValue));
     }
 
-    RuntimeDictionary::Ptr wrapJsonDictionary(Json::Value& jsonValue)
+    Ptr<RuntimeDictionary> wrapJsonDictionary(Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonDictionary>(jsonValue);
     }
 
-    RuntimeCollection::Ptr wrapJsonCollection(Json::Value& jsonValue)
+    Ptr<RuntimeCollection> wrapJsonCollection(Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonCollection>(jsonValue);
     }
@@ -446,7 +443,7 @@ namespace my::json_detail
 
 namespace my::serialization
 {
-    RuntimeValue::Ptr jsonToRuntimeValue(Json::Value&& root, IMemAllocator::Ptr)
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocator*)
     {
         if (root.isObject())
         {
@@ -460,7 +457,7 @@ namespace my::serialization
         return json_detail::getValueFromJson(nullptr, root);
     }
 
-    RuntimeValue::Ptr jsonAsRuntimeValue(Json::Value& root, IMemAllocator::Ptr)
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocator*)
     {
         if (root.isObject())
         {
@@ -474,7 +471,7 @@ namespace my::serialization
         return nullptr;
     }
 
-    RuntimeValue::Ptr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator::Ptr)
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocator*)
     {
         auto value = jsonAsRuntimeValue(const_cast<Json::Value&>(root));
         value->as<json_detail::JsonValueHolderImpl&>().setMutable(false);
@@ -482,5 +479,3 @@ namespace my::serialization
         return value;
     }
 }  // namespace my::serialization
-
-#endif

@@ -132,7 +132,7 @@ namespace my::ser_detail
             if constexpr (IsMutable)
             {
                 const auto result = parse(str, m_value);
-                NauCheckResult(result);
+                CheckResult(result);
 
                 this->notifyChanged();
                 return ResultSuccess;

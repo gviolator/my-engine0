@@ -1,15 +1,10 @@
 // #my_engine_source_file
 
-
 #pragma once
-#include <EASTL/string.h>
-#include <EASTL/string_view.h>
-#include <EASTL/variant.h>
-
+#include <string>
+#include <string_view>
 #include <type_traits>
 
-#include "my/dag_ioSys/dag_baseIo.h"
-#include "my/dag_ioSys/dag_genIo.h"
 #include "my/diag/check.h"
 #include "my/io/stream.h"
 #include "my/kernel/kernel_config.h"
@@ -19,14 +14,12 @@ namespace my::io_detail
 {
     /**
      */
-    template <typename Char>
-    requires(sizeof(Char) == sizeof(char))
     class StringWriterImpl final : public io::IStreamWriter
     {
-        MY_CLASS(StringWriterImpl<Char>, rtti::RCPolicy::StrictSingleThread, IStreamWriter)
+        MY_REFCOUNTED_CLASS(StringWriterImpl, IStreamWriter)
 
     public:
-        using String = std::basic_string<Char>;
+        using String = std::basic_string<char>;
 
         StringWriterImpl(String& outputString) :
             m_string(outputString)
@@ -54,7 +47,7 @@ namespace my::io_detail
                 m_string.reserve(m_string.size() + ReserveBlockSize);
             }
 
-            m_string.append(reinterpret_cast<const Char*>(ptr), count);
+            m_string.append(reinterpret_cast<const char*>(ptr), count);
             return count;
         }
 
@@ -102,43 +95,12 @@ namespace my::io_detail
 
 namespace my::io
 {
-    template <typename Char = char8_t>
-    class InplaceStringWriter : public io_detail::InplaceStreamHolder<io_detail::StringWriterImpl<Char>, IStreamWriter>
+    class InplaceStringWriter : public io_detail::InplaceStreamHolder<io_detail::StringWriterImpl, IStreamWriter>
     {
     public:
-        InplaceStringWriter(std::basic_string<Char>& outputString)
+        InplaceStringWriter(std::string& outputString)
         {
             this->createStream(outputString);
         }
     };
-
-    /**
-     */
-    class MY_KERNEL_EXPORT GenLoadOverStream : public iosys::IBaseLoad
-    {
-    public:
-        GenLoadOverStream(IStreamReader::Ptr stream, std::string_view targetName = {});
-        GenLoadOverStream(const GenLoadOverStream&) = delete;
-        GenLoadOverStream(GenLoadOverStream&&) = default;
-
-        GenLoadOverStream& operator=(const GenLoadOverStream&) = delete;
-        GenLoadOverStream& operator=(GenLoadOverStream&&) = default;
-
-        void read(void* ptr, int size) override;
-
-        int tryRead(void* ptr, int size) override;
-
-        int tell() override;
-
-        void seekto(int position) override;
-
-        void seekrel(int offset) override;
-
-        const char* getTargetName() override;
-
-    private:
-        IStreamReader::Ptr m_stream;
-        std::string m_targetName;
-    };
-
 }  // namespace my::io

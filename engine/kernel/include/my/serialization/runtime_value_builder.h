@@ -50,7 +50,7 @@ namespace my
         static_assert(!std::is_reference_v<T>, "Reference type is passed");
 
         Result<std::remove_const_t<T>> value{};  // << default constructor
-        NauCheckResult(runtimeValueApply(*value, rtValue));
+        CheckResult(runtimeValueApply(*value, rtValue));
 
         return value;
     }

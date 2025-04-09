@@ -196,7 +196,7 @@ namespace my
         {
             decltype(auto) intern = getEnumInternalInfo(EnumType{});
             Result<int> parseResult = kernel_detail::EnumTraitsHelper::parse(intern, str);
-            NauCheckResult(parseResult);
+            CheckResult(parseResult);
 
             enumValue = static_cast<EnumType>(*parseResult);
 
@@ -259,7 +259,7 @@ namespace my
     [[maybe_unused]] inline MY_NOINLINE ::my::Result<> parse(std::string_view str, EnumType& value)        \
     {                                                                                                      \
         auto parseRes = ::my::EnumTraits<EnumType>::parse({str.data(), str.size()});                       \
-        NauCheckResult(parseRes)                                                                           \
+        CheckResult(parseRes)                                                                           \
         value = *parseRes;                                                                                 \
                                                                                                            \
         return my::ResultSuccess;                                                                          \

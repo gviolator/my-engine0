@@ -19,7 +19,8 @@ target_link_libraries(${TargetName} PRIVATE
   TestCommonLib
 )
 
-my_add_compile_options(${TargetName})
+my_add_compile_options(TARGETS ${TargetName})
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES})
 set_target_properties (${TargetName} PROPERTIES
     FOLDER "${MyEngineFolder}/tests"

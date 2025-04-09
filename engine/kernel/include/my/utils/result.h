@@ -315,7 +315,7 @@ namespace my
 
 }  // namespace my
 
-#define NauCheckResult(expr)                                                                         \
+#define CheckResult(expr)                                                                            \
     {                                                                                                \
         decltype(auto) exprResult = (expr);                                                          \
         static_assert(::my::IsTemplateOf<::my::Result, decltype(exprResult)>, "Expected Result<T>"); \

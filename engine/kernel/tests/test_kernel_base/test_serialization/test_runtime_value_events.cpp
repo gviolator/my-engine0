@@ -126,7 +126,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_Append)
     {
         std::vector<float> collection;
-        const RuntimeCollection::Ptr runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
         ASSERT_TRUE(isChanged());
     }
@@ -136,7 +136,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_Clear)
     {
         std::vector<float> collection;
-        const RuntimeCollection::Ptr runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
 
         resetChanged();
@@ -150,7 +150,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_ChangeElement_1)
     {
         std::vector<float> collection;
-        const RuntimeCollection::Ptr runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
         runtimeValue->append(makeValueCopy(2.f)).ignore();
 
@@ -170,7 +170,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_ChangeElement_2)
     {
         std::vector<FooObject> collection;
-        const RuntimeCollection::Ptr runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(FooObject{1})).ignore();
         runtimeValue->append(makeValueCopy(FooObject{2})).ignore();
 
@@ -196,7 +196,7 @@ namespace my::test
     {
         std::map<std::string, FooObject> dict;
         
-        const RuntimeDictionary::Ptr runtimeValue = makeValueRefAndSubscribe(dict);
+        const Ptr<RuntimeDictionary> runtimeValue = makeValueRefAndSubscribe(dict);
         runtimeValue->setValue("one", makeValueCopy(FooObject{1})).ignore();
         runtimeValue->setValue("two", makeValueCopy(FooObject{1})).ignore();
 
@@ -206,7 +206,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeDictionary_ChangeElement)
     {
         std::map<std::string, FooObject> dict;
-        const RuntimeDictionary::Ptr runtimeValue = makeValueRefAndSubscribe(dict);
+        const Ptr<RuntimeDictionary> runtimeValue = makeValueRefAndSubscribe(dict);
         runtimeValue->setValue("one", makeValueCopy(FooObject{1})).ignore();
         runtimeValue->setValue("two", makeValueCopy(FooObject{1})).ignore();
 

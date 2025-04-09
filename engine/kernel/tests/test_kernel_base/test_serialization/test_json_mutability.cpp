@@ -1,9 +1,7 @@
-#if 0
-// Copyright 2024 N-GINN LLC. All rights reserved.
-// Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
+// #my_engine_source_file
 
-#include "nau/serialization/json.h"
-#include "nau/serialization/json_utils.h"
+#include "my/serialization/json.h"
+#include "my/serialization/json_utils.h"
 
 namespace my::test
 {
@@ -11,7 +9,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetPrimitive)
     {
-        RuntimeDictionary::Ptr dict = serialization::jsonCreateDictionary();
+        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
         dict->setValue("fieldInt", makeValueCopy(111)).ignore();
         dict->setValue("fieldSingle", makeValueCopy(222.2f)).ignore();
         dict->setValue("fieldDouble", makeValueCopy(333.3)).ignore();
@@ -46,7 +44,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetOptional)
     {
-        RuntimeDictionary::Ptr dict = serialization::jsonCreateDictionary();
+        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
 
         dict->setValue("notNull", makeValueCopy(std::optional<unsigned>(77))).ignore();
         dict->setValue("null", makeValueCopy(std::optional<unsigned>(std::nullopt))).ignore();
@@ -61,7 +59,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetCollection)
     {
-        RuntimeDictionary::Ptr dict = serialization::jsonCreateDictionary();
+        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
 
         std::vector<int> values{11, 22, 33};
 
@@ -80,7 +78,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetDictionary)
     {
-        RuntimeDictionary::Ptr dict = serialization::jsonCreateDictionary();
+        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
 
         std::map<std::string, int> values{
             { "first", 11},
@@ -106,8 +104,8 @@ namespace my::test
     {
         using namespace my::serialization;
 
-        std::u8string_view json1 =
-            u8R"--(
+        std::string_view json1 =
+            R"--(
             {
                 "id": 111,
                 "type": "object",
@@ -121,8 +119,8 @@ namespace my::test
             }
         )--";
 
-        std::u8string_view json2 =
-            u8R"--(
+        std::string_view json2 =
+            R"--(
             {
                 "id_2": 222,
                 "type": "object_2",
@@ -200,4 +198,3 @@ namespace my::test
     }
 
 }  // namespace my::test
-#endif

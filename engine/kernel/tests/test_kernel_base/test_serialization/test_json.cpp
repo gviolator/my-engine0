@@ -1,13 +1,10 @@
-#if 0
-// Copyright 2024 N-GINN LLC. All rights reserved.
-// Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
+// #my_engine_source_file
 
-
-#include "nau/meta/class_info.h"
-#include "nau/serialization/json.h"
-#include "nau/serialization/json_utils.h"
-#include "nau/string/string_conv.h"
-#include "nau/string/string_utils.h"
+#include "my/meta/class_info.h"
+#include "my/serialization/json.h"
+#include "my/serialization/json_utils.h"
+#include "my/utils/string_conv.h"
+#include "my/utils/string_utils.h"
 
 using namespace ::testing;
 
@@ -24,7 +21,7 @@ namespace my::test
             RuntimeValuePtr data2;
 
 #pragma region Class info
-            NAU_CLASS_FIELDS(
+            MY_CLASS_FIELDS(
 
                 CLASS_FIELD(id),
                 CLASS_FIELD(type),
@@ -35,7 +32,7 @@ namespace my::test
 
         struct DataWithTypeCoercion
         {
-            NAU_CLASS_FIELDS(
+            MY_CLASS_FIELDS(
                 CLASS_FIELD(int64Field, serialization::TypeCoercion::Allow),
                 CLASS_FIELD(strField, serialization::TypeCoercion::Allow))
 
@@ -45,7 +42,7 @@ namespace my::test
 
         struct DataStrictTypeCoercion
         {
-            NAU_CLASS_FIELDS(
+            MY_CLASS_FIELDS(
                 CLASS_FIELD(int64Field, serialization::TypeCoercion::Strict),
                 CLASS_FIELD(strField, serialization::TypeCoercion::Strict))
 
@@ -56,21 +53,21 @@ namespace my::test
         template <typename T>
         testing::AssertionResult checkPrimitive(T value, std::string_view expectedStr)
         {
-            const std::u8string text = serialization::JsonUtils::stringify(value);
-            if (!strings::icaseEqual(strings::toStringView(text), expectedStr))
+            const std::string text = serialization::JsonUtils::stringify(value);
+            if (!strings::icaseEqual(text, expectedStr))
             {
-                return testing::AssertionFailure() << ::fmt::format("Invalid json string:({}), expected:({})", strings::toStringView(text), expectedStr);
+                return testing::AssertionFailure() << std::format("Invalid json string:({}), expected:({})", text, expectedStr);
             }
 
             const Result<const T> parsedValue = serialization::JsonUtils::parse<T>(text);
             if (!parsedValue)
             {
-                return testing::AssertionFailure() << strings::toStringView(parsedValue.getError()->getMessage());
+                return testing::AssertionFailure() << parsedValue.getError()->getMessage();
             }
 
             if (*parsedValue != value)
             {
-                return testing::AssertionFailure() << ::fmt::format("Invalid json parse value on type:({})", typeid(T).name());
+                return testing::AssertionFailure() << std::format("Invalid json parse value on type:({})", typeid(T).name());
             }
 
             return testing::AssertionSuccess();
@@ -82,7 +79,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, CreateDictionary)
     {
-        RuntimeDictionary::Ptr value = serialization::jsonCreateDictionary();
+        Ptr<RuntimeDictionary> value = serialization::jsonCreateDictionary();
         ASSERT_TRUE(value);
         ASSERT_EQ(value->as<serialization::JsonValueHolder&>().getThisJsonValue().type(), Json::ValueType::objectValue);
     }
@@ -91,7 +88,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, CreateCollection)
     {
-        RuntimeCollection::Ptr value = serialization::jsonCreateCollection();
+        Ptr<RuntimeCollection> value = serialization::jsonCreateCollection();
         ASSERT_TRUE(value);
         ASSERT_EQ(value->as<serialization::JsonValueHolder&>().getThisJsonValue().type(), Json::ValueType::arrayValue);
     }
@@ -109,7 +106,7 @@ namespace my::test
             }
         )--";
 
-        const RuntimeDictionary::Ptr value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
+        const Ptr<RuntimeDictionary> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
         ASSERT_TRUE(value);
         ASSERT_TRUE(value->containsKey("id"));
         ASSERT_TRUE(value->containsKey("type"));
@@ -125,7 +122,7 @@ namespace my::test
             [1, 2, true, 77]
         )--";
 
-        const RuntimeCollection::Ptr value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
+        const Ptr<RuntimeCollection> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
         ASSERT_TRUE(value);
         ASSERT_EQ(value->getSize(), 4);
     }
@@ -134,7 +131,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, JsonIntToRuntimeValue)
     {
-        const RuntimeIntegerValue::Ptr value = serialization::jsonToRuntimeValue(Json::Value{77});
+        const Ptr<RuntimeIntegerValue> value = serialization::jsonToRuntimeValue(Json::Value{77});
         ASSERT_EQ(value->getInt64(), 77i64);
     }
 
@@ -170,7 +167,7 @@ namespace my::test
         jsonValue["field1"] = 111;
 
         {
-            const RuntimeDictionary::Ptr dict = serialization::jsonAsRuntimeValue(jsonValue);
+            const Ptr<RuntimeDictionary> dict = serialization::jsonAsRuntimeValue(jsonValue);
             ASSERT_TRUE(dict->containsKey("field1"));
             dict->setValue("field2", makeValueCopy(222)).ignore();
         }
@@ -187,7 +184,7 @@ namespace my::test
         jsonValue.append(222);
 
         {
-            const RuntimeCollection::Ptr collection = serialization::jsonAsRuntimeValue(jsonValue);
+            const Ptr<RuntimeCollection> collection = serialization::jsonAsRuntimeValue(jsonValue);
             ASSERT_EQ(collection->getSize(), 2);
             ASSERT_EQ((*collection)[0]->as<const RuntimeIntegerValue&>().getInt64(), 111);
             ASSERT_EQ((*collection)[1]->as<const RuntimeIntegerValue&>().getInt64(), 222);
@@ -220,7 +217,7 @@ namespace my::test
         std::vector<unsigned> ints = {1, 2, 3, 4, 5};
 
         const auto str = serialization::JsonUtils::stringify(ints);
-        ASSERT_EQ(str, u8"[1,2,3,4,5]");
+        ASSERT_EQ(str, "[1,2,3,4,5]");
     }
 
     /**
@@ -238,8 +235,8 @@ namespace my::test
      */
     TEST(TestSerializationJson, ParseObject)
     {
-        std::u8string_view json =
-            u8R"--(
+        std::string_view json =
+            R"--(
             {
                 "id": 222,
                 "type": "object",
@@ -264,8 +261,8 @@ namespace my::test
 
     TEST(TestSerializationJson, TypeCoercion1)
     {
-        std::u8string_view json1 =
-            u8R"--(
+        std::string_view json1 =
+            R"--(
             {
                 "int64Field": "12345678",
                 "strField": 976854
@@ -281,8 +278,8 @@ namespace my::test
 
     TEST(TestSerializationJson, TypeCoercion2)
     {
-        std::u8string_view json1 =
-            u8R"--(
+        std::string_view json1 =
+            R"--(
             {
                 "int64Field": ""
             }
@@ -303,8 +300,8 @@ namespace my::test
     {
         GTEST_SKIP_("TypeCoercion::Strict is not implemented.");
 
-        std::u8string_view json1 =
-            u8R"--(
+        std::string_view json1 =
+            R"--(
             {
                 "int64Field": "12345678",
                 "strField": 976854
@@ -337,7 +334,7 @@ namespace my::test
 
         std::string_view fieldNames = "id, type, data1";
 
-        RuntimeDictionary::Ptr dict = *serialization::jsonParseString(json);
+        Ptr<RuntimeDictionary> dict = *serialization::jsonParseString(json);
         dict->getValue("boo");
 
         for (auto field : strings::split(fieldNames, std::string_view{","}))
@@ -365,5 +362,3 @@ namespace my::test
     }
 
 }  // namespace my::test
-
-#endif

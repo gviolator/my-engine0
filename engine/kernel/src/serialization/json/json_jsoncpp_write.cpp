@@ -1,11 +1,8 @@
-#if 0
-// Copyright 2024 N-GINN LLC. All rights reserved.
-// Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
-
+// #my_engine_source_file
 
 #include <json/writer.h>
 
-#include "nau/serialization/json.h"
+#include "my/serialization/json.h"
 
 namespace my::serialization
 {
@@ -16,10 +13,10 @@ namespace my::serialization
         {
             using namespace ::Json;
 
-            static thread_local eastl::unique_ptr<StreamWriter> writer;
-            static thread_local eastl::unique_ptr<StreamWriter> prettyWriter;
+            static thread_local std::unique_ptr<StreamWriter> writer;
+            static thread_local std::unique_ptr<StreamWriter> prettyWriter;
 
-            const auto prepareWriter = [](eastl::unique_ptr<StreamWriter>& w, JsonSettings settings) -> StreamWriter&
+            const auto prepareWriter = [](std::unique_ptr<StreamWriter>& w, JsonSettings settings) -> StreamWriter&
             {
                 if(!w)
                 {
@@ -33,7 +30,7 @@ namespace my::serialization
                         wbuilder["indentation"] = "";
                     }
 
-                    w = eastl::unique_ptr<Json::StreamWriter>(wbuilder.newStreamWriter());
+                    w = std::unique_ptr<Json::StreamWriter>(wbuilder.newStreamWriter());
                 }
 
                 return *w;
@@ -106,7 +103,7 @@ namespace my::serialization
             }
         }
 
-        Result<> makeJsonValue(Json::Value& jValue, const RuntimeValue::Ptr& value, const JsonSettings& settings)
+        Result<> makeJsonValue(Json::Value& jValue, const RuntimeValuePtr& value, const JsonSettings& settings)
         {
             if(RuntimeOptionalValue* const optionalValue = value->as<RuntimeOptionalValue*>())
             {
@@ -121,7 +118,7 @@ namespace my::serialization
 
             if(RuntimeValueRef* const refValue = value->as<RuntimeValueRef*>())
             {
-                const auto referencedValue = refValue->get();
+                const auto referencedValue = refValue->getValue();
                 if(referencedValue)
                 {
                     return makeJsonValue(jValue, referencedValue, settings);
@@ -167,7 +164,7 @@ namespace my::serialization
                         }
                         else if(const RuntimeValueRef* refValue = member->as<const RuntimeValueRef*>())
                         {
-                            if(!static_cast<bool>(refValue->get()))
+                            if(!static_cast<bool>(refValue->getValue()))
                             {
                                 continue;
                             }
@@ -195,7 +192,7 @@ namespace my::serialization
         return ResultSuccess;
     }
 
-    Result<> jsonWrite(io::IStreamWriter& writer, const RuntimeValue::Ptr& value, JsonSettings settings)
+    Result<> jsonWrite(io::IStreamWriter& writer, const RuntimeValuePtr& value, JsonSettings settings)
     {
         Json::Value root;
         if(auto result = makeJsonValue(root, value, settings); !result)
@@ -206,13 +203,13 @@ namespace my::serialization
         return jsonWrite(writer, root, settings);
     }
 
-    Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValue::Ptr& runtimeValue, JsonSettings settings)
+    Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValuePtr& runtimeValue, JsonSettings settings)
     {
         return makeJsonValue(jsonValue, runtimeValue, settings);
     }
 
 
-    Json::Value runtimeToJsonValue(const RuntimeValue::Ptr& value, JsonSettings settings)
+    Json::Value runtimeToJsonValue(const RuntimeValuePtr& value, JsonSettings settings)
     {
         Json::Value root;
         makeJsonValue(root, value, settings).ignore();
@@ -221,4 +218,3 @@ namespace my::serialization
 
 }  // namespace my::serialization
 
-#endif

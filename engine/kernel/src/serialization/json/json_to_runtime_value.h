@@ -1,6 +1,7 @@
 // #my_engine_source_file
 
 #pragma once
+#include <variant>
 #include "my/rtti/rtti_impl.h"
 #include "my/serialization/json.h"
 
@@ -33,7 +34,7 @@ namespace my::json_detail
             }
             else
             {
-                NAU_ASSERT(!m_getStringCallback);
+                MY_DEBUG_CHECK(!m_getStringCallback);
                 m_getStringCallback = std::move(callback);
             }
         }
@@ -74,7 +75,7 @@ namespace my::json_detail
         JsonValueHolderImpl(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& value) :
             m_root(root)
         {
-            NAU_FATAL(root);
+            MY_FATAL(root);
             m_jsonValue.emplace<Json::Value*>(&value);
         }
 
@@ -82,34 +83,34 @@ namespace my::json_detail
         JsonValueHolderImpl(const my::Ptr<JsonValueHolderImpl>& root) :
             m_root(root)
         {
-            NAU_FATAL(root);
+            MY_FATAL(root);
             m_jsonValue.emplace<Json::Value>();
         }
 
         Json::Value& getThisJsonValue() final
         {
-            NAU_FATAL(!m_jsonValue.valueless_by_exception());
+            MY_FATAL(!m_jsonValue.valueless_by_exception());
 
-            if (eastl::holds_alternative<Json::Value>(m_jsonValue))
+            if (std::holds_alternative<Json::Value>(m_jsonValue))
             {
-                return eastl::get<Json::Value>(m_jsonValue);
+                return std::get<Json::Value>(m_jsonValue);
             }
 
-            NAU_FATAL(eastl::holds_alternative<Json::Value*>(m_jsonValue));
-            return *eastl::get<Json::Value*>(m_jsonValue);
+            MY_FATAL(std::holds_alternative<Json::Value*>(m_jsonValue));
+            return *std::get<Json::Value*>(m_jsonValue);
         }
 
         const Json::Value& getThisJsonValue() const final
         {
-            NAU_FATAL(!m_jsonValue.valueless_by_exception());
+            MY_FATAL(!m_jsonValue.valueless_by_exception());
 
-            if (eastl::holds_alternative<Json::Value>(m_jsonValue))
+            if (std::holds_alternative<Json::Value>(m_jsonValue))
             {
-                return eastl::get<Json::Value>(m_jsonValue);
+                return std::get<Json::Value>(m_jsonValue);
             }
 
-            NAU_FATAL(eastl::holds_alternative<Json::Value*>(m_jsonValue));
-            return *eastl::get<Json::Value*>(m_jsonValue);
+            MY_FATAL(std::holds_alternative<Json::Value*>(m_jsonValue));
+            return *std::get<Json::Value*>(m_jsonValue);
         }
 
         my::Ptr<JsonValueHolderImpl> getRoot()
@@ -123,19 +124,19 @@ namespace my::json_detail
         }
 
         const my::Ptr<JsonValueHolderImpl> m_root;
-        eastl::variant<Json::Value, Json::Value*> m_jsonValue;
+        std::variant<Json::Value, Json::Value*> m_jsonValue;
         bool m_isMutable = true;
         GetStringCallback m_getStringCallback;
     };
 
-    RuntimeValue::Ptr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
+    RuntimeValuePtr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
 
-    RuntimeDictionary::Ptr createJsonDictionary(Json::Value&& jsonValue);
+    Ptr<RuntimeDictionary> createJsonDictionary(Json::Value&& jsonValue);
     
-    RuntimeCollection::Ptr createJsonCollection(Json::Value&& jsonValue);
+    Ptr<RuntimeCollection> createJsonCollection(Json::Value&& jsonValue);
 
-    RuntimeDictionary::Ptr wrapJsonDictionary(Json::Value& jsonValue);
+    Ptr<RuntimeDictionary> wrapJsonDictionary(Json::Value& jsonValue);
     
-    RuntimeCollection::Ptr wrapJsonCollection(Json::Value& jsonValue);
+    Ptr<RuntimeCollection> wrapJsonCollection(Json::Value& jsonValue);
 
 }  // namespace my::json_detail

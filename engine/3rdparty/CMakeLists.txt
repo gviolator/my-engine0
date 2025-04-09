@@ -1,5 +1,14 @@
 set(ThirdPartyFolderName "${MyEngineFolder}/3rdparty")
 
+set (JSON_USE_EXCEPTION OFF)
+set (JSONCPP_WITH_TESTS OFF)
+
+if (NOT BUILD_SHARED_LIBS)
+  set(JSONCPP_STATIC_WINDOWS_RUNTIME ON)
+else()
+  set(JSONCPP_STATIC_WINDOWS_RUNTIME OFF)
+endif()
+
 add_subdirectory(jsoncpp)
 add_subdirectory(ModifiedSonyMath)
 

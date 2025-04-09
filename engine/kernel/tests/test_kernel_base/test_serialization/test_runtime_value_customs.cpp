@@ -37,7 +37,7 @@ namespace nau
         class VectorCollection : public RuntimeCollection
         {
             using ThisType = VectorCollection<T>;
-            NAU_CLASS_(ThisType, RuntimeCollection)
+            MY_REFCOUNTED_CLASS(ThisType, RuntimeCollection)
 
         public:
             VectorCollection(T& collection) :
@@ -57,15 +57,15 @@ namespace nau
 
             RuntimeValuePtr getAt(size_t index) const override
             {
-                NAU_ASSERT(index < this->getSize());
+                MY_DEBUG_CHECK(index < this->getSize());
 
                 return makeValueRef(m_collection[index]);  // this->makeChildValue(makeValueRef(el));
             }
 
             Result<> setAt(size_t index, RuntimeValuePtr value) override
             {
-                NAU_ASSERT(value);
-                NAU_ASSERT(index < this->getSize());
+                MY_DEBUG_CHECK(value);
+                MY_DEBUG_CHECK(index < this->getSize());
 
                 decltype(auto) el = m_collection.emplace_back();
                 return RuntimeValue::assign(makeValueRef(el), std::move(value));
@@ -95,7 +95,7 @@ namespace my::math
     class VecRuntimeValue : public RuntimeReadonlyCollection,
                             public RuntimeReadonlyDictionary
     {
-        NAU_CLASS_(my::math::VecRuntimeValue<T>, RuntimeReadonlyCollection, RuntimeReadonlyDictionary)
+        MY_REFCOUNTED_CLASS(my::math::VecRuntimeValue<T>, RuntimeReadonlyCollection, RuntimeReadonlyDictionary)
 
     public:
         using Type = std::decay_t<T>;
@@ -119,15 +119,15 @@ namespace my::math
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            NAU_ASSERT(index < getSize());
+            MY_DEBUG_CHECK(index < getSize());
             return makeValueCopy(m_vec.getElem(index));
         }
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            NAU_ASSERT(index < getSize());
+            MY_DEBUG_CHECK(index < getSize());
             auto castResult = runtimeValueCast<float>(value);
-            NauCheckResult(castResult)
+            CheckResult(castResult)
 
             m_vec.setElem(index, *castResult);
             return ResultSuccess;
@@ -135,7 +135,7 @@ namespace my::math
 
         std::string_view getKey(size_t index) const override
         {
-            NAU_ASSERT(index < getSize());
+            MY_DEBUG_CHECK(index < getSize());
 
             return getKeysArray()[index];
         }
@@ -161,7 +161,7 @@ namespace my::math
                 return ResultSuccess;
             }
 
-            return NauMakeError("Unknown vec elem ({})", key);
+            return MakeError("Unknown vec elem ({})", key);
         }
 
         bool containsKey(std::string_view key) const override
@@ -190,7 +190,7 @@ namespace my::math
 
             if (index == keys.end())
             {
-                NAU_FAILURE("Invalid field ({})", key);
+                MY_FAILURE("Invalid field ({})", key);
                 return std::nullopt;
             }
 
