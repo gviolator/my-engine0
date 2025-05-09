@@ -1,9 +1,10 @@
 // #my_engine_source_file
 #include "my/memory/host_memory.h"
 
+#include <cstdlib>
+
 #include "my/diag/check.h"
 
-#include <cstdlib>
 
 namespace my
 {
@@ -44,7 +45,21 @@ namespace my
         return m_basePtr == other.m_basePtr;
     }
 
-    bool IHostMemory::MemRegion::isAdjacent(const MemRegion& left, const MemRegion& right)
+    IHostMemory::MemRegion& IHostMemory::MemRegion::operator+=(MemRegion&& right) noexcept
+    {
+        // TODO: check that regions concatenation is supported pn host memory.
+        MY_DEBUG_CHECK(right);
+        MY_DEBUG_CHECK(is_adjacent(*this, right));
+        MY_DEBUG_CHECK(m_basePtr < right.m_basePtr);
+
+        m_size += right.m_size;
+        right.m_size = 0;
+        right.m_basePtr = nullptr;
+
+        return *this;
+    }
+
+    bool IHostMemory::MemRegion::is_adjacent(const MemRegion& left, const MemRegion& right)
     {
         if (!left || !right)
         {
@@ -73,12 +88,13 @@ namespace my
         HostCrtMemory() = default;
 
         ~HostCrtMemory()
-        {}
+        {
+        }
 
     private:
         MemRegion allocPages(size_t size) override
         {
-            size = alignedSize(size, mem::PageSize);
+            size = aligned_size(size, mem::PageSize);
 
             void* const ptr = ::_aligned_malloc(size, GuaranteedBlockAlignment);
             MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % GuaranteedBlockAlignment == 0);
@@ -88,10 +104,15 @@ namespace my
 
         void freePages(MemRegion&& pages) override
         {
-            ::_aligned_free(pages.getBasePtr());
+            ::_aligned_free(pages.basePtr());
         }
 
         Byte getPageSize() const override
+        {
+            return mem::PageSize;
+        }
+
+        Byte getAllocationGranularity() const override
         {
             return mem::PageSize;
         }

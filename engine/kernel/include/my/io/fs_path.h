@@ -2,17 +2,15 @@
 
 #pragma once
 
-#include <EASTL/string_view.h>
-
 #include <compare>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
 #include "my/kernel/kernel_config.h"
-#include "my/string/string_conv.h"
-#include "my/string/string_utils.h"
 #include "my/utils/result.h"
+#include "my/utils/string_conv.h"
+#include "my/utils/string_utils.h"
 
 /**
  * @brief Provides the `FsPath` class for representing and manipulating file system paths.
@@ -75,24 +73,12 @@ namespace my::io_detail
      */
     inline std::string fsPathFromSource(const std::string_view str)
     {
-        return {str.data(), str.size()};
-    }
-
-    /**
-     * @brief Converts `std::u8string_view` to a `std::string` representation of a file path.
-     * @param str `std::u8string_view` representing the file path.
-     * @return `std::string` representation of the file path.
-     */
-    inline std::string fsPathFromSource(const std::u8string_view str)
-    {
-        return {reinterpret_cast<const char*>(str.data()), str.size()};
+        return std::string{str};
     }
 
     inline std::string fsPathFromSource(const std::wstring_view str)
     {
-        const std::u8string utfStr = strings::wstringToUtf8(std::wstring_view{str.data(), str.size()});
-
-        return std::string{reinterpret_cast<const char*>(utfStr.data()), utfStr.size()};
+        return strings::wstringToUtf8(str);
     }
 
     /**
@@ -101,7 +87,7 @@ namespace my::io_detail
      */
     template <typename T>
     concept IsPathSource = requires(const T& str) {
-        fsPathFromSource(str);
+        io_detail::fsPathFromSource(str);
     };
 }  // namespace my::io_detail
 
@@ -109,6 +95,7 @@ namespace my::io
 {
 
     MY_KERNEL_EXPORT std::string makePreferredPathString(std::string_view pathString);
+
     MY_KERNEL_EXPORT void makePreferredPathStringInplace(std::string& pathString);
 
     /**
@@ -357,28 +344,6 @@ namespace my::io
     };
 
 }  // namespace my::io
-
-namespace eastl
-{
-    /**
-     * @brief Specialization of the `hash` struct for `my::io::FsPath`.
-     */
-    template <>
-    struct hash<::my::io::FsPath>
-    {
-        /**
-         * @brief Computes the hash code of the given `FsPath` object.
-         * @param val The `FsPath` object.
-         * @return The hash code of the `FsPath` object.
-         */
-        [[nodiscard]]
-        size_t operator()(const ::my::io::FsPath& val) const
-        {
-            return val.getHashCode();
-        }
-    };
-
-}  // namespace eastl
 
 namespace std
 {

@@ -17,7 +17,7 @@ namespace my
         class MY_KERNEL_EXPORT MemRegion
         {
         public:
-            static bool isAdjacent(const MemRegion& left, const MemRegion& right);
+            static bool is_adjacent(const MemRegion& left, const MemRegion& right);
 
             ~MemRegion();
             MemRegion() = default;
@@ -35,19 +35,20 @@ namespace my
 
             std::strong_ordering operator<=>(const MemRegion&) const noexcept;
             bool operator==(const MemRegion&) const noexcept;
-            
+            MemRegion& operator+=(MemRegion&& right) noexcept;
 
-            void* getBasePtr() const
+            void* basePtr() const
             {
                 return m_basePtr;
             }
 
-            size_t getSize() const
+            size_t size() const
             {
                 return m_size;
             }
 
         private:
+
             void* m_basePtr = nullptr;
             size_t m_size = 0;
         };
@@ -55,16 +56,21 @@ namespace my
         virtual ~IHostMemory() = default;
 
         /**
-        */
+         */
         virtual MemRegion allocPages(size_t size) = 0;
 
         /**
-        */
+         */
         virtual void freePages(MemRegion&& pages) = 0;
 
         /**
-        */
+         */
         virtual Byte getPageSize() const = 0;
+
+        /**
+            @returns Allocation granularity or zero if granularity is not meaningful for that allocator
+        */
+        virtual Byte getAllocationGranularity() const = 0;
     };
 
     ///**

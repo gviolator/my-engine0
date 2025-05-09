@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <optional>
 
 #include "my/io/fs_path.h"
@@ -128,7 +129,7 @@ namespace my::io
          * @param accessMode Optional access mode flag.
          * @return Pointer to the created stream.
          */
-        virtual IStreamBase::Ptr createStream(std::optional<AccessModeFlag> = std::nullopt) = 0;
+        virtual StreamBasePtr createStream(std::optional<AccessModeFlag> = std::nullopt) = 0;
 
         /**
          * @brief Gets the access mode of the file.
@@ -161,7 +162,7 @@ namespace my::io
          * @brief Gets the native path of the file.
          * @return Native file path as a string.
          */
-        virtual std::string getNativePath() const = 0;
+        virtual std::filesystem::path getNativePath() const = 0;
     };
 
     /**
@@ -209,14 +210,12 @@ namespace my::io
     };
 
     /**
-     * @struct IFileSystem
+     * @struct FileSystem
      * @brief Interface for file system operations.
      */
-    struct MY_ABSTRACT_TYPE IFileSystem : virtual IRefCounted
+    struct MY_ABSTRACT_TYPE FileSystem : virtual IRefCounted
     {
-        MY_INTERFACE(my::io::IFileSystem, IRefCounted)
-
-        using Ptr = my::Ptr<IFileSystem>;
+        MY_INTERFACE(my::io::FileSystem, IRefCounted)
 
         /**
          * @brief Checks if the file system is read-only.
@@ -277,6 +276,8 @@ namespace my::io
         virtual FsEntry incrementDirIterator(void*) = 0;
     };
 
+    using FileSystemPtr = my::Ptr<FileSystem>;
+
     /**
      * @struct INativeFileSystem
      * @brief Interface for native file system operations.
@@ -290,16 +291,16 @@ namespace my::io
          * @param path Virtual path to resolve.
          * @return Native path as a wide string.
          */
-        virtual std::wstring resolveToNativePath(const FsPath& path) = 0;
+        virtual std::filesystem::path resolveToNativePath(const FsPath& path) = 0;
     };
 
     /**
      * @struct IMutableFileSystem
      * @brief Interface for mutable file systems that support file and directory creation/deletion.
      */
-    struct MY_ABSTRACT_TYPE IMutableFileSystem : virtual IFileSystem
+    struct MY_ABSTRACT_TYPE IMutableFileSystem : virtual FileSystem
     {
-        MY_INTERFACE(my::io::IMutableFileSystem, IFileSystem)
+        MY_INTERFACE(my::io::IMutableFileSystem, FileSystem)
 
         /**
          * @brief Creates a new directory.
@@ -360,7 +361,7 @@ namespace my::io
         };
 
         DirectoryIterator() = default;
-        DirectoryIterator(IFileSystem::Ptr fileSystem, FsPath virtualPath);
+        DirectoryIterator(FileSystemPtr fileSystem, FsPath virtualPath);
         DirectoryIterator(const DirectoryIterator&) = delete;
         DirectoryIterator(DirectoryIterator&&) = delete;
         ~DirectoryIterator();
@@ -372,7 +373,7 @@ namespace my::io
         iterator start();
         FsEntry increment();
 
-        IFileSystem::Ptr m_fs;
+        FileSystemPtr m_fs;
         FsPath m_path;
         void* m_iteratorState = nullptr;
 
@@ -395,7 +396,7 @@ namespace my::io
      * @return Pointer to the created file system.
      */
     MY_KERNEL_EXPORT
-    IFileSystem::Ptr createNativeFileSystem(std::string basePath, bool readOnly = true);
+    FileSystemPtr createNativeFileSystem(std::filesystem::path basePath, bool readOnly = true);
 
     /**
      * @brief Creates a zip archive file system.
@@ -404,7 +405,7 @@ namespace my::io
      * @return Pointer to the created file system.
      */
     MY_KERNEL_EXPORT
-    IFileSystem::Ptr createZipArchiveFileSystem(IStreamReader::Ptr stream, std::string basePath = {});
+    FileSystemPtr createZipArchiveFileSystem(StreamPtr stream, std::string basePath = {});
 
     /**
      * @brief Creates a file stream.
@@ -414,7 +415,7 @@ namespace my::io
      * @return Pointer to the created stream.
      */
     MY_KERNEL_EXPORT
-    IStreamBase::Ptr createNativeFileStream(const char* path, AccessModeFlag accessMode, OpenFileMode openMode);
+    StreamBasePtr createNativeFileStream(std::filesystem::path, AccessModeFlag accessMode, OpenFileMode openMode);
 
 }  // namespace my::io
 

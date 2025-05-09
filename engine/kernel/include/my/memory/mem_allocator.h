@@ -5,19 +5,21 @@
 #include <concepts>
 #include <type_traits>
 
-#include "my/kernel/kernel_config.h"
 #include "my/diag/check.h"
+#include "my/kernel/kernel_config.h"
 #include "my/memory/mem_base.h"
-//#include "my/rtti/type_info.h"
-#include "my/rtti/rtti_object.h"
+
+// #include "my/rtti/type_info.h"
 #include "my/rtti/ptr.h"
+#include "my/rtti/rtti_object.h"
+#include "my/utils/type_utility.h"
 
 namespace my
 {
 
-    struct MY_ABSTRACT_TYPE MemAllocator : IRefCounted
+    struct MY_ABSTRACT_TYPE IMemAllocator : IRefCounted
     {
-        MY_INTERFACE(my::MemAllocator, IRefCounted)
+        MY_INTERFACE(my::IMemAllocator, IRefCounted)
 
         [[nodiscard]] virtual void* alloc(size_t size) = 0;
 
@@ -28,7 +30,8 @@ namespace my
         virtual size_t getAllocationAlignment() const = 0;
 
         virtual void setName(const char*)
-        {}
+        {
+        }
 
         virtual const char* getName() const
         {
@@ -36,9 +39,9 @@ namespace my
         }
     };
 
-    struct MY_ABSTRACT_TYPE AlignedMemAllocator : MemAllocator
+    struct MY_ABSTRACT_TYPE IAlignedMemAllocator : IMemAllocator
     {
-        MY_INTERFACE(my::AlignedMemAllocator, MemAllocator)
+        MY_INTERFACE(my::IAlignedMemAllocator, IMemAllocator)
 
         [[nodiscard]] virtual void* allocAligned(size_t size, size_t alignment) = 0;
 
@@ -47,13 +50,14 @@ namespace my
         virtual void freeAligned(void* ptr, size_t alignment) = 0;
     };
 
-    using MemAllocatorPtr = my::Ptr<MemAllocator>;
+    using MemAllocatorPtr = my::Ptr<IMemAllocator>;
 
-#if 0
+    template <typename U>
+    concept IsMemAllocatorRef = std::is_reference_v<U> && std::is_assignable_v<IMemAllocator&, U>;
 
     template <typename T>
     concept MemAllocatorProvider = requires {
-        { T::getAllocator() } -> std::assignable_from<MemAllocator&>;
+        { T::get_allocator() } -> IsMemAllocatorRef;
     };
 
     /*
@@ -63,8 +67,7 @@ namespace my
     class StatelessStdAllocator
     {
     public:
-        using Provider = AllocProvider;
-
+        ///static_assert(MemAllocatorProvider<decltype(AllocProvider)>);
         using value_type = T;
         using propagate_on_container_move_assignment = std::true_type;
 
@@ -75,29 +78,37 @@ namespace my
         {
         }
 
+        static decltype(auto) get_allocator()
+        {
+            return AllocProvider::get_allocator();
+        }
+
         [[nodiscard]]
         constexpr T* allocate(size_t n)
         {
-            void* const ptr = Provider::getAllocator().realloc(nullptr, sizeof(T) * n);
+            void* const ptr = get_allocator().realloc(nullptr, sizeof(T) * n);
             return reinterpret_cast<T*>(ptr);
         }
 
         void deallocate(T* p, [[maybe_unused]] std::size_t n)
         {
-            // const size_t size = sizeof(T) * n;
-            Provider::getAllocator().free(reinterpret_cast<void*>(p));
+            get_allocator().free(reinterpret_cast<void*>(p));
         }
 
         template <typename U, MemAllocatorProvider UProvider>
         bool operator==(const StatelessStdAllocator<U, UProvider>&) const
         {
-            const MemAllocator& a1 = UProvider::GetAllocator();
-            const MemAllocator& a2 = Provider::GetAllocator();
+            const IMemAllocator& a1 = StatelessStdAllocator<U, UProvider>::get_allocator();
+            const IMemAllocator& a2 = get_allocator();
 
             return &a1 == &a2;
         }
     };
 
+    // template <typename T, auto F>
+    // using StatelessStdAllocatorF = StatelessStdAllocator<T, decltype(F)>;
+
+#if 0
     /*
      */
     template <typename T>
@@ -107,30 +118,27 @@ namespace my
         using value_type = T;
         using propagate_on_container_move_assignment = std::true_type;
 
-        MemAllocatorStdWrapper(MemAllocator& alloc) noexcept :
-            m_allocator(std::move(alloc))
+        MemAllocatorStdWrapper(IMemAllocator& allocator) noexcept :
+            m_allocator(allocator)
         {
-            G_ASSERT(m_allocator);
         }
 
-        // move is forbidden: because original (other) allocator should always refer to valid allocator (will use it to free its own state)
+        /// move is forbidden: because original ( \p other) allocator should always refer to valid allocator (will use it to free its own state)
         MemAllocatorStdWrapper(const MemAllocatorStdWrapper<T>& other) noexcept :
             m_allocator(other.m_allocator)
         {
-            G_ASSERT(m_allocator);
         }
 
         template <typename U,
                   std::enable_if_t<!std::is_same_v<U, T>, int> = 0>
         MemAllocatorStdWrapper(const MemAllocatorStdWrapper<U>& other) noexcept :
-            m_allocator(other.m_allocator)
+            m_allocator(other.getMemAllocator())
         {
-            G_ASSERT(m_allocator);
         }
 
         MemAllocatorStdWrapper<T>& operator=([[maybe_unused]] const MemAllocatorStdWrapper<T>& other) noexcept
         {
-            G_ASSERT(m_allocator.get() == other.m_allocator.get());
+            MY_DEBUG_CHECK(&m_allocator == &other.getMemAllocator());
             return *this;
         }
 
@@ -138,43 +146,64 @@ namespace my
                   std::enable_if_t<!std::is_same_v<U, T>, int> = 0>
         MemAllocatorStdWrapper<T>& operator=([[maybe_unused]] const MemAllocatorStdWrapper<U>& other) noexcept
         {
-            G_ASSERT(m_allocator.get() == other.m_allocator.Get());
+            MY_DEBUG_CHECK(&m_allocator == &other.getMemAllocator());
             return *this;
         }
 
-        [[nodiscard]]
-        constexpr T* allocate(size_t n)
+        [[nodiscard]] constexpr T* allocate(size_t n)
         {
-            void* const ptr = m_allocator->realloc(nullptr, sizeof(T) * n);
+            void* const ptr = m_allocator.alloc(sizeof(T) * n);
+            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignof(T) == 0);
+
             return reinterpret_cast<T*>(ptr);
         }
 
         void deallocate(T* p, [[maybe_unused]] std::size_t n)
         {
             // const size_t size = sizeof(T) * n;
-            m_allocator->free(reinterpret_cast<void*>(p));
+            m_allocator.free(p);
         }
 
         template <typename U>
         bool operator==(const MemAllocatorStdWrapper<U>& other) const
         {
-            return m_allocator.get() == other.get();
+            return &m_allocator == &other.getMemAllocator();
         }
 
-        const MemAllocatorPtr m_allocator;
+        IMemAllocator& getMemAllocator() const
+        {
+            return (m_allocator);
+        }
+
+    private:
+        IMemAllocator& m_allocator;
     };
 
 #endif
+    MY_KERNEL_EXPORT IAlignedMemAllocator& getSystemAllocator();
 
-    MY_KERNEL_EXPORT AlignedMemAllocator& getSystemAllocator();
-
-    inline AlignedMemAllocator* getSystemAllocatorPtr()
+    inline IAlignedMemAllocator* getSystemAllocatorPtr()
     {
         return &getSystemAllocator();
     }
 
-    //MY_KERNEL_EXPORT MemAllocatorPtr createSystemAllocator(bool threadSafe);
+    // MY_KERNEL_EXPORT MemAllocatorPtr createSystemAllocator(bool threadSafe);
 
-//    MY_KERNEL_EXPORT MemAllocator& getDefaultAllocator();
+    //    MY_KERNEL_EXPORT IMemAllocator& getDefaultAllocator();
+
+    namespace mem_detail
+    {
+        struct SystemAllocatorProvider
+        {
+            static IMemAllocator& get_allocator()
+            {
+                return getSystemAllocator();
+            }
+        };
+
+    }  // namespace mem_detail
+
+    template <typename T>
+    using DefaultStdAllocator = StatelessStdAllocator<T, mem_detail::SystemAllocatorProvider>;
 
 }  // namespace my

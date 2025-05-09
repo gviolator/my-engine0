@@ -19,11 +19,9 @@ namespace my::io
      *          for managing multiple file systems as a unified virtual file system.
      */
     struct MY_ABSTRACT_TYPE IVirtualFileSystem : IMutableFileSystem,
-                                                  INativeFileSystem
+                                                 INativeFileSystem
     {
         MY_INTERFACE(my::io::IVirtualFileSystem, IMutableFileSystem, INativeFileSystem)
-
-        using Ptr = my::Ptr<IVirtualFileSystem>;  ///< Type alias for a pointer to an `IVirtualFileSystem`.
 
         /**
          * @brief Mounts a file system to a specified path within the virtual file system.
@@ -33,20 +31,22 @@ namespace my::io
          * @return Result of the operation.
          * @details If multiple file systems are mounted at the same path, the one with the highest priority will be used.
          */
-        virtual Result<> mount(const FsPath&, IFileSystem::Ptr, unsigned priority = 1) = 0;
+        virtual Result<> mount(const FsPath&, FileSystemPtr, unsigned priority = 1) = 0;
 
         /**
          * @brief Unmounts a previously mounted file system.
          * @param fileSystem Pointer to the file system to unmount.
          */
-        virtual void unmount(IFileSystem::Ptr) = 0;
+        virtual void unmount(FileSystemPtr) = 0;
     };
+
+    using VirtualFileSystemPtr = my::Ptr<IVirtualFileSystem>;  ///< Type alias for a pointer to an `IVirtualFileSystem`.
 
     /**
      * @brief Creates a new virtual file system.
      * @return Pointer to the created virtual file system.
      */
     MY_KERNEL_EXPORT
-    IVirtualFileSystem::Ptr createVirtualFileSystem();
+    VirtualFileSystemPtr createVirtualFileSystem();
 
 }  // namespace my::io

@@ -201,7 +201,7 @@ namespace my::async_detail
         ExpirationSubscription expirationSubscription;
         std::atomic<CompletionState> completionState = CompletionState::None;
 
-        static MemAllocator& getAwaiterStateAllocator()
+        static IMemAllocator& getAwaiterStateAllocator()
         {
             constexpr Byte StateBlockSize = std::bit_ceil(sizeof(AwaiterState));
 

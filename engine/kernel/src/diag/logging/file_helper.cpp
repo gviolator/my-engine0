@@ -76,7 +76,7 @@ namespace spdlog
             for (int tries = 0; tries < open_tries_; ++tries)
             {
                 // TODO: use fd_ when it support file writing.
-                // fd_ = my::getServiceProvider().get<my::io::IFileSystem>().openFile(filename_,
+                // fd_ = my::getServiceProvider().get<my::io::FileSystem>().openFile(filename_,
                 //                                                                     my::io::AccessMode::Write | my::io::AccessMode::Async,
                 //                                                                     my::io::OpenFileMode::CreateAlways);
                 auto utf8Path = strings::wstringToUtf8(logFilePath.c_str());

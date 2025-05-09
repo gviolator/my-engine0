@@ -5,16 +5,16 @@
 namespace my
 {
 
-    class CrtAllocator final : public AlignedMemAllocator
+    class CrtAllocator final : public IAlignedMemAllocator
     {
     public:
-        MY_REFCOUNTED_CLASS(my::CrtAllocator, AlignedMemAllocator)
+        MY_REFCOUNTED_CLASS(my::CrtAllocator, IAlignedMemAllocator)
 
         ~ CrtAllocator() = default;
 
         size_t getAllocationAlignment() const override
         {
-            return 0;
+            return alignof(std::max_align_t);
         }
 
         void* alloc(size_t size) override
@@ -31,14 +31,14 @@ namespace my
 
         void* allocAligned(size_t size, size_t alignment) override
         {
-            MY_DEBUG_CHECK(isPowerOf2(alignment));
+            MY_DEBUG_CHECK(is_power_of2(alignment));
 
             return ::_aligned_malloc(size, alignment);
         }
 
         void* reallocAligned(void* oldPtr, size_t size, size_t alignment) override
         {
-            MY_DEBUG_CHECK(isPowerOf2(alignment));
+            MY_DEBUG_CHECK(is_power_of2(alignment));
 
 #ifdef _WIN32
             auto const ptr = ::_aligned_realloc(oldPtr, size, alignment);
@@ -123,7 +123,7 @@ Allocator& AllocatorMemoryResource::allocator() const
 
     //my::MemAllocatorPtr g_defaultAllocatorInstance;
 
-    AlignedMemAllocator& getSystemAllocator()
+    IAlignedMemAllocator& getSystemAllocator()
     {
         static Ptr<CrtAllocator> crtAllocator = rtti::createInstanceSingleton<CrtAllocator>();
         return *crtAllocator;

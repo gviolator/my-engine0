@@ -32,6 +32,6 @@ namespace my::test
         auto ptr = allocator->alloc(sizeof(CustomAlignedObject));
         ASSERT_TRUE(reinterpret_cast<uintptr_t>(ptr) % alignof(CustomAlignedObject) == 0);
 
-        auto obj = new(ptr) CustomAlignedObject;
+        [[maybe_unused]] auto obj = new(ptr) CustomAlignedObject;
     }
 }  // namespace my::test

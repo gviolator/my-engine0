@@ -82,15 +82,15 @@ namespace my
             MY_DEBUG_CHECK(!m_pages.empty());
 
             MemRegionEntry* region = &m_pages.back();
-            if (const size_t availSize = region->pages.getSize() - region->offset; availSize < m_blockSize)
+            if (const size_t availSize = region->pages.size() - region->offset; availSize < m_blockSize)
             {
                 region = &m_pages.emplace_back(m_memory.allocPages(m_blockSize));
             }
 
-            MY_DEBUG_FATAL(region->pages.getSize() >= m_blockSize);
+            MY_DEBUG_FATAL(region->pages.size() >= m_blockSize);
 
             const size_t allocOffset = std::exchange(region->offset, region->offset + m_blockSize);
-            return reinterpret_cast<std::byte*>(region->pages.getBasePtr()) + allocOffset;
+            return reinterpret_cast<std::byte*>(region->pages.basePtr()) + allocOffset;
         }
 
         std::vector<MemRegionEntry> m_pages;
@@ -103,10 +103,10 @@ namespace my
      *
      */
     template <typename Mutex>
-    class FixedSizeBlockAllocator final : public MemAllocator
+    class FixedSizeBlockAllocator final : public IMemAllocator
     {
     public:
-        MY_REFCOUNTED_CLASS(FixedSizeBlockAllocator, MemAllocator)
+        MY_REFCOUNTED_CLASS(FixedSizeBlockAllocator, IMemAllocator)
 
         FixedSizeBlockAllocator(HostMemoryPtr memory, size_t blockSize) :
             m_memory(memory),
@@ -167,7 +167,7 @@ namespace my
 
         // void* reallocAligned(void* oldPtr, size_t size, [[maybe_unused]] size_t alignment) override
         // {
-        //     MY_DEBUG_FATAL(isPowerOf2(alignment));
+        //     MY_DEBUG_FATAL(is_power_of2(alignment));
 
         //     void* const newPtr = this->realloc(oldPtr, size);
 
@@ -198,7 +198,7 @@ namespace my
 
     MemAllocatorPtr createFixedSizeBlockAllocator(HostMemoryPtr hostMemory, Byte blockSize, bool threadSafe)
     {
-        const size_t alignedBlockSize = alignedSize(blockSize, Pool::MemBlockAlignment);
+        const size_t alignedBlockSize = aligned_size(blockSize, Pool::MemBlockAlignment);
 
         using ThreadSafeAllocator = FixedSizeBlockAllocator<threading::SpinLock>;
         using ThreadUnsafeAllocator = FixedSizeBlockAllocator<threading::NoLockMutex>;

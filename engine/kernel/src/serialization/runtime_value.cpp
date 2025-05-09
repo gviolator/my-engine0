@@ -378,7 +378,7 @@ namespace my
         return MakeError("Do not known how to assign runtime value");
     }
 
-    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, MemAllocator* allocator)
+    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(allocator, std::ref(value));
     }

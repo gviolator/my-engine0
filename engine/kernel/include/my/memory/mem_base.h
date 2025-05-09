@@ -5,14 +5,14 @@
 
 namespace my
 {
-    constexpr inline bool isPowerOf2(size_t value)
+    constexpr inline bool is_power_of2(size_t value)
     {
         return (value & (value - 1)) == 0;
     }
 
-    constexpr inline size_t alignedSize(size_t size, size_t alignment)
+    constexpr inline size_t aligned_size(size_t size, size_t alignment)
     {
-        MY_DEBUG_CHECK(isPowerOf2(alignment), "alignment expected to be a power of two. Actual value: ({})", alignment);
+        MY_DEBUG_CHECK(is_power_of2(alignment), "alignment expected to be a power of two. Actual value: ({})", alignment);
         return (size + alignment - 1) & ~(alignment - 1);
     }
 

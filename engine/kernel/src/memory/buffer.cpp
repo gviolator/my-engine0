@@ -76,7 +76,7 @@ namespace my
                 m_blockAllocators[3] = createAlloc(2048);
             }
 
-            MemAllocator& getAllocator(size_t size)
+            IMemAllocator& getAllocator(size_t size)
             {
                 for (auto& [blockSize, allocator] : m_blockAllocators)
                 {
@@ -115,13 +115,13 @@ namespace my
             return reinterpret_cast<std::byte*>(mutableHeader) + ClientDataOffset;
         }
 
-        MemAllocator& getBufferAllocator(size_t storageSize)
+        IMemAllocator& getBufferAllocator(size_t storageSize)
         {
             static BufferAllocatorHolder g_bufferAllocatorHolder;
             return g_bufferAllocatorHolder.getAllocator(storageSize);
         }
 
-        MemAllocator& getBufferAllocator(const BufferBase::Header& header)
+        IMemAllocator& getBufferAllocator(const BufferBase::Header& header)
         {
             MY_DEBUG_FATAL(header.capacity > 0);
 
@@ -135,10 +135,10 @@ namespace my
     BufferHandle BufferStorage::allocate(size_t clientSize)
     {
         const size_t granuleSize = (clientSize < BigAllocationThreshold) ? AllocationGranularity : BigAllocationGranularity;
-        const size_t storageSize = alignedSize(HeaderSize + clientSize, granuleSize);
+        const size_t storageSize = aligned_size(HeaderSize + clientSize, granuleSize);
         const size_t capacity = storageSize - HeaderSize;
 
-        MemAllocator& allocator = getBufferAllocator(storageSize);
+        IMemAllocator& allocator = getBufferAllocator(storageSize);
         void* const storage = allocator.alloc(storageSize);
         MY_FATAL(storage);
         MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);
@@ -200,7 +200,7 @@ namespace my
         return storage;
     }
 
-    void* BufferStorage::getClientData(BufferHandle handle)
+    std::byte* BufferStorage::getClientData(BufferHandle handle)
     {
         return my::clientData(handle);
     }
@@ -216,7 +216,7 @@ namespace my
         return Buffer(handle);
     }
 
-    Buffer BufferStorage::bufferFromClientData(void* ptr, std::optional<size_t> size)
+    Buffer BufferStorage::bufferFromClientData(std::byte* ptr, std::optional<size_t> size)
     {
         MY_FATAL(ptr);
 
@@ -353,12 +353,12 @@ namespace my
         return *this;
     }
 
-    void* Buffer::data() const
+    std::byte* Buffer::data() const
     {
         return clientData(m_storage);
     }
 
-    void* Buffer::append(size_t count)
+    std::byte* Buffer::append(size_t count)
     {
         const size_t offset = size();
         resize(offset + count);
@@ -481,7 +481,7 @@ namespace my
         return *this;
     }
 
-    const void* ReadOnlyBuffer::data() const
+    const std::byte* ReadOnlyBuffer::data() const
     {
         return clientData(m_storage);
     }

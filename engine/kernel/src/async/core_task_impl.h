@@ -16,7 +16,7 @@ namespace my::async
     class CoreTaskImpl final : public CoreTask
     {
     public:
-        CoreTaskImpl(MemAllocator&, void* allocatedStorage, size_t size, StateDestructorCallback destructor);
+        CoreTaskImpl(IMemAllocator&, void* allocatedStorage, size_t size, StateDestructorCallback destructor);
 
         ~CoreTaskImpl();
 
@@ -51,7 +51,7 @@ namespace my::async
         void invokeReadyCallback();
         void tryScheduleContinuation();
 
-        MemAllocator& m_allocator;
+        IMemAllocator& m_allocator;
 
         // In some cases m_allocatedStorage can differ from (void*)this, because of custom types alignment.
         // For simplification aligned storage allocation, just keeps m_allocatedStorage (which may initially have incorrect alignment).

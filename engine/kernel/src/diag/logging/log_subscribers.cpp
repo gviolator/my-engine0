@@ -124,7 +124,7 @@ namespace my::diag
             lock_(m_mutex);
 
             // TODO: at this moment processMessage can be called while services system is gone.
-            if (!hasServiceProvider() || !getServiceProvider().has<io::IFileSystem>() || !getApplication().hasExecutor())
+            if (!hasServiceProvider() || !getServiceProvider().has<io::FileSystem>() || !getApplication().hasExecutor())
             {
                 m_pendingMessages.emplace_back(message);
                 return;

@@ -15,7 +15,7 @@ namespace my::test
         auto pages = hostMemory->allocPages(1_b);
 
         ASSERT_TRUE(pages);
-        ASSERT_EQ(pages.getSize(), hostMemory->getPageSize());
+        ASSERT_EQ(pages.size(), hostMemory->getPageSize());
     }
 
     /**
@@ -74,8 +74,8 @@ namespace my::test
         const IHostMemory::MemRegion* prevRegion = &*(iter++);
         for (; iter != allRegions.end(); ++iter)
         {
-            ASSERT_TRUE(IHostMemory::MemRegion::isAdjacent(*prevRegion, *iter));
-            ASSERT_TRUE(IHostMemory::MemRegion::isAdjacent(*iter, *prevRegion));
+            ASSERT_TRUE(IHostMemory::MemRegion::is_adjacent(*prevRegion, *iter));
+            ASSERT_TRUE(IHostMemory::MemRegion::is_adjacent(*iter, *prevRegion));
             prevRegion = &*(iter);
         }
     }

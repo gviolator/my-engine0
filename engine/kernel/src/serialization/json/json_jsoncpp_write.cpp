@@ -42,7 +42,7 @@ namespace my::serialization
         class WriterStreambuf final : public std::streambuf
         {
         public:
-            WriterStreambuf(io::IStreamWriter& writer) :
+            WriterStreambuf(io::IStream& writer) :
                 m_writer(writer)
             {
             }
@@ -61,7 +61,7 @@ namespace my::serialization
             }
 
         private:
-            io::IStreamWriter& m_writer;
+            io::IStream& m_writer;
         };
 
         void makeJsonPrimitiveValue(Json::Value& jValue, const RuntimePrimitiveValue& value)
@@ -183,8 +183,10 @@ namespace my::serialization
 
     }  // namespace
 
-    Result<> jsonWrite(io::IStreamWriter& writer, const Json::Value& value, JsonSettings settings)
+    Result<> jsonWrite(io::IStream& writer, const Json::Value& value, JsonSettings settings)
     {
+        MY_DEBUG_CHECK(writer.canWrite());
+
         WriterStreambuf buf{writer};
         std::ostream stream(&buf);
         getJsonWriter(settings).write(value, &stream);
@@ -192,8 +194,10 @@ namespace my::serialization
         return ResultSuccess;
     }
 
-    Result<> jsonWrite(io::IStreamWriter& writer, const RuntimeValuePtr& value, JsonSettings settings)
+    Result<> jsonWrite(io::IStream& writer, const RuntimeValuePtr& value, JsonSettings settings)
     {
+        MY_DEBUG_CHECK(writer.canWrite());
+
         Json::Value root;
         if(auto result = makeJsonValue(root, value, settings); !result)
         {

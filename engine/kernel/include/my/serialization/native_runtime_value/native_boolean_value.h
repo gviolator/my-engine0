@@ -56,17 +56,17 @@ namespace my
 
     /**
     */
-    inline Ptr<RuntimeBooleanValue> makeValueRef(bool& value, MemAllocator* allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueRef(bool& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<bool&>>(allocator, value);
     }
 
-    inline Ptr<RuntimeBooleanValue> makeValueRef(const bool& value, MemAllocator* allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueRef(const bool& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<const bool&>>(std::move(allocator), value);
     }
 
-    inline Ptr<RuntimeBooleanValue> makeValueCopy(bool value, MemAllocator* allocator)
+    inline Ptr<RuntimeBooleanValue> makeValueCopy(bool value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<bool>>(std::move(allocator), value);
     }

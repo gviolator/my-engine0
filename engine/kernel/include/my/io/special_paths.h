@@ -3,21 +3,20 @@
 #pragma once
 
 #include <filesystem>
-#include <EASTL/string.h>
+#include <string>
 
 #include "my/kernel/kernel_config.h"
-#include "my/utils/enum/enum_reflection.h"
+#include "my/utils/runtime_enum.h"
 
 namespace my::io
 {
     MY_DEFINE_ENUM_(KnownFolder,
-        Temp,
-        ExecutableLocation,
-        Current,
-        UserDocuments,
-        UserHome,
-        LocalAppData
-    );
+                    Temp,
+                    ExecutableLocation,
+                    Current,
+                    UserDocuments,
+                    UserHome,
+                    LocalAppData);
 
     /**
      * @brief Generates a native temporary file path with a specified prefix.
@@ -25,11 +24,11 @@ namespace my::io
      * This function creates a temporary file path that is unique and prefixed with the provided file name. The generated path is
      * suitable for use in file operations where a temporary file is required.
      *
-     * @param prefixFileName The prefix to use for the temporary file name. Defaults to "NAU".
+     * @param prefixFileName The prefix to use for the temporary file name..
      * @return An `std::u8string` representing the generated temporary file path.
      */
     MY_KERNEL_EXPORT
-    std::u8string getNativeTempFilePath(std::u8string_view prefixFileName = u8"NAU");
+    std::filesystem::path getNativeTempFilePath(std::string_view prefixFileName);
 
     /**
         @brief Retrieves the full path of a known folder identified by the folder.

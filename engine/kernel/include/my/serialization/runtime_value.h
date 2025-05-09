@@ -52,10 +52,10 @@ namespace my
         MY_INTERFACE(my::RuntimeValueRef, RuntimeValue)
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, MemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, IMemAllocator* = nullptr);
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr>, MemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr>, IMemAllocator* = nullptr);
 
         virtual void setValue(RuntimeValuePtr) = 0;
  

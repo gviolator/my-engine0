@@ -17,9 +17,9 @@ namespace my::rtti
     };
 
 
-    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(TypeInfo& value, MemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(TypeInfo& value, IMemAllocator* allocator = nullptr);
 
-    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(const TypeInfo& value, MemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueRef(const TypeInfo& value, IMemAllocator* allocator = nullptr);
 
-    MY_KERNEL_EXPORT RuntimeValuePtr makeValueCopy(TypeInfo value, MemAllocator* allocator = nullptr);
+    MY_KERNEL_EXPORT RuntimeValuePtr makeValueCopy(TypeInfo value, IMemAllocator* allocator = nullptr);
 }  // namespace my::rtti

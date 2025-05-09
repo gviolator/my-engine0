@@ -28,17 +28,17 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    Result<> jsonWrite(io::IStreamWriter&, const RuntimeValuePtr&, JsonSettings = {});
+    Result<> jsonWrite(io::IStream&, const RuntimeValuePtr&, JsonSettings = {});
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParse(io::IStreamReader&, MemAllocator* = nullptr);
+    Result<RuntimeValuePtr> jsonParse(io::IStream&, IMemAllocator* = nullptr);
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParseString(std::string_view, MemAllocator* = nullptr);
+    Result<RuntimeValuePtr> jsonParseString(std::string_view, IMemAllocator* = nullptr);
 
     /**
      */
@@ -71,7 +71,7 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocator* = nullptr);
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IMemAllocator* = nullptr);
 
     /**
      */
@@ -90,10 +90,10 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocator* = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocator* = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IMemAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
     Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValuePtr&, JsonSettings = {});
@@ -102,7 +102,7 @@ namespace my::serialization
     Json::Value runtimeToJsonValue(const RuntimeValuePtr&, JsonSettings = {});
 
     MY_KERNEL_EXPORT
-    Result<> jsonWrite(io::IStreamWriter&, const Json::Value&, JsonSettings = {});
+    Result<> jsonWrite(io::IStream&, const Json::Value&, JsonSettings = {});
 
 }  // namespace my::serialization
 

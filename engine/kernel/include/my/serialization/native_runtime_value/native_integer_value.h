@@ -93,19 +93,19 @@ namespace my::ser_detail
 namespace my
 {
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(T& value, MemAllocator* allocator)
+    Ptr<RuntimeIntegerValue> makeValueRef(T& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(const T& value, MemAllocator* allocator)
+    Ptr<RuntimeIntegerValue> makeValueRef(const T& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<const T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueCopy(T value, MemAllocator* allocator)
+    Ptr<RuntimeIntegerValue> makeValueCopy(T value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T>>(allocator, value);
     }

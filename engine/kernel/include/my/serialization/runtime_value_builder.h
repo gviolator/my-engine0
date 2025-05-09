@@ -24,12 +24,12 @@ namespace my
     /**
      *
      */
-    inline Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, MemAllocator* allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, IMemAllocator* allocator)
     {
         return RuntimeValueRef::create(std::cref(value), allocator);
     }
 
-    inline Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, MemAllocator* allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, IMemAllocator* allocator)
     {
         return RuntimeValueRef::create(value, allocator);
     }

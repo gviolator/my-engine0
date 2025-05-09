@@ -103,7 +103,7 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(T& opt, MemAllocator* allocator)
+    Ptr<RuntimeOptionalValue> makeValueRef(T& opt, IMemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T&>;
 
@@ -111,7 +111,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(const T& opt, MemAllocator* allocator)
+    Ptr<RuntimeOptionalValue> makeValueRef(const T& opt, IMemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<const T&>;
 
@@ -119,7 +119,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(const T& opt, MemAllocator* allocator)
+    Ptr<RuntimeOptionalValue> makeValueCopy(const T& opt, IMemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 
@@ -127,7 +127,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(T&& opt, MemAllocator* allocator)
+    Ptr<RuntimeOptionalValue> makeValueCopy(T&& opt, IMemAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 

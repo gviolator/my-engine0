@@ -1,19 +1,16 @@
-// runtime/memory/runtime_stack.h
-//
-// Copyright (c) N-GINN LLC., 2023-2025. All rights reserved.
-//
+// #my_engine_source_file
 
 #pragma once
-#include "runtime/memory/mem_allocator.h"
-#include "runtime/runtime_config.h"
-#include "runtime/utils/preprocessor.h"
+#include "my/memory/mem_allocator.h"
+#include "my/kernel/kernel_config.h"
+#include "my/utils/preprocessor.h"
 
 namespace my
 {
     class RuntimeStackGuard
     {
     public:
-        static const MemAllocatorPtr& getAllocator();
+        static IAlignedMemAllocator& get_allocator();
 
         RuntimeStackGuard();
         RuntimeStackGuard(Kilobyte size);
@@ -27,27 +24,39 @@ namespace my
         size_t m_top = 0;
     };
 
-    struct RuntimeStackAllocatorProvider
+    struct MY_ABSTRACT_TYPE IStackAllocatorInfo
     {
-        static inline MemAllocator& getAllocator()
+        MY_TYPEID(my::IStackAllocatorInfo)
+
+        virtual ~IStackAllocatorInfo() = default;
+
+        virtual uintptr_t getAllocationOffset() const = 0;
+    };
+
+
+    inline IAlignedMemAllocator& get_rt_stack_allocator()
+    {
+        return RuntimeStackGuard::get_allocator();
+    }
+
+    struct RtStackAllocatorProvider
+    {
+        static IAlignedMemAllocator& get_allocator()
         {
-            return *RuntimeStackGuard::getAllocator();
+            return RuntimeStackGuard::get_allocator();
         }
     };
 
-    inline decltype(auto) getRtStackAllocator()
-    {
-        return RuntimeStackGuard::getAllocator();
-    }
 
     template <typename T>
-    using RuntimeStackStdAllocator = StatelessStdAllocator<T, RuntimeStackAllocatorProvider>;
+    using RtStackStdAllocator = StatelessStdAllocator<T, RtStackAllocatorProvider>;
 
 }  // namespace my
 
 // clang-format off
-#define rtstack_init(initialSize)  const ::my::RuntimeStackGuard ANONYMOUS_VAR(rtStack__)(initialSize) 
+#define rtstack_init(initialSize)  const ::my::RuntimeStackGuard ANONYMOUS_VAR(rtStack__){initialSize}
 
 #define rtstack_scope const ::my::RuntimeStackGuard ANONYMOUS_VAR(rtStack__){}
 
 // clang-format on
+

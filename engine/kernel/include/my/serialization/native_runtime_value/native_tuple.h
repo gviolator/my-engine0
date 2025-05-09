@@ -151,56 +151,56 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueRef(T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeTuple<T&>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(const T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueRef(const T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeTuple<const T&>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeTuple<T>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeTuple<T>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, std::move(tup));
     }
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueRef(T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeUniformTuple<T&>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(const T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueRef(const T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeUniformTuple<const T&>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeUniformTuple<T>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, tup);
     }
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&& tup, MemAllocator* allocator)
+    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&& tup, IMemAllocator* allocator)
     {
         using Tuple = ser_detail::NativeUniformTuple<T>;
         return rtti::createInstanceWithAllocator<Tuple>(allocator, std::move(tup));

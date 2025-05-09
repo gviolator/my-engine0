@@ -443,7 +443,7 @@ namespace my::json_detail
 
 namespace my::serialization
 {
-    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, MemAllocator*)
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IMemAllocator*)
     {
         if (root.isObject())
         {
@@ -457,7 +457,7 @@ namespace my::serialization
         return json_detail::getValueFromJson(nullptr, root);
     }
 
-    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, MemAllocator*)
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IMemAllocator*)
     {
         if (root.isObject())
         {
@@ -471,7 +471,7 @@ namespace my::serialization
         return nullptr;
     }
 
-    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, MemAllocator*)
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator*)
     {
         auto value = jsonAsRuntimeValue(const_cast<Json::Value&>(root));
         value->as<json_detail::JsonValueHolderImpl&>().setMutable(false);

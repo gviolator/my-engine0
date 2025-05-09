@@ -156,7 +156,7 @@ namespace my
          *
          * @return Pointer to the data.
          */
-        void* data() const;
+         std::byte* data() const;
 
         /**
          * @brief Appends data to the buffer.
@@ -164,7 +164,7 @@ namespace my
          * @param size The size of the data to append.
          * @return Pointer to the appended data.
          */
-        void* append(size_t size);
+        std::byte* append(size_t size);
 
         /**
          * @brief Resizes the buffer.
@@ -208,7 +208,7 @@ namespace my
          *
          * @return Pointer to the data.
          */
-        const void* data() const;
+        const std::byte* data() const;
 
         /**
          * @brief Converts the read-only buffer to a mutable buffer.
@@ -338,13 +338,13 @@ namespace my
 
         /**
          */
-        static void* getClientData(BufferHandle buffer);
+        static std::byte* getClientData(BufferHandle buffer);
 
         static size_t getClientSize(const BufferHandle buffer);
 
         static Buffer bufferFromHandle(BufferHandle buffer);
 
-        static Buffer bufferFromClientData(void* ptr, std::optional<size_t> size = std::nullopt);
+        static Buffer bufferFromClientData(std::byte* ptr, std::optional<size_t> size = std::nullopt);
     };
 
     /**
@@ -399,7 +399,7 @@ namespace my
         {
             return std::string_view{};
         }
-        const void* const data = BufferStorage::getClientData(buffer.m_storage);
+        const std::byte* const data = BufferStorage::getClientData(buffer.m_storage);
         return std::string_view{reinterpret_cast<const char*>(data), buffer.size()};
     }
 
@@ -408,7 +408,7 @@ namespace my
         Buffer buffer;
         if (!string.empty())
         {
-            void* const data = buffer.append(string.size());
+            std::byte* const data = buffer.append(string.size());
             memcpy(data, string.data(), string.size());
         }
         return buffer;

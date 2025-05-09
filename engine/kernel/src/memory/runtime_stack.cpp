@@ -1,12 +1,10 @@
-#if 0
-// runtime_stack.cpp
-//
-// Copyright (c) N-GINN LLC., 2023-2025. All rights reserved.
-//
-#include "runtime/memory/runtime_stack.h"
+// #my_engine_source_file
+#include "my/memory/runtime_stack.h"
 
-#include "runtime/memory/mem_page_allocator.h"
-#include "runtime/rtti/rtti_impl.h"
+#include "my/diag/check.h"
+#include "my/memory/host_memory.h"
+#include "my/rtti/rtti_impl.h"
+
 
 namespace my
 {
@@ -15,13 +13,16 @@ namespace my
         static thread_local RuntimeStackGuard* s_currentStackGuard = nullptr;
     }
 
-    class RuntimeStackAllocator final : public MemAllocator
+    class RuntimeStackAllocator final : public IAlignedMemAllocator, public IStackAllocatorInfo
     {
-        MY_REFCOUNTED_CLASS(my::RuntimeStackAllocator, MemAllocator)
+        MY_REFCOUNTED_CLASS(my::RuntimeStackAllocator, IAlignedMemAllocator, IStackAllocatorInfo)
 
     public:
+        static constexpr size_t MaxAlignment = 128;
+        static constexpr size_t DefaultAlignment = alignof(std::max_align_t);
+
         RuntimeStackAllocator(const Kilobyte size) :
-            m_pageAllocator(size.bytesCount())
+            m_pageAllocator(createHostVirtualMemory(size, false))
         {
         }
 
@@ -32,75 +33,104 @@ namespace my
 
         void restore(size_t offset)
         {
-            m_offset = offset;
+            m_allocOffset = offset;
         }
 
         size_t getOffset() const
         {
-            return m_offset;
+            return m_allocOffset;
+        }
+
+        void* alloc(size_t size) override
+        {
+            return reallocAligned(nullptr, size, DefaultAlignment);
+        }
+
+        void* realloc(void* oldPtr, size_t size) override
+        {
+            return reallocAligned(oldPtr, size, DefaultAlignment);
+        }
+
+        void free(void* ptr) override
+        {
+            freeAligned(ptr, DefaultAlignment);
+        }
+
+        size_t getAllocationAlignment() const override
+        {
+            return MaxAlignment;
+        }
+
+        void* allocAligned(size_t size, size_t alignment) override
+        {
+            return reallocAligned(nullptr, size, alignment);
+        }
+
+        void* reallocAligned(void* oldPtr, size_t size, size_t alignment) override;
+
+        void freeAligned(void* ptr, size_t alignment) override;
+
+        uintptr_t getAllocationOffset() const override
+        {
+            return m_allocOffset;
         }
 
     private:
-        void* realloc(void* prevPtr, size_t size) override;
-
-        void* allocAligned(size_t size, size_t alignment) override;
-
-        void free(void* ptr) override;
-
-        void freeAligned(void* ptr, std::optional<size_t> alignment) override;
-
-        PageAllocator m_pageAllocator;
-        size_t m_offset = 0;
+        HostMemoryPtr m_pageAllocator;
+        IHostMemory::MemRegion m_allocatedRegion;
+        uintptr_t m_allocOffset = 0;
     };
 
-    void* RuntimeStackAllocator::realloc([[maybe_unused]] void* prevPtr, size_t size)
+    void* RuntimeStackAllocator::reallocAligned([[maybe_unused]] void* oldPtr, const size_t size, const size_t alignment)
     {
-        G_ASSERT(!prevPtr, "Re-allocation is not supported for runtime stack allocator");
+        MY_DEBUG_CHECK(oldPtr == nullptr, "Reallocation for stack allocator is not implemented");
+        MY_DEBUG_CHECK(is_power_of2(alignment), "Alignment must be power of two");
+        MY_DEBUG_CHECK(alignment <= MaxAlignment, "Requested alignment ({}) exceed max alignment ({})", alignment, MaxAlignment);
 
-        return this->allocAligned(size, alignof(std::max_align_t));
-    }
-
-    void* RuntimeStackAllocator::allocAligned(size_t size, size_t alignment)
-    {
-        std::byte* topPtr = reinterpret_cast<std::byte*>(m_pageAllocator.getBase()) + m_offset;
-
-        // const size_t alignment = optionalAlignment ? *optionalAlignment : alignof(std::max_align_t);
-        G_ASSERT(isPowerOf2(alignment), "Alignment must be power of two");
-
-        const size_t alignedBlockSize = alignedSize(size, alignment);
-
-        // padding = offset from topPtr to make result address aligned.
-        const size_t d = reinterpret_cast<ptrdiff_t>(topPtr) % alignment;
+        const size_t d = m_allocOffset % alignment;
         const size_t padding = d == 0 ? 0 : (alignment - d);
+        const size_t allocationSize = aligned_size(size, alignment) + padding;
+        const size_t newAllocOffset = m_allocOffset + allocationSize;
 
-        const size_t allocationSize = alignedBlockSize + padding;
-
-        if(const size_t newOffset = m_offset + allocationSize; newOffset <= m_pageAllocator.getAllocatedSize())
+        if (!m_allocatedRegion)
         {
-            m_offset = newOffset;
+            m_allocatedRegion = m_pageAllocator->allocPages(allocationSize);
+            MY_FATAL(m_allocatedRegion);
         }
-        else
+        else if (m_allocatedRegion.size() < newAllocOffset)
         {
-            topPtr = reinterpret_cast<std::byte*>(m_pageAllocator.alloc(allocationSize));
-            G_ASSERT_ALWAYS(topPtr, "Runtime stack is out of memory");
-            m_offset = m_pageAllocator.getAllocatedSize();
+            IHostMemory::MemRegion nextRegion = m_pageAllocator->allocPages(allocationSize);
+            MY_FATAL(nextRegion);
+            MY_FATAL(IHostMemory::MemRegion::is_adjacent(m_allocatedRegion, nextRegion));
+
+            m_allocatedRegion += std::move(nextRegion);
         }
 
-        return topPtr + padding;
+        void* const newPtr = reinterpret_cast<std::byte*>(m_allocatedRegion.basePtr()) + m_allocOffset + padding;
+        m_allocOffset = newAllocOffset;
+
+        return newPtr;
     }
 
-    void RuntimeStackAllocator::free([[maybe_unused]] void* ptr)
+    void RuntimeStackAllocator::freeAligned(void* ptr, [[maybe_unused]] size_t alignment)
     {  // TODO: need to check that ptr belongs to the current runtime stack allocation range.
-    }
+        MY_DEBUG_CHECK(is_power_of2(alignment), "Invalid alignment");
+        MY_DEBUG_CHECK(alignment <= MaxAlignment, "Invalid alignment");
+        if (!ptr)
+        {
+            return;
+        }
 
-    void RuntimeStackAllocator::freeAligned([[maybe_unused]] void* ptr, [[maybe_unused]] std::optional<size_t> alignment)
-    {  // TODO: need to check that ptr belongs to the current runtime stack allocation range.
+        [[maybe_unused]] const auto offset = reinterpret_cast<uintptr_t>(ptr);
+        [[maybe_unused]] const auto base = reinterpret_cast<uintptr_t>(m_allocatedRegion.basePtr());
+
+        MY_DEBUG_CHECK(base <= offset && offset < base + m_allocatedRegion.size());
     }
 
     RuntimeStackGuard::RuntimeStackGuard() :
         m_prev(std::exchange(s_currentStackGuard, this))
     {
-        if(m_prev && m_prev->m_allocator)
+        if (m_prev && m_prev->m_allocator)
         {
             m_allocator = m_prev->m_allocator;
             m_top = m_prev->m_allocator->as<RuntimeStackAllocator&>().getOffset();
@@ -109,27 +139,28 @@ namespace my
 
     RuntimeStackGuard::RuntimeStackGuard(Kilobyte size) :
         m_prev(std::exchange(s_currentStackGuard, this)),
-        m_allocator(rtti::createInstance<RuntimeStackAllocator, MemAllocator>(size))
+        m_allocator(rtti::createInstance<RuntimeStackAllocator, IMemAllocator>(size))
     {
     }
 
     RuntimeStackGuard::~RuntimeStackGuard()
     {
-        if(m_allocator)
+        if (m_allocator)
         {
             m_allocator->as<RuntimeStackAllocator&>().restore(m_top);
         }
 
-        G_ASSERT_ALWAYS(std::exchange(s_currentStackGuard, m_prev) == this);
+        MY_CHECK(std::exchange(s_currentStackGuard, m_prev) == this);
     }
 
-    const MemAllocatorPtr& RuntimeStackGuard::getAllocator()
+    IAlignedMemAllocator& RuntimeStackGuard::get_allocator()
     {
-        const MemAllocatorPtr& allocator = (s_currentStackGuard && s_currentStackGuard->m_allocator) ? s_currentStackGuard->m_allocator : getCrtAllocator();
-        G_ASSERT(allocator);
+        if (s_currentStackGuard && s_currentStackGuard->m_allocator)
+        {
+            return s_currentStackGuard->m_allocator->as<IAlignedMemAllocator&>();
+        }
 
-        return (allocator);
+        IAlignedMemAllocator& allocator = getSystemAllocator();
+        return allocator.as<IAlignedMemAllocator&>();
     }
 }  // namespace my
-
-#endif

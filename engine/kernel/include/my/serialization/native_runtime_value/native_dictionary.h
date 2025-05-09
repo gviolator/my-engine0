@@ -141,7 +141,7 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(T& dict, MemAllocator* allocator)
+    Ptr<RuntimeDictionary> makeValueRef(T& dict, IMemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T&>;
 
@@ -149,7 +149,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(const T& dict, MemAllocator* allocator)
+    Ptr<RuntimeDictionary> makeValueRef(const T& dict, IMemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<const T&>;
 
@@ -157,7 +157,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(const T& dict, MemAllocator* allocator)
+    Ptr<RuntimeDictionary> makeValueCopy(const T& dict, IMemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 
@@ -165,7 +165,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(T&& dict, MemAllocator* allocator)
+    Ptr<RuntimeDictionary> makeValueCopy(T&& dict, IMemAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 

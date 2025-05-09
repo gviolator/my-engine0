@@ -258,11 +258,7 @@ namespace my
                                                                                                            \
     [[maybe_unused]] inline MY_NOINLINE ::my::Result<> parse(std::string_view str, EnumType& value)        \
     {                                                                                                      \
-        auto parseRes = ::my::EnumTraits<EnumType>::parse({str.data(), str.size()});                       \
-        CheckResult(parseRes)                                                                           \
-        value = *parseRes;                                                                                 \
-                                                                                                           \
-        return my::ResultSuccess;                                                                          \
+        return ::my::EnumTraits<EnumType>::parse(str, value);                                              \
     }
 
 #define MY_DEFINE_ENUM_(EnumType, ...) MY_DEFINE_ENUM(EnumType, int, #EnumType, __VA_ARGS__)

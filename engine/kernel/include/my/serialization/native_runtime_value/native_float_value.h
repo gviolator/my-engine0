@@ -88,19 +88,19 @@ namespace my
 {
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(T& value, MemAllocator* allocator)
+    Ptr<RuntimeFloatValue> makeValueRef(T& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(const T& value, MemAllocator* allocator)
+    Ptr<RuntimeFloatValue> makeValueRef(const T& value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<const T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueCopy(T value, MemAllocator* allocator)
+    Ptr<RuntimeFloatValue> makeValueCopy(T value, IMemAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T>>(allocator, value);
     }

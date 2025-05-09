@@ -25,7 +25,7 @@ namespace my::io
     {
         MY_INTERFACE(my::io::IStreamBase, IRefCounted)
 
-        using Ptr = my::Ptr<IStreamBase>; /**< A smart pointer type for `IStreamBase`. */
+        //using Ptr = my::Ptr<IStreamBase>; /**< A smart pointer type for `IStreamBase`. */
 
         /**
          * @brief Returns the current stream position if supported.
@@ -40,7 +40,11 @@ namespace my::io
          * @return The new position of the stream if the operation is supported.
          */
         virtual size_t setPosition(OffsetOrigin origin, int64_t offset) = 0;
+
+        virtual bool canSeek() const = 0;
     };
+
+    using StreamBasePtr = my::Ptr<IStreamBase>;
 
     /**
      * @struct IStreamReader
@@ -48,11 +52,9 @@ namespace my::io
      *
      * `IStreamReader` extends `IStreamBase` and provides methods for reading data from the stream.
      */
-    struct MY_ABSTRACT_TYPE IStreamReader : virtual IStreamBase
+    struct MY_ABSTRACT_TYPE IStream : virtual IStreamBase
     {
-        MY_INTERFACE(my::io::IStreamReader, IStreamBase)
-
-        using Ptr = my::Ptr<IStreamReader>; /**< A smart pointer type for `IStreamReader`. */
+        MY_INTERFACE(my::io::IStream, IStreamBase)
 
         /**
          * @brief Reads data from the stream.
@@ -60,8 +62,36 @@ namespace my::io
          * @param count The number of bytes to read.
          * @return A `Result` containing the number of bytes read.
          */
-        virtual Result<size_t> read(std::byte* buffer, size_t count) = 0;
+        virtual Result<size_t> read([[maybe_unused]] std::byte* buffer, [[maybe_unused]] size_t count)
+        {
+            MY_FAILURE("Method not implemented");
+            return MakeError("Not implemented");
+        }
+
+        /**
+         * @brief Writes data to the stream.
+         * @param buffer A pointer to the buffer containing the data to be written.
+         * @param count The number of bytes to write.
+         * @return A `Result` containing the number of bytes written.
+         */
+         virtual Result<size_t> write([[maybe_unused]] const std::byte* buffer, [[maybe_unused]] size_t count)
+         {
+            MY_FAILURE("Method not implemented");
+            return MakeError("Not implemented");
+         }
+
+         /**
+          * @brief Flushes the stream, ensuring all buffered data is written.
+          */
+         virtual void flush() = 0;
+
+         virtual bool canRead() const = 0;
+
+         virtual bool canWrite() const = 0;
+
     };
+
+    using StreamPtr = my::Ptr<IStream>;
 
     // struct MY_ABSTRACT_TYPE IAsyncStreamReader : virtual IStreamBase
     // {
@@ -72,31 +102,6 @@ namespace my::io
     //     virtual Result<size_t> read(std::byte*, size_t count) = 0;
     // };
 
-    /**
-     * @struct IStreamWriter
-     * @brief Interface for writing operations on a stream.
-     *
-     * `IStreamWriter` extends `IStreamBase` and provides methods for writing data to the stream and flushing the stream.
-     */
-    struct MY_ABSTRACT_TYPE IStreamWriter : virtual IStreamBase
-    {
-        MY_INTERFACE(my::io::IStreamWriter, IStreamBase)
-
-        using Ptr = my::Ptr<IStreamWriter>; /**< A smart pointer type for `IStreamWriter`. */
-
-        /**
-         * @brief Writes data to the stream.
-         * @param buffer A pointer to the buffer containing the data to be written.
-         * @param count The number of bytes to write.
-         * @return A `Result` containing the number of bytes written.
-         */
-        virtual Result<size_t> write(const std::byte* buffer, size_t count) = 0;
-
-        /**
-         * @brief Flushes the stream, ensuring all buffered data is written.
-         */
-        virtual void flush() = 0;
-    };
 
     /**
      * @brief Copies data from a reader to a buffer.
@@ -106,7 +111,7 @@ namespace my::io
      * @return A `Result` containing the number of bytes copied.
      */
     MY_KERNEL_EXPORT
-    Result<size_t> copyFromStream(void* dst, size_t size, IStreamReader& src);
+    Result<size_t> copyFromStream(void* dst, size_t size, IStream& src);
 
     /**
      * @brief Copies data from a reader to a writer.
@@ -116,7 +121,7 @@ namespace my::io
      * @return A `Result` containing the number of bytes copied.
      */
     MY_KERNEL_EXPORT
-    Result<size_t> copyFromStream(IStreamWriter& dst, size_t size, IStreamReader& src);
+    Result<size_t> copyFromStream(IStream& dst, size_t size, IStream& src);
 
     /**
      * @brief Copies an entire stream from a reader to a writer.
@@ -125,5 +130,5 @@ namespace my::io
      * @return A `Result` containing the number of bytes copied.
      */
     MY_KERNEL_EXPORT
-    Result<size_t> copyStream(IStreamWriter& dst, IStreamReader& src);
+    Result<size_t> copyStream(IStream& dst, IStream& src);
 }  // namespace my::io

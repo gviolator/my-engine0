@@ -223,9 +223,9 @@ namespace my::test
         return (stream);
     }
 
-    class TestAllocator final : public MemAllocator
+    class TestAllocator final : public IMemAllocator
     {
-        MY_REFCOUNTED_CLASS(TestAllocator, MemAllocator)
+        MY_REFCOUNTED_CLASS(TestAllocator, IMemAllocator)
     public:
         void* alloc(size_t size) override
         {

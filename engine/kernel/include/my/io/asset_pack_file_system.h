@@ -33,5 +33,5 @@ namespace my::io
      * @details This function initializes a file system for managing asset packs with the specified settings.
      */
     MY_KERNEL_EXPORT
-    IFileSystem::Ptr createAssetPackFileSystem(std::u8string_view assetPackPath, AssetPackFileSystemSettings settings = {});
+    FileSystemPtr createAssetPackFileSystem(std::u8string_view assetPackPath, AssetPackFileSystemSettings settings = {});
 }  // namespace my::io

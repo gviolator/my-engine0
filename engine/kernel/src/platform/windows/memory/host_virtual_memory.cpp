@@ -14,7 +14,7 @@ namespace my
         WindowsHostVirtualMemory& operator=(const WindowsHostVirtualMemory&) = delete;
 
         WindowsHostVirtualMemory(size_t size) :
-            m_size(alignedSize(size, mem::AllocationGranularity))
+            m_size(aligned_size(size, mem::AllocationGranularity))
         {
             m_basePtr = reinterpret_cast<std::byte*>(::VirtualAlloc(nullptr, static_cast<SIZE_T>(m_size), MEM_RESERVE, PAGE_READWRITE));
             MY_FATAL(m_basePtr);
@@ -28,7 +28,7 @@ namespace my
     private:
         MemRegion allocPages(size_t size) override
         {
-            size = alignedSize(size, mem::PageSize);
+            size = aligned_size(size, mem::PageSize);
             size_t allocOffset = m_allocOffset;
 
             for (; !m_allocOffset.compare_exchange_strong(allocOffset, m_allocOffset + size, std::memory_order_relaxed);)
@@ -67,7 +67,12 @@ namespace my
             MY_FAILURE("WindowsHostVirtualMemory::freePages not implemented");
         }
 
-        constexpr Byte getPageSize() const override
+        Byte getPageSize() const override
+        {
+            return mem::PageSize;
+        }
+
+        Byte getAllocationGranularity() const override
         {
             return mem::PageSize;
         }
