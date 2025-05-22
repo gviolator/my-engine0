@@ -65,8 +65,6 @@ namespace my::diag
         std::string m_name;
         IntrusiveList<LogSubscriptionImpl> m_subscriptions;
         std::shared_mutex m_mutex;
-
-        //std::atomic<uint32_t> 
     };
 
 }  // namespace my::diag

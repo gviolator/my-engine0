@@ -80,7 +80,7 @@ namespace my::io
     {
         MY_REFCOUNTED_CLASS(my::io::WinFileStream,  IStream)
     public:
-        WinFileStream(HANDLE fileHandle);
+        //WinFileStream(HANDLE fileHandle);
         WinFileStream(const std::filesystem::path&, AccessModeFlag accessMode, OpenFileMode openMode);
         ~WinFileStream();
 
@@ -108,6 +108,7 @@ namespace my::io
 
     private:
         const HANDLE m_fileHandle;
+        const AccessModeFlag m_accessMode;
     };
 
     // class WinFileStreamWriter final : public WinFileStreamBase,

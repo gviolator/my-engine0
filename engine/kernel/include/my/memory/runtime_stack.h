@@ -39,6 +39,11 @@ namespace my
         return RuntimeStackGuard::get_allocator();
     }
 
+    inline IAlignedMemAllocator* get_rt_stack_allocator_ptr()
+    {
+        return &RuntimeStackGuard::get_allocator();
+    }
+
     struct RtStackAllocatorProvider
     {
         static IAlignedMemAllocator& get_allocator()

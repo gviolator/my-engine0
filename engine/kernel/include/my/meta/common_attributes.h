@@ -1,11 +1,11 @@
 // #my_engine_source_file
 
 #pragma once
-#include <EASTL/string.h>
-
+#include <string>
 #include <type_traits>
 
 #include "my/meta/attribute.h"
+
 
 namespace my::meta
 {
@@ -17,7 +17,7 @@ namespace my::meta
     /**
      */
     template <typename T>
-    std::string getClassName()
+    std::string get_class_name()
     {
         if constexpr (AttributeDefined<T, ClassNameAttribute>)
         {

@@ -6,6 +6,13 @@
 
 namespace my::diag
 {
+    namespace
+    {
+        LoggerPtr s_internalLogger = rtti::createInstance<LoggerImpl>();
+        LoggerPtr s_defaultLogger = s_internalLogger;
+    }
+
+
     LoggerImpl::~LoggerImpl()
     {
         lock_(m_mutex);
@@ -85,6 +92,34 @@ namespace my::diag
     void LoggerImpl::removeFilter([[maybe_unused]] const LogFilter& filer)
     {
         MY_FATAL_FAILURE("removeFilter not implemented");
+    }
+
+
+    LoggerPtr create_logger()
+    {
+        return rtti::createInstance<LoggerImpl>();
+    }
+
+    void set_default_logger(LoggerPtr logger, LoggerPtr* oldLogger)
+    {
+        if (oldLogger && s_defaultLogger.get() != s_internalLogger.get())
+        {
+            *oldLogger = s_defaultLogger;
+        }
+
+        if (!logger)
+        {
+            s_defaultLogger = s_internalLogger;
+        }
+        else
+        {
+            s_defaultLogger = std::move(logger);
+        }
+    }
+
+    Logger& get_default_logger()
+    {
+        return *s_defaultLogger;
     }
 
 #if 0

@@ -11,6 +11,7 @@ endif()
 
 add_subdirectory(jsoncpp)
 add_subdirectory(ModifiedSonyMath)
+add_subdirectory(lua)
 
 # set (3rdPartyLibDirs
 #   jsoncpp

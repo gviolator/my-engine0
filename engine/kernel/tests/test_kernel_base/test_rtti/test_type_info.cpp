@@ -41,7 +41,6 @@ namespace my::test
     TEST(TestTypeInfo, FromId)
     {
         const rtti::TypeInfo& typeInfo = rtti::getTypeInfo<MyTypeWithTypeId>();
-        const auto tId = typeInfo.getHashCode();
 
         rtti::TypeInfo typeInfo2 = rtti::TypeInfo::fromId(typeInfo.getHashCode());
         ASSERT_TRUE(typeInfo2);

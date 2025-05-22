@@ -21,24 +21,24 @@ namespace my::rtti_detail
         std::string_view typeName;
     };
 
-    struct TypesRegistration
+    struct TypesRegistry
     {
         std::shared_mutex mutex;
         std::unordered_map<TypeId, TypeEntry> types;
 
-        TypesRegistration() = default;
-        TypesRegistration(const TypesRegistration&) = delete;
-        TypesRegistration& operator=(const TypesRegistration&) = delete;
+        TypesRegistry() = default;
+        TypesRegistry(const TypesRegistry&) = delete;
+        TypesRegistry& operator=(const TypesRegistry&) = delete;
     };
 
-    TypesRegistration& getTypesRegistration()
+    TypesRegistry& get_types_registry()
     {
-        static TypesRegistration reg;
+        static TypesRegistry reg;
 
         return (reg);
     }
 
-    TypeId registerRuntimeTypeInternal(const size_t typeHash, std::string_view typeName)
+    TypeId register_runtime_type_internal(const size_t typeHash, std::string_view typeName)
     {
         MY_DEBUG_CHECK(typeHash != 0);
         MY_DEBUG_CHECK(!typeName.empty());
@@ -48,16 +48,18 @@ namespace my::rtti_detail
             return {};
         }
 
-        while (typeName.back() == '\0')
+        while (!typeName.empty() && typeName.back() == '\0')
         {
             typeName.remove_suffix(1);
         }
 
-        auto& reg = getTypesRegistration();
+        MY_DEBUG_CHECK(!typeName.empty());
 
-        lock_(reg.mutex);
+        auto& registry = get_types_registry();
 
-        [[maybe_unused]] auto [iter, emplaceOk] = reg.types.try_emplace(typeHash, TypeEntry{typeName});
+        lock_(registry.mutex);
+
+        [[maybe_unused]] auto [iter, emplaceOk] = registry.types.try_emplace(typeHash, TypeEntry{typeName});
         MY_DEBUG_CHECK(emplaceOk || iter->second.typeName == typeName);
         return iter->first;
     }
@@ -67,14 +69,14 @@ namespace my::rtti_detail
 namespace my::rtti
 {
 
-    TypeInfo TypeInfo::fromId(size_t typeId)
+    TypeInfo TypeInfo::fromId(size_t typeHash)
     {
-        auto& reg = rtti_detail::getTypesRegistration();
+        auto& reg = rtti_detail::get_types_registry();
 
         shared_lock_(reg.mutex);
 
-        const auto iter = reg.types.find(rtti_detail::TypeId{typeId});
-        return iter != reg.types.end() ? TypeInfo{typeId, iter->second.typeName} : TypeInfo{};
+        const auto iter = reg.types.find(rtti_detail::TypeId{typeHash});
+        return iter != reg.types.end() ? TypeInfo{typeHash, iter->second.typeName} : TypeInfo{};
     }
 
     TypeInfo TypeInfo::fromName(const char* name)
@@ -84,7 +86,7 @@ namespace my::rtti
             return {};
         }
 
-        auto& reg = rtti_detail::getTypesRegistration();
+        auto& reg = rtti_detail::get_types_registry();
 
         shared_lock_(reg.mutex);
 

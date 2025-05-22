@@ -10,21 +10,22 @@
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/ptr.h"
 #include "my/rtti/type_info.h"
-
+#include "my/utils/runtime_enum.h"
+#include "my/utils/typed_flag.h"
 
 namespace my::diag
 {
     /**
      */
-    enum class LogLevel : uint16_t
-    {
-        Verbose,
-        Debug,
-        Info,
-        Warning,
-        Error,
-        Critical
-    };
+    MY_DEFINE_ENUM_(LogLevel,
+                    Verbose = FlagValue(1),
+                    Debug = FlagValue(2),
+                    Info = FlagValue(3),
+                    Warning = FlagValue(4),
+                    Error = FlagValue(5),
+                    Critical = FlagValue(6))
+
+    MY_DEFINE_TYPED_FLAG(LogLevel)
 
     /**
      */
@@ -68,20 +69,27 @@ namespace my::diag
         virtual bool shouldLog(const LogMessage& message) = 0;
     };
 
+    struct MY_ABSTRACT_TYPE LogLevelFilter : LogFilter
+    {
+        MY_INTERFACE(LogLevelFilter, LogFilter)
+
+        virtual void setLevel(LogLevel level) = 0;
+    };
+
     using LogFilterPtr = my::Ptr<LogFilter>;
 
     /**
      */
-    struct LogSubscriptionApi
+    struct ILogSubscription
     {
-        virtual ~LogSubscriptionApi() = default;
+        virtual ~ILogSubscription() = default;
 
         virtual void addFilter(LogFilterPtr) = 0;
 
         virtual void removeFilter(const LogFilter&) = 0;
     };
 
-    using LogSubscription = std::unique_ptr<LogSubscriptionApi>;
+    using LogSubscription = std::unique_ptr<ILogSubscription>;
 
     // class MY_KERNEL_EXPORT [[nodiscard]] LogSubscription
     // {

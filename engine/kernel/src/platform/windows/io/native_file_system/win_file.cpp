@@ -11,7 +11,22 @@ namespace my::io
 {
     namespace
     {
-        HANDLE createFile(const fs::path& path, AccessModeFlag accessMode, OpenFileMode openMode, DWORD attributes = FILE_ATTRIBUTE_NORMAL)
+        DWORD get_file_access(AccessModeFlag accessMode)
+        {
+            DWORD accessFlag = 0;
+            if (accessMode && AccessMode::Read)
+            {
+                accessFlag |= GENERIC_READ;
+            }
+            else if (accessMode && AccessMode::Write)
+            {
+                accessFlag |= GENERIC_WRITE;
+            }
+
+            return accessFlag;
+        }
+
+        HANDLE create_file(const fs::path& path, AccessModeFlag accessMode, OpenFileMode openMode, DWORD attributes = FILE_ATTRIBUTE_NORMAL)
         {
             DWORD accessFlags = 0;
             if (accessMode && AccessMode::Read)
@@ -126,7 +141,7 @@ namespace my::io
 */
     WinFile::WinFile(const fs::path& path, AccessModeFlag accessMode, OpenFileMode openMode, DWORD attributes) :
         m_accessMode(accessMode),
-        m_fileHandle(createFile(path, accessMode, openMode, attributes))
+        m_fileHandle(create_file(path, accessMode, openMode, attributes))
     {
         // MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE, "Fail to open file: ({})", path);
     }
@@ -285,14 +300,15 @@ namespace my::io
         return m_accessMode;
     }
 
-    WinFileStream::WinFileStream(HANDLE fileHandle) :
-        m_fileHandle(fileHandle)
-    {
-        MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE);
-    }
+    // WinFileStream::WinFileStream(HANDLE fileHandle) :
+    //     m_fileHandle(fileHandle)
+    // {
+    //     MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE);
+    // }
 
     WinFileStream::WinFileStream(const fs::path& path, AccessModeFlag accessMode, OpenFileMode openMode) :
-        m_fileHandle(createFile(path, accessMode, openMode))
+        m_fileHandle(create_file(path, accessMode, openMode)),
+        m_accessMode(accessMode)
     {
     }
 
@@ -398,6 +414,21 @@ namespace my::io
         FlushFileBuffers(getFileHandle());
     }
 
+    bool WinFileStream::canSeek() const
+    {
+        return true;
+    }
+
+    bool WinFileStream::canRead() const
+    {
+        return m_accessMode && AccessMode::Read;
+    }
+
+    bool WinFileStream::canWrite() const
+    {
+        return m_accessMode && AccessMode::Write;
+    }
+
     StreamBasePtr createNativeFileStream(fs::path path, AccessModeFlag accessMode, OpenFileMode openMode)
     {
         accessMode -= AccessMode::Async;
@@ -406,8 +437,8 @@ namespace my::io
 
         return rtti::createInstance<WinFileStream>(path, accessMode, openMode);
 
-        //const eastl::wstring wcsPath = strings::utf8ToWString(path);
-        // const wchar_t* const wcsPath = path.c_str();
+        // const eastl::wstring wcsPath = strings::utf8ToWString(path);
+        //  const wchar_t* const wcsPath = path.c_str();
 
         // if (accessMode == AccessMode::Read)
         // {

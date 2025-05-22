@@ -6,6 +6,7 @@
 #include "my/diag/logging_base.h"
 #include "my/utils/format_helper.h"
 #include "my/utils/functor.h"
+#include "my/utils/string_conv.h"
 
 namespace my::diag
 {
@@ -19,11 +20,11 @@ namespace my::diag
     // {
     // }
 
-    MY_KERNEL_EXPORT LoggerPtr createLogger();
+    MY_KERNEL_EXPORT LoggerPtr create_logger();
 
-    MY_KERNEL_EXPORT void setDefaultLogger(LoggerPtr logger, LoggerPtr* oldLogger = nullptr);
+    MY_KERNEL_EXPORT void set_default_logger(LoggerPtr logger, LoggerPtr* oldLogger = nullptr);
 
-    MY_KERNEL_EXPORT Logger& getDefaultLogger();
+    MY_KERNEL_EXPORT Logger& get_default_logger();
 }  // namespace my::diag
 
 namespace my::diag_detail
@@ -35,11 +36,11 @@ namespace my::diag_detail
         diag::LogLevel level;
         diag::SourceInfo sourceInfo;
 
-        InplaceLogData(diag::Logger* inLogger, diag::LogContextPtr inContext, diag::LogLevel inLevel, diag::SourceInfo inSourceInfo) :
-            logger(inLogger),
-            context(std::move(inContext)),
-            level(inLevel),
-            sourceInfo(inSourceInfo)
+        InplaceLogData(diag::Logger* logger_, diag::LogContextPtr context_, diag::LogLevel level_, diag::SourceInfo sourceInfo_) :
+            logger(logger_),
+            context(std::move(context_)),
+            level(level_),
+            sourceInfo(sourceInfo_)
         {
         }
 
@@ -79,7 +80,7 @@ namespace my::diag_detail
     private:
         diag::Logger& getLogger() const
         {
-            return logger ? *logger : diag::getDefaultLogger();
+            return logger ? *logger : diag::get_default_logger();
         }
     };
 }  // namespace my::diag_detail

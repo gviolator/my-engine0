@@ -257,7 +257,7 @@ StatementAttributeLikeMacros:
 StatementMacros:
   - Q_UNUSED
   - QT_REQUIRE_VERSION
-  - NauCheckResult
+  - CheckResult
   - MY_INTERFACE
   - MY_RTTI_CLASS
   - MY_CLASS

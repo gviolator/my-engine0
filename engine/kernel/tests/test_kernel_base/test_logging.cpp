@@ -1,0 +1,6 @@
+
+
+TEST(TestLogging, Test1)
+{
+
+}

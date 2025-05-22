@@ -2,7 +2,7 @@
 
 
 #pragma once
-#include <EASTL/vector.h>
+#include <vector>
 
 #include "my/async/task_base.h"
 #include "my/kernel/kernel_config.h"
@@ -27,7 +27,7 @@ namespace my
             return async::Task<>::makeResolved();
         }
 
-        virtual std::vector<const rtti::TypeInfo*> getServiceDependencies() const
+        virtual std::vector<rtti::TypeInfo> getServiceDependencies() const
         {
             return {};
         }

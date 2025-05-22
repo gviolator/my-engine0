@@ -7,7 +7,7 @@ namespace my::diag
 {
     class LoggerImpl;
 
-    class LogSubscriptionImpl : public LogSubscriptionApi, public IntrusiveListNode<LogSubscriptionImpl>
+    class LogSubscriptionImpl : public ILogSubscription, public IntrusiveListNode<LogSubscriptionImpl>
     {
     public:
         LogSubscriptionImpl(LoggerImpl&, LogSubscriberPtr&& subscriber);

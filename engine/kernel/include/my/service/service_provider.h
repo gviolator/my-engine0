@@ -1,16 +1,13 @@
 // #my_engine_source_file
 
-
 #pragma once
 
-#include <EASTL/array.h>
-#include <EASTL/span.h>
-#include <EASTL/unique_ptr.h>
-#include <EASTL/vector.h>
-
+#include <array>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <type_traits>
+#include <vector>
 
 #include "my/diag/check.h"
 #include "my/dispatch/class_descriptor.h"
@@ -29,6 +26,7 @@
 #include "my/utils/scope_guard.h"
 #include "my/utils/type_list/append.h"
 #include "my/utils/type_utility.h"
+
 
 namespace my::core_detail
 {
@@ -224,13 +222,13 @@ namespace my::core_detail
             return m_classDescriptor->findInterface(type) != nullptr;
         }
 
-        IClassDescriptor::Ptr getClassDescriptor() const
+        ClassDescriptorPtr getClassDescriptor() const
         {
             return m_classDescriptor;
         }
 
     private:
-        const IClassDescriptor::Ptr m_classDescriptor;
+        const ClassDescriptorPtr m_classDescriptor;
         std::mutex m_mutex;
         my::Ptr<> m_instance;
     };
@@ -290,14 +288,14 @@ namespace my::core_detail
             return m_classDescriptor->findInterface(type) != nullptr;
         }
 
-        IClassDescriptor::Ptr getClassDescriptor() const
+        ClassDescriptorPtr getClassDescriptor() const
         {
             return m_classDescriptor;
         }
 
     private:
         F m_factory;
-        const IClassDescriptor::Ptr m_classDescriptor;
+        const ClassDescriptorPtr m_classDescriptor;
         std::mutex m_mutex;
         ServicePtr m_instance;
     };
@@ -346,10 +344,7 @@ namespace my
         void addService(std::unique_ptr<T>&&);
 
         template <rtti::WithTypeInfo T>
-        void addService(std::unique_ptr<T>&&);
-
-        template <rtti::WithTypeInfo T>
-        void addService(my::Ptr<T>);
+        void addService(Ptr<T>);
 
         template <rtti::ClassWithTypeInfo T>
         void addService();
@@ -364,13 +359,13 @@ namespace my
 
         */
         template <rtti::WithTypeInfo T, rtti::WithTypeInfo... U>
-        std::vector<IClassDescriptor::Ptr> findClasses(bool anyType = true);
+        std::vector<ClassDescriptorPtr> findClasses(bool anyType = true);
 
-        virtual void addClass(IClassDescriptor::Ptr&& classDesc) = 0;
+        virtual void addClass(ClassDescriptorPtr&& classDesc) = 0;
 
-        virtual std::vector<IClassDescriptor::Ptr> findClasses(const rtti::TypeInfo& type) = 0;
+        virtual std::vector<ClassDescriptorPtr> findClasses(rtti::TypeInfo type) = 0;
 
-        virtual std::vector<IClassDescriptor::Ptr> findClasses(std::span<const rtti::TypeInfo*> types, bool anyType = true) = 0;
+        virtual std::vector<ClassDescriptorPtr> findClasses(std::span<rtti::TypeInfo> types, bool anyType = true) = 0;
 
     protected:
         using GenericServiceFactory = Functor<std::unique_ptr<IRttiObject>()>;
@@ -385,7 +380,7 @@ namespace my
 
         virtual void findAllInternal(const rtti::TypeInfo&, void (*)(void* instancePtr, void*), void*, ServiceAccessor::GetApiMode = ServiceAccessor::GetApiMode::AllowLazyCreation) = 0;
 
-        virtual void addServiceAccessorInternal(ServiceAccessor::Ptr, IClassDescriptor::Ptr = nullptr) = 0;
+        virtual void addServiceAccessorInternal(ServiceAccessor::Ptr, ClassDescriptorPtr = nullptr) = 0;
 
         virtual bool hasApiInternal(const rtti::TypeInfo&) = 0;
     };
@@ -466,27 +461,6 @@ namespace my
     }
 
     template <rtti::WithTypeInfo T>
-    void ServiceProvider::addService(std::unique_ptr<T>&& instance)
-    {
-        MY_DEBUG_CHECK(instance);
-        if (!instance)
-        {
-            return;
-        }
-
-        if constexpr (std::is_base_of_v<IRttiObject, T>)
-        {
-            using Accessor = core_detail::RttiServiceAccessor<std::unique_ptr>;
-            addServiceAccessorInternal(std::make_unique<Accessor>(std::move(instance)));
-        }
-        else
-        {
-            using Accessor = core_detail::NonRttiServiceAccessor<T, std::unique_ptr<T>>;
-            addServiceAccessorInternal(std::make_unique<Accessor>(std::move(instance)));
-        }
-    }
-
-    template <rtti::WithTypeInfo T>
     void ServiceProvider::addService(my::Ptr<T> instance)
     {
         MY_DEBUG_CHECK(instance);
@@ -533,7 +507,7 @@ namespace my
 
         using Accessor = core_detail::FactoryLazyServiceAccessor<decltype(factory)>;
         auto accessor = std::make_unique<Accessor>(std::move(factory));
-        IClassDescriptor::Ptr classDescriptor = accessor->getClassDescriptor();
+        ClassDescriptorPtr classDescriptor = accessor->getClassDescriptor();
 
         addServiceAccessorInternal(std::move(accessor), std::move(classDescriptor));
     }
@@ -546,7 +520,7 @@ namespace my
     }
 
     template <rtti::WithTypeInfo T, rtti::WithTypeInfo... U>
-    std::vector<IClassDescriptor::Ptr> ServiceProvider::findClasses([[maybe_unused]] bool anyType)
+    std::vector<ClassDescriptorPtr> ServiceProvider::findClasses([[maybe_unused]] bool anyType)
     {
         using namespace my::rtti;
         if constexpr (sizeof...(U) > 0)

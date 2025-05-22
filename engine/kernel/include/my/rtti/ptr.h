@@ -10,388 +10,379 @@
 
 namespace my::rtti_detail
 {
-  template <typename T>
-  inline IRefCounted& asRefCounted(T& instance)
-  {
-    static_assert(!std::is_const_v<T>);
+    template <typename T>
+    inline IRefCounted& asRefCounted(T& instance)
+    {
+        static_assert(!std::is_const_v<T>);
 
-    if constexpr (std::is_convertible_v<T*, IRefCounted*>)
-    {
-      return static_cast<IRefCounted&>(instance);
-    }
-    else if constexpr (std::is_convertible_v<T*, IRttiObject*>)
-    {
-      IRefCounted* const rc = static_cast<IRttiObject&>(instance).as<IRefCounted*>();
-      MY_DEBUG_FATAL(rc, "Runtime can not find IRefCounted for ({})", rtti::getTypeInfo<T>().getTypeName());
-      return *rc;
-    }
-    else
-    {
-      IRefCounted* const rc = rtti::staticCast<IRefCounted*>(&instance);
-      MY_DEBUG_FATAL(rc, "Runtime can not find IRefCounted for ({})", rtti::getTypeInfo<T>().getTypeName());
-      return *rc;
-    }
-  }
-
-  template <template <typename, typename...> class UniquePtrT>
-  struct UniquePtrCastHelper
-  {
-    template <typename U, typename T>
-    static UniquePtrT<U> cast(UniquePtrT<T>&& ptr)
-    {
-      if constexpr (std::is_assignable_v<U&, T&>)
-      {
-        return UniquePtrT<U>{ptr.release()};
-      }
-      else
-      {
-        MY_DEBUG_CHECK(ptr);
-        if (!ptr)
+        if constexpr (std::is_convertible_v<T*, IRefCounted*>)
         {
-          return {};
+            return static_cast<IRefCounted&>(instance);
         }
-
-        static_assert(rtti::HasTypeInfo<T>);
-        static_assert(rtti::HasTypeInfo<U>);
-
-        IRttiObject* const rttiObj = rtti::staticCast<IRttiObject*>(ptr.get());
-        MY_DEBUG_FATAL(rttiObj);
-
-        if (auto* const targetPtr = rttiObj->as<U*>(); targetPtr)
+        else if constexpr (std::is_convertible_v<T*, IRttiObject*>)
         {
-          [[maybe_unused]] auto oldPtr = ptr.release();
-
-          return UniquePtrT<U>{targetPtr};
+            IRefCounted* const rc = static_cast<IRttiObject&>(instance).as<IRefCounted*>();
+            MY_DEBUG_FATAL(rc, "Runtime can not find IRefCounted for ({})", rtti::getTypeInfo<T>().getTypeName());
+            return *rc;
         }
-
-        MY_DEBUG_FAILURE("Can not cast to target type");
-
-        return {};
-      }
+        else
+        {
+            IRefCounted* const rc = rtti::staticCast<IRefCounted*>(&instance);
+            MY_DEBUG_FATAL(rc, "Runtime can not find IRefCounted for ({})", rtti::getTypeInfo<T>().getTypeName());
+            return *rc;
+        }
     }
-  };
+
+    template <template <typename, typename...> class UniquePtrT>
+    struct UniquePtrCastHelper
+    {
+        template <typename U, typename T>
+        static UniquePtrT<U> cast(UniquePtrT<T>&& ptr)
+        {
+            if constexpr (std::is_assignable_v<U&, T&>)
+            {
+                return UniquePtrT<U>{ptr.release()};
+            }
+            else
+            {
+                MY_DEBUG_CHECK(ptr);
+                if (!ptr)
+                {
+                    return {};
+                }
+
+                static_assert(rtti::HasTypeInfo<T>);
+                static_assert(rtti::HasTypeInfo<U>);
+
+                IRttiObject* const rttiObj = rtti::staticCast<IRttiObject*>(ptr.get());
+                MY_DEBUG_FATAL(rttiObj);
+
+                if (auto* const targetPtr = rttiObj->as<U*>(); targetPtr)
+                {
+                    [[maybe_unused]] auto oldPtr = ptr.release();
+
+                    return UniquePtrT<U>{targetPtr};
+                }
+
+                MY_DEBUG_FAILURE("Can not cast to target type");
+
+                return {};
+            }
+        }
+    };
 
 }  // namespace my::rtti_detail
 
 namespace my::rtti
 {
-  template <typename T>
-  struct TakeOwnership
-  {
-    T* const ptr;
-
-    TakeOwnership(T* inPtr) :
-        ptr(inPtr)
+    template <typename T>
+    struct TakeOwnership
     {
-    }
+        T* const ptr;
 
-    TakeOwnership(const TakeOwnership&) = delete;
-  };
+        TakeOwnership(T* inPtr) :
+            ptr(inPtr)
+        {
+        }
 
-  template <typename T>
-  TakeOwnership(T*) -> TakeOwnership<T>;
+        TakeOwnership(const TakeOwnership&) = delete;
+    };
+
+    template <typename T>
+    TakeOwnership(T*) -> TakeOwnership<T>;
 
 }  // namespace my::rtti
 
 namespace my
 {
 
-  template <typename T = IRefCounted>
-  class Ptr
-  {
-  public:
-    using type = T;
-    using element_type = T;
-
-    Ptr() = default;
-
-    Ptr(std::nullptr_t)
+    template <typename T = IRefCounted>
+    class Ptr
     {
-    }
+    public:
+        using type = T;
+        using element_type = T;
 
-    Ptr(const Ptr<T>& other) :
-        m_instance(other.m_instance)
-    {
-      if (m_instance != nullptr)
-      {
-        rtti_detail::asRefCounted(*m_instance).addRef();
-      }
-    }
+        Ptr() = default;
 
-    Ptr(Ptr<T>&& other) noexcept :
-        m_instance(other.giveUp())
-    {
-    }
+        Ptr(std::nullptr_t)
+        {
+        }
 
-    Ptr(T* ptr) :
-        m_instance(ptr)
-    {
-      if (m_instance)
-      {
-        rtti_detail::asRefCounted(*m_instance).addRef();
-      }
-    }
+        Ptr(const Ptr<T>& other) :
+            m_instance(other.m_instance)
+        {
+            if (m_instance != nullptr)
+            {
+                rtti_detail::asRefCounted(*m_instance).addRef();
+            }
+        }
 
-    Ptr(const rtti::TakeOwnership<T>& ownership) :
-        m_instance(ownership.ptr)
-    {
-    }
+        Ptr(Ptr<T>&& other) noexcept :
+            m_instance(other.giveUp())
+        {
+        }
 
-    template <typename U>
-    requires(!std::is_same_v<U, T>)
-    Ptr(const Ptr<U>& other)
+        Ptr(T* ptr) :
+            m_instance(ptr)
+        {
+            if (m_instance)
+            {
+                rtti_detail::asRefCounted(*m_instance).addRef();
+            }
+        }
 
-    {
-      // static_assert(std::is_convertible_v<U&, T&> || std::is_same_v<T, Com::IRefCountedObject> || std::is_same_v<U, Com::IRefCountedObject>, "Unsafe type cast");
-      acquire(other.get());
-    }
+        Ptr(const rtti::TakeOwnership<T>& ownership) :
+            m_instance(ownership.ptr)
+        {
+        }
 
-    template <typename U>
-    requires(!std::is_same_v<U, T>)
-    Ptr(Ptr<U>&& other)
-    {
-      // static_assert(std::is_convertible_v<U&, T&> || std::is_same_v<T, Com::IRefCountedObject> || std::is_same_v<U, Com::IRefCountedObject>, "Unsafe type cast");
-      moveAcquire(other.giveUp());
-    }
+        template <typename U>
+        requires(!std::is_same_v<U, T>)
+        Ptr(const Ptr<U>& other)
 
-    Ptr(UniPtr<T>&& other);
+        {
+            // static_assert(std::is_convertible_v<U&, T&> || std::is_same_v<T, Com::IRefCountedObject> || std::is_same_v<U, Com::IRefCountedObject>, "Unsafe type cast");
+            acquire(other.get());
+        }
 
-    ~Ptr()
-    {
-      if (m_instance)
-      {
-        rtti_detail::asRefCounted(*m_instance).releaseRef();
-      }
-    }
+        template <typename U>
+        requires(!std::is_same_v<U, T>)
+        Ptr(Ptr<U>&& other)
+        {
+            // static_assert(std::is_convertible_v<U&, T&> || std::is_same_v<T, Com::IRefCountedObject> || std::is_same_v<U, Com::IRefCountedObject>, "Unsafe type cast");
+            moveAcquire(other.giveUp());
+        }
 
-    T* giveUp()
-    {
-      T* const instance = m_instance;
-      m_instance = nullptr;
+        ~Ptr()
+        {
+            if (m_instance)
+            {
+                rtti_detail::asRefCounted(*m_instance).releaseRef();
+            }
+        }
 
-      return instance;
-    }
+        T* giveUp()
+        {
+            T* const instance = m_instance;
+            m_instance = nullptr;
 
-    T* get() const
-    {
-      return m_instance;
-    }
+            return instance;
+        }
 
-    void reset(T* ptr = nullptr)
-    {
-      acquire(ptr);
-    }
+        T* get() const
+        {
+            return m_instance;
+        }
 
-    Ptr<T>& operator=(const Ptr<T>& other)
-    {
-      acquire(other.m_instance);
-      return *this;
-    }
+        void reset(T* ptr = nullptr)
+        {
+            acquire(ptr);
+        }
 
-    Ptr<T>& operator=(Ptr<T>&& other) noexcept
-    {
-      moveAcquire(other.giveUp());
-      return *this;
-    }
+        Ptr<T>& operator=(const Ptr<T>& other)
+        {
+            acquire(other.m_instance);
+            return *this;
+        }
 
-    template <typename U>
-    Ptr<T>& operator=(const Ptr<U>& other)
-    requires(!std::is_same_v<U, T>)
-    {
-      U* const instance = other.get();
-      acquire<U>(instance);
-      return *this;
-    }
+        Ptr<T>& operator=(Ptr<T>&& other) noexcept
+        {
+            moveAcquire(other.giveUp());
+            return *this;
+        }
 
-    template <typename U>
-    Ptr<T>& operator=(Ptr<U>&& other)
-    requires(!std::is_same_v<U, T>)
-    {
-      moveAcquire<U>(other.giveUp());
-      return *this;
-    }
+        template <typename U>
+        Ptr<T>& operator=(const Ptr<U>& other)
+        requires(!std::is_same_v<U, T>)
+        {
+            U* const instance = other.get();
+            acquire<U>(instance);
+            return *this;
+        }
 
-    T& operator*() const
-    {
-      MY_DEBUG_FATAL(m_instance, "NauPtr<{}> is not dereferenceable", rtti::getTypeInfo<T>().getTypeName());
-      return *m_instance;
-    }
+        template <typename U>
+        Ptr<T>& operator=(Ptr<U>&& other)
+        requires(!std::is_same_v<U, T>)
+        {
+            moveAcquire<U>(other.giveUp());
+            return *this;
+        }
 
-    T* operator->() const
-    {
-      MY_DEBUG_FATAL(m_instance, "NauPtr<{}> is not dereferenceable", rtti::getTypeInfo<T>().getTypeName());
-      return m_instance;
-    }
+        T& operator*() const
+        {
+            MY_DEBUG_FATAL(m_instance, "NauPtr<{}> is not dereferenceable", rtti::getTypeInfo<T>().getTypeName());
+            return *m_instance;
+        }
 
-    explicit operator bool() const
-    {
-      return m_instance != nullptr;
-    }
+        T* operator->() const
+        {
+            MY_DEBUG_FATAL(m_instance, "NauPtr<{}> is not dereferenceable", rtti::getTypeInfo<T>().getTypeName());
+            return m_instance;
+        }
 
-    bool operator==(std::nullptr_t) const noexcept
-    {
-      return m_instance == nullptr;
-    }
+        explicit operator bool() const
+        {
+            return m_instance != nullptr;
+        }
 
-    bool operator==(const Ptr& other) const noexcept
-    {
-      return m_instance == other.m_instance;
-    }
+        bool operator==(std::nullptr_t) const noexcept
+        {
+            return m_instance == nullptr;
+        }
 
-    template <typename U>
-    requires(!std::is_same_v<T, U>)
-    bool operator==(const Ptr<U>& other) const noexcept
-    {
-      if (reinterpret_cast<const void*>(m_instance) == reinterpret_cast<void*>(other.get()))
-      {
-        return true;
-      }
+        bool operator==(const Ptr& other) const noexcept
+        {
+            return m_instance == other.m_instance;
+        }
 
-      return m_instance != nullptr && other.get() != nullptr &&
-             &rtti_detail::asRefCounted(m_instance) == &rtti_detail::asRefCounted(*other.get());
-    }
+        template <typename U>
+        requires(!std::is_same_v<T, U>)
+        bool operator==(const Ptr<U>& other) const noexcept
+        {
+            if (reinterpret_cast<const void*>(m_instance) == reinterpret_cast<void*>(other.get()))
+            {
+                return true;
+            }
 
-  private:
-    void acquire(T* newInstance)
-    {
-      if (T* const prevInstance = std::exchange(m_instance, newInstance); prevInstance)
-      {
-        rtti_detail::asRefCounted(*prevInstance).releaseRef();
-      }
+            return m_instance != nullptr && other.get() != nullptr &&
+                   &rtti_detail::asRefCounted(m_instance) == &rtti_detail::asRefCounted(*other.get());
+        }
 
-      if (m_instance)
-      {
-        rtti_detail::asRefCounted(*m_instance).addRef();
-      }
-    }
+    private:
+        void acquire(T* newInstance)
+        {
+            if (T* const prevInstance = std::exchange(m_instance, newInstance); prevInstance)
+            {
+                rtti_detail::asRefCounted(*prevInstance).releaseRef();
+            }
 
-    void moveAcquire(T* newInstance)
-    {
-      if (T* const instance = std::exchange(m_instance, newInstance); instance)
-      {
-        rtti_detail::asRefCounted(*instance).releaseRef();
-      }
-    }
+            if (m_instance)
+            {
+                rtti_detail::asRefCounted(*m_instance).addRef();
+            }
+        }
 
-    template <typename U>
-    requires(!std::is_same_v<U, T>)
-    void acquire(U* newInstance)
-    {
-      if (T* const instance = std::exchange(m_instance, nullptr))
-      {
-        rtti_detail::asRefCounted(*instance).releaseRef();
-      }
+        void moveAcquire(T* newInstance)
+        {
+            if (T* const instance = std::exchange(m_instance, newInstance); instance)
+            {
+                rtti_detail::asRefCounted(*instance).releaseRef();
+            }
+        }
 
-      if (newInstance == nullptr)
-      {
-        // TODO: check is convertible
-        return;
-      }
+        template <typename U>
+        requires(!std::is_same_v<U, T>)
+        void acquire(U* newInstance)
+        {
+            if (T* const instance = std::exchange(m_instance, nullptr))
+            {
+                rtti_detail::asRefCounted(*instance).releaseRef();
+            }
 
-      auto& refCounted = rtti_detail::asRefCounted(*newInstance);
-      m_instance = refCounted.template as<T*>();
-      MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
+            if (newInstance == nullptr)
+            {
+                // TODO: check is convertible
+                return;
+            }
 
-      if (m_instance != nullptr)
-      {
-        refCounted.addRef();
-      }
-    }
+            auto& refCounted = rtti_detail::asRefCounted(*newInstance);
+            m_instance = refCounted.template as<T*>();
+            MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
 
-    template <typename U>
-    requires(!std::is_same_v<U, T>)
-    void moveAcquire(U* newInstance)
-    {
-      if (T* const instance = std::exchange(m_instance, nullptr))
-      {
-        rtti_detail::asRefCounted(*instance).releaseRef();
-      }
+            if (m_instance != nullptr)
+            {
+                refCounted.addRef();
+            }
+        }
 
-      if (newInstance == nullptr)
-      {
-        return;
-      }
+        template <typename U>
+        requires(!std::is_same_v<U, T>)
+        void moveAcquire(U* newInstance)
+        {
+            if (T* const instance = std::exchange(m_instance, nullptr))
+            {
+                rtti_detail::asRefCounted(*instance).releaseRef();
+            }
 
-      m_instance = rtti_detail::asRefCounted(*newInstance).template as<T*>();
-      if (!m_instance)
-      {
-        rtti_detail::asRefCounted(*newInstance).releaseRef();
-        MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
-      }
-    }
+            if (newInstance == nullptr)
+            {
+                return;
+            }
 
-    T* m_instance = nullptr;
-  };
+            m_instance = rtti_detail::asRefCounted(*newInstance).template as<T*>();
+            if (!m_instance)
+            {
+                rtti_detail::asRefCounted(*newInstance).releaseRef();
+                MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
+            }
+        }
 
-  template <typename T>
-  Ptr(T*) -> Ptr<T>;
+        template <typename U>
+        friend std::tuple<U*, void (*)(U*) noexcept, uintptr_t> release_ptr(Ptr<T> smartPtr)
+        {
+            constexpr uintptr_t PtrMarker = 102;
 
-  template <typename T>
-  Ptr(const rtti::TakeOwnership<T>&) -> Ptr<T>;
+            if (!smartPtr)
+            {
+                return {};
+            }
 
-}  // namespace my
+            auto release = [](U* value) noexcept
+            {
+                MY_DEBUG_FATAL(value);
+                rtti_detail::asRefCounted(*value).releaseRef();
+            };
 
-namespace my
-{
-  namespace kernel_detail
-  {
-    template <>
-    struct UniPtrCast<my::Ptr>
-    {
-      static constexpr uintptr_t PtrMarker = 2002;
+            T* const ptr = smartPtr.giveUp();
+            U* const targetPtr = rtti_detail::asRefCounted(*ptr).template as<U*>();
+            MY_DEBUG_CHECK(targetPtr, "Target interface is not provided");
 
-      template <typename T>
-      static my::Ptr<T> get(T* value, [[maybe_unused]] const uintptr_t custom)
-      {
-        MY_DEBUG_FATAL(custom == PtrMarker);
-        return my::Ptr<T>{rtti::TakeOwnership{value}};
-      }
-    };
-  }  // namespace kernel_detail
+            return std::tuple{targetPtr, release, PtrMarker};
+        }
 
-  template <std::derived_from<IRttiObject> T>
-  UniPtr<T> toUniPtr(Ptr<T> ptr)
-  {
-    if (!ptr)
-    {
-      return {};
-    }
+        template <typename U>
+        friend void takes_ownership(Ptr<T>& smartPtr, U* ptr, [[maybe_unused]] uintptr_t marker)
+        {
+            [[maybe_unused]] constexpr uintptr_t PtrMarker = 102;
+            MY_DEBUG_FATAL(marker == PtrMarker);
 
-    auto release = [](T* value) noexcept
-    {
-      MY_DEBUG_FATAL(value);
-      rtti_detail::asRefCounted(*value).releaseRef();
+            if (!ptr)
+            {
+                smartPtr.reset();
+            }
+            else
+            {
+                T* const targetPtr = rtti_detail::asRefCounted(*ptr).template as<T*>();
+                smartPtr = Ptr<T>{rtti::TakeOwnership{targetPtr}};
+            }
+        }
+
+        T* m_instance = nullptr;
     };
 
-    return UniPtr<T>{ptr.giveUp(), release, kernel_detail::UniPtrCast<Ptr>::PtrMarker};
-  }
+    template <typename T>
+    Ptr(T*) -> Ptr<T>;
 
-  template <typename T>
-  auto getMyPtr(UniPtr<T>&& other)
-  {
-    return FromUniPtr<Ptr>::get(std::move(other));
-  }
+    template <typename T>
+    Ptr(const rtti::TakeOwnership<T>&) -> Ptr<T>;
 
-  template <typename T>
-  Ptr<T>::Ptr(UniPtr<T>&& other) :
-      Ptr{my::FromUniPtr<my::Ptr>::get<T>(std::move(other))}
-  {
-  }
+    template <typename T>
+    UniPtr(Ptr<T>) -> UniPtr<T>;
 
 }  // namespace my
-
 namespace my::rtti
 {
-  template <typename U, typename T>
-  my::Ptr<U> pointer_cast(my::Ptr<T>&& ptr)
-  {
-    return my::Ptr<U>{std::move(ptr)};
-  }
+    template <typename U, typename T>
+    my::Ptr<U> pointer_cast(my::Ptr<T>&& ptr)
+    {
+        return my::Ptr<U>{std::move(ptr)};
+    }
 
-  template <typename U, typename T>
-  std::unique_ptr<U> pointer_cast(std::unique_ptr<T>&& ptr)
-  {
-    return rtti_detail::UniquePtrCastHelper<std::unique_ptr>::cast<U>(std::move(ptr));
-  }
+    template <typename U, typename T>
+    std::unique_ptr<U> pointer_cast(std::unique_ptr<T>&& ptr)
+    {
+        return rtti_detail::UniquePtrCastHelper<std::unique_ptr>::cast<U>(std::move(ptr));
+    }
 
 }  // namespace my::rtti

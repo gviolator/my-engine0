@@ -53,12 +53,12 @@ namespace my::rtti_detail
         { T::NauRtti_TypeId } -> std::same_as<const TypeId&>;
     };
 
-    MY_KERNEL_EXPORT TypeId registerRuntimeTypeInternal(size_t typeHash, std::string_view typeName);
+    MY_KERNEL_EXPORT TypeId register_runtime_type_internal(size_t typeHash, std::string_view typeName);
 
     template <std::size_t N>
-    inline TypeId registerRuntimeType(const char (&typeName)[N])
+    inline TypeId register_runtime_type(const char (&typeName)[N])
     {
-        return registerRuntimeTypeInternal(strings::constHash(typeName), std::string_view{typeName, N});
+        return register_runtime_type_internal(strings::constHash(typeName), std::string_view{typeName, N});
     }
 
 }  // namespace my::rtti_detail
@@ -69,16 +69,16 @@ namespace my::rtti_detail
 public:                                                                                    \
     static_assert(std::is_trivial_v<::my::TypeTag<TypeName>>, "Check actual type exists"); \
     [[maybe_unused]]                                                                       \
-    static inline const ::my::rtti_detail::TypeId NauRtti_TypeId = ::my::rtti_detail::registerRuntimeType(#TypeName);
+    static inline const ::my::rtti_detail::TypeId NauRtti_TypeId = ::my::rtti_detail::register_runtime_type(#TypeName);
 
-#define MY_DECLARE_TYPEID(TypeName)                                                                                                     \
-    namespace my::rtti_detail                                                                                                           \
-    {                                                                                                                                   \
-        template <>                                                                                                                     \
-        struct DeclaredTypeId<TypeName> : std::true_type                                                                                \
-        {                                                                                                                               \
-            static inline const ::my::rtti_detail::TypeId NauRtti_TypeId = ::my::rtti_detail::registerRuntimeType(#TypeName); \
-        };                                                                                                                              \
+#define MY_DECLARE_TYPEID(TypeName)                                                                                           \
+    namespace my::rtti_detail                                                                                                 \
+    {                                                                                                                         \
+        template <>                                                                                                           \
+        struct DeclaredTypeId<TypeName> : std::true_type                                                                      \
+        {                                                                                                                     \
+            static inline const ::my::rtti_detail::TypeId NauRtti_TypeId = ::my::rtti_detail::register_runtime_type(#TypeName); \
+        };                                                                                                                    \
     }
 
 // clang-format on
@@ -97,7 +97,7 @@ namespace my::rtti
     concept ClassWithTypeInfo = HasTypeInfo<T> && !std::is_abstract_v<T>;
 
     template <WithTypeInfo T>
-    const TypeInfo& getTypeInfo();
+    TypeInfo getTypeInfo();
 
     /**
      */
@@ -142,11 +142,11 @@ namespace my::rtti
     /*
      */
     template <WithTypeInfo T>
-    const TypeInfo& getTypeInfo()
+    TypeInfo getTypeInfo()
     {
         using namespace my::rtti_detail;
 
-        static const TypeInfo typeInfo = []
+        const TypeInfo typeInfo = []
         {
             if constexpr (Concept_RttiTypeId<T>)
             {
@@ -159,7 +159,7 @@ namespace my::rtti
             }
         }();
 
-        return (typeInfo);
+        return typeInfo;
     }
 
 }  // namespace my::rtti

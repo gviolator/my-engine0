@@ -1,9 +1,9 @@
 // #my_engine_source_file
 #pragma once
 
+#include <optional>
 #include <type_traits>
 #include <vector>
-#include <optional>
 
 #include "my/diag/logging.h"
 #include "my/kernel/kernel_config.h"
@@ -95,14 +95,11 @@ namespace my::meta
         RuntimeAttributeContainer(TypeTag<T>);
 
         RuntimeAttributeContainer() = delete;
-        RuntimeAttributeContainer(const RuntimeAttributeContainer&) =
-            default;
+        RuntimeAttributeContainer(const RuntimeAttributeContainer&) = default;
         RuntimeAttributeContainer(RuntimeAttributeContainer&&) = default;
 
-        RuntimeAttributeContainer&
-        operator=(const RuntimeAttributeContainer&) = default;
-        RuntimeAttributeContainer&
-        operator=(RuntimeAttributeContainer&&) = default;
+        RuntimeAttributeContainer& operator=(const RuntimeAttributeContainer&) = default;
+        RuntimeAttributeContainer& operator=(RuntimeAttributeContainer&&) = default;
 
         size_t getSize() const override;
 
@@ -128,22 +125,19 @@ namespace my::meta
     {
         auto attributes = meta::getClassAllAttributes<T>();
 
-        constexpr size_t AttributesCount =
-            std::tuple_size_v<decltype(attributes)>;
+        constexpr size_t AttributesCount = std::tuple_size_v<decltype(attributes)>;
+
         if constexpr (AttributesCount > 0)
         {
             m_attributes.reserve(AttributesCount);
-            TupleUtils::forEach(
-                attributes, [this]<typename Key, typename Value>(
-                                AttributeField<Key, Value>& field)
+            TupleUtils::forEach(attributes, [this]<typename Key, typename Value>(AttributeField<Key, Value>& field)
             {
                 if constexpr (HasRuntimeValueRepresentation<Value>)
                 {
                     // attribute must have defined string value.
                     if (const Key key{}; !key.strValue.empty())
                     {
-                        RuntimeValuePtr value =
-                            makeValueCopy(std::move(field.value));
+                        RuntimeValuePtr value = makeValueCopy(std::move(field.value));
                         m_attributes.emplace_back(key.strValue, std::move(value));
                     }
                 }
