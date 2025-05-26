@@ -5,7 +5,7 @@
 #include <string_view>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/io/stream.h"
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/rtti_impl.h"
@@ -34,7 +34,7 @@ namespace my::io_detail
 
         size_t setPosition(io::OffsetOrigin, int64_t) override
         {
-            MY_DEBUG_CHECK("StringWriterImpl::setOffset is not implemented");
+            MY_DEBUG_ASSERT("StringWriterImpl::setOffset is not implemented");
             return 0;
         }
 
@@ -82,7 +82,7 @@ namespace my::io_detail
     public:
         const io::StreamPtr& getStream() const
         {
-            MY_DEBUG_CHECK(m_stream);
+            MY_DEBUG_ASSERT(m_stream);
             return (m_stream);
         }
 

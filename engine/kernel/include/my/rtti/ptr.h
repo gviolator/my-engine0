@@ -4,7 +4,7 @@
 #include <concepts>
 #include <memory>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/rtti_utils.h"
 #include "my/utils/uni_ptr.h"
 
@@ -45,7 +45,7 @@ namespace my::rtti_detail
             }
             else
             {
-                MY_DEBUG_CHECK(ptr);
+                MY_DEBUG_ASSERT(ptr);
                 if (!ptr)
                 {
                     return {};
@@ -288,7 +288,7 @@ namespace my
 
             auto& refCounted = rtti_detail::asRefCounted(*newInstance);
             m_instance = refCounted.template as<T*>();
-            MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
+            MY_DEBUG_ASSERT(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
 
             if (m_instance != nullptr)
             {
@@ -314,7 +314,7 @@ namespace my
             if (!m_instance)
             {
                 rtti_detail::asRefCounted(*newInstance).releaseRef();
-                MY_DEBUG_CHECK(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
+                MY_DEBUG_ASSERT(m_instance, "Expected API not exposed: ({}).", rtti::getTypeInfo<U>().getTypeName());
             }
         }
 
@@ -336,7 +336,7 @@ namespace my
 
             T* const ptr = smartPtr.giveUp();
             U* const targetPtr = rtti_detail::asRefCounted(*ptr).template as<U*>();
-            MY_DEBUG_CHECK(targetPtr, "Target interface is not provided");
+            MY_DEBUG_ASSERT(targetPtr, "Target interface is not provided");
 
             return std::tuple{targetPtr, release, PtrMarker};
         }

@@ -19,11 +19,6 @@ namespace my
     {
         MY_INTERFACE(my::WorkQueue, async::Executor)
 
-        using Ptr = my::Ptr<WorkQueue>;
-
-        MY_KERNEL_EXPORT static WorkQueue::Ptr create();
-        
-
         virtual async::Task<> waitForWork() = 0;
 
         virtual void poll(std::optional<std::chrono::milliseconds> time = std::chrono::milliseconds{0}) = 0;
@@ -34,5 +29,9 @@ namespace my
 
         virtual std::string getName() const = 0;
     };
+
+    using WorkQueuePtr = my::Ptr<WorkQueue>;
+
+    MY_KERNEL_EXPORT WorkQueuePtr createWorkQueue();
 
 }  // namespace my

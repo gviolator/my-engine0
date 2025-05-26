@@ -6,7 +6,7 @@
     #include <thread>
 #endif
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/threading/thread_safe_annotations.h"
 
@@ -33,7 +33,7 @@ namespace my::threading
         CriticalSection& operator=(const CriticalSection&) = delete;
         CriticalSection& operator=(CriticalSection&&) = delete;
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         void lock() THREAD_ACQUIRE()
         {
             EnterCriticalSection(&m_cs);
@@ -64,7 +64,7 @@ namespace my::threading
     private:
         ::CRITICAL_SECTION m_cs;
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         std::thread::id m_threadOwner = {};
 #endif
     };
@@ -90,7 +90,7 @@ namespace my::threading
         RecursiveCriticalSection& operator=(const RecursiveCriticalSection&) = delete;
         RecursiveCriticalSection& operator=(RecursiveCriticalSection&&) = delete;
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         void lock() THREAD_ACQUIRE()
         {
             EnterCriticalSection(&m_cs);
@@ -127,7 +127,7 @@ namespace my::threading
     private:
         ::CRITICAL_SECTION m_cs;
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         std::thread::id m_threadOwner = {};
         uint32_t m_lockCounter = 0;
 #endif

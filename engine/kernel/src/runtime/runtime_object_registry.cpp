@@ -126,7 +126,7 @@ namespace my
         private:
             static void* getWeakRef(Ptr<>& object)
             {
-                MY_DEBUG_CHECK(object);
+                MY_DEBUG_ASSERT(object);
                 return object->getWeakRef();
             }
 
@@ -158,7 +158,7 @@ namespace my
     RuntimeObjectRegistryImpl::~RuntimeObjectRegistryImpl()
     {
         removeExpiredEntries();
-        MY_DEBUG_CHECK(m_objects.empty(), "Still alive ({}) objects", m_objects.size());
+        MY_DEBUG_ASSERT(m_objects.empty(), "Still alive ({}) objects", m_objects.size());
     }
 
     void RuntimeObjectRegistryImpl::visitObjects(VisitObjectsCallback callback, const rtti::TypeInfo* type, void* callbackData)
@@ -221,7 +221,7 @@ namespace my
     {
         lock_(m_mutex);
 
-        MY_DEBUG_CHECK(ptr);
+        MY_DEBUG_ASSERT(ptr);
 
         const auto id = ++m_objectId;
         m_objects.emplace_back(id, ptr);
@@ -302,7 +302,7 @@ namespace my
 
     void RuntimeObjectRegistry::setDefaultInstance()
     {
-        MY_DEBUG_CHECK(!getRuntimeObjectRegistryRef());
+        MY_DEBUG_ASSERT(!getRuntimeObjectRegistryRef());
 
         getRuntimeObjectRegistryRef() = std::make_unique<RuntimeObjectRegistryImpl>();
     }
@@ -384,7 +384,7 @@ namespace my
         {
             const auto objectId = std::exchange(m_objectId, 0);
 
-            MY_DEBUG_CHECK(RuntimeObjectRegistry::hasInstance());
+            MY_DEBUG_ASSERT(RuntimeObjectRegistry::hasInstance());
             if (RuntimeObjectRegistry::hasInstance())
             {
                 getRuntimeObjectRegistryRef()->removeObject(objectId);

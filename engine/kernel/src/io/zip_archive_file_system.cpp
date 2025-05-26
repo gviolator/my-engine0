@@ -63,17 +63,17 @@ namespace my::io
 
         static void* zipOpen(void* opaque, const void*, int mode) noexcept
         {
-            MY_DEBUG_CHECK(opaque);
+            MY_DEBUG_ASSERT(opaque);
             auto& self = *reinterpret_cast<ZipArchiveFileSystem*>(opaque);
 
-            MY_DEBUG_CHECK(self.m_stream);
+            MY_DEBUG_ASSERT(self.m_stream);
             return self.m_stream.get();
         }
 
         static int zipClose([[maybe_unused]] void* opaque, [[maybe_unused]] void* StreamBasePtr) noexcept
         {
-            MY_DEBUG_CHECK(opaque);
-            MY_DEBUG_CHECK(StreamBasePtr);
+            MY_DEBUG_ASSERT(opaque);
+            MY_DEBUG_ASSERT(StreamBasePtr);
 
             return 0;
         }
@@ -81,7 +81,7 @@ namespace my::io
         static uint32_t zipRead(void*, void* StreamBasePtr, void* buf, uint32_t count) noexcept
         {
             auto* const stream = reinterpret_cast<IStreamBase*>(StreamBasePtr);
-            MY_DEBUG_CHECK(stream);
+            MY_DEBUG_ASSERT(stream);
 
             auto& streamReader = stream->as<IStreamReader&>();
 
@@ -96,14 +96,14 @@ namespace my::io
 
         static uint32_t zipWrite(void*, void*, const void*, uint32_t) noexcept
         {
-            MY_DEBUG_CHECK("Zip write is not supported");
+            MY_DEBUG_ASSERT("Zip write is not supported");
             return 0;
         }
 
         static uint64_t zipTell(void*, void* StreamBasePtr) noexcept
         {
             auto* const stream = reinterpret_cast<IStreamBase*>(StreamBasePtr);
-            MY_DEBUG_CHECK(stream);
+            MY_DEBUG_ASSERT(stream);
 
             return stream->getOffset();
         }
@@ -111,7 +111,7 @@ namespace my::io
         static long zipSeek(void*, void* StreamBasePtr, uint64_t offset, int origin) noexcept
         {
             auto* const stream = reinterpret_cast<IStreamBase*>(StreamBasePtr);
-            MY_DEBUG_CHECK(stream);
+            MY_DEBUG_ASSERT(stream);
 
             const auto seekOrigin = EXPR_Block -> OffsetOrigin
             {
@@ -124,7 +124,7 @@ namespace my::io
                     return OffsetOrigin::Current;
                 }
 
-                MY_DEBUG_CHECK(origin == ZLIB_FILEFUNC_SEEK_SET);
+                MY_DEBUG_ASSERT(origin == ZLIB_FILEFUNC_SEEK_SET);
                 return OffsetOrigin::Begin;
             };
 
@@ -169,7 +169,7 @@ namespace my::io
     {
         auto fileFuncs = getZipFileFuncs(this);
         m_zipArchive = ::unzOpen2_64("internal", &fileFuncs);
-        MY_DEBUG_CHECK(m_zipArchive);
+        MY_DEBUG_ASSERT(m_zipArchive);
         if(!m_zipArchive)
         {
             return;
@@ -285,7 +285,7 @@ namespace my::io
                         const size_t readCount = std::min(m_uncompressedBuffer.size() - readOffset, ZipReadMaxBytes);
                         const int readResult = ::unzReadCurrentFile(archive, ptr, static_cast<uint32_t>(readCount));
 
-                        MY_DEBUG_CHECK(readResult >= 0);
+                        MY_DEBUG_ASSERT(readResult >= 0);
                         if(readResult < 0)
                         {
                             return MakeError("Read zip entry error");
@@ -378,8 +378,8 @@ namespace my::io
 
     IFile::Ptr ZipArchiveFileSystem::openFile(const FsPath& path, AccessModeFlag accessMode, OpenFileMode openMode)
     {
-        MY_DEBUG_CHECK(openMode == OpenFileMode::OpenExisting);
-        MY_DEBUG_CHECK(!(accessMode && AccessMode::Write));
+        MY_DEBUG_ASSERT(openMode == OpenFileMode::OpenExisting);
+        MY_DEBUG_ASSERT(!(accessMode && AccessMode::Write));
 
         // m_index is not mutable.
         auto iter = std::find_if(m_index.begin(), m_index.end(), [&path](const ZipFsEntry& entry)
@@ -427,7 +427,7 @@ namespace my::io
 
     FsEntry ZipArchiveFileSystem::incrementDirIterator(void* statePtr)
     {
-        MY_DEBUG_CHECK(statePtr);
+        MY_DEBUG_ASSERT(statePtr);
         auto* const state = reinterpret_cast<DirIteratorState*>(statePtr);
 
         if (++state->currentIndex >= state->entries.size())
@@ -440,7 +440,7 @@ namespace my::io
 
     FileSystemPtr createZipArchiveFileSystem(IStreamReader::Ptr stream, [[maybe_unused]] std::string basePath)
     {
-        MY_DEBUG_CHECK(basePath.empty(), "Archive base/inner path is not supported yet");
+        MY_DEBUG_ASSERT(basePath.empty(), "Archive base/inner path is not supported yet");
         return rtti::createInstance<ZipArchiveFileSystem>(std::move(stream));
     }
 }  // namespace my::io

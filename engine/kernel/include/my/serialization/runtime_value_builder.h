@@ -4,7 +4,7 @@
 
 // clang-format off
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 #include "my/serialization/native_runtime_value/native_value_forwards.h"
 #include "my/serialization/native_runtime_value/native_integer_value.h"

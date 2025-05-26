@@ -16,7 +16,7 @@ namespace my::async
 
     void ITimerManager::setInstance(TimerManagerPtr instance)
     {
-        MY_DEBUG_CHECK(!instance || !getTimerManagerInstanceRef(), "Timer manager instance already set");
+        MY_DEBUG_ASSERT(!instance || !getTimerManagerInstanceRef(), "Timer manager instance already set");
 
         getTimerManagerInstanceRef() = std::move(instance);
     }

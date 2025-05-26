@@ -70,8 +70,8 @@ namespace my::kernel_detail
     template <typename F, bool Const, bool NoExcept, typename Class, typename Res, typename... P>
     auto makeFunctionalDispatchWrapper(my::Ptr<> dispatchPtr, meta::CallableTypeInfo<Const, NoExcept, Class, Res, P...>)
     {
-        NAU_ASSERT(dispatchPtr);
-        NAU_ASSERT(dispatchPtr->is<IDispatch>());
+        MY_DEBUG_ASSERT(dispatchPtr);
+        MY_DEBUG_ASSERT(dispatchPtr->is<IDispatch>());
 
         return [dispatchPtr = std::move(dispatchPtr)](P... p) -> Res
         {
@@ -106,11 +106,11 @@ namespace my::kernel_detail
         {
         }
 
-        Result<my::Ptr<>> invoke([[maybe_unused]] std::string_view contract, [[maybe_unused]] std::string_view method, DispatchArguments args) override
+        Result<my::Ptr<>> invoke([[maybe_unused]] std::string_view contract, [[maybe_unused]] std::string_view method, [[maybe_unused]] DispatchArguments args) override
         {
-            NAU_ASSERT(contract.empty());
-            NAU_ASSERT(method.empty());
-            NAU_ASSERT("Not implemented");
+            MY_DEBUG_ASSERT(contract.empty());
+            MY_DEBUG_ASSERT(method.empty());
+            MY_DEBUG_ASSERT("Not implemented");
             return nullptr;
         }
 
@@ -140,7 +140,7 @@ namespace my::kernel_detail
         else if constexpr (meta::IsCallable<T>)
         {
             auto* dispatch = inArg->as<IDispatch*>();
-            NAU_ASSERT(dispatch, "Expected IDispatch api");
+            MY_DEBUG_ASSERT(dispatch, "Expected IDispatch api");
 
             outValue = makeFunctionalDispatchWrapper<T>(inArg, meta::GetCallableTypeInfo<T>{});
             return {};
@@ -241,11 +241,11 @@ namespace my::kernel_detail
         template <typename Class, typename R, typename... P>
         static Result<UniPtr<IRttiObject>> invokeInstanceImpl(IRttiObject* instance, DispatchArguments& inArgs, P... arguments)
         {
-            MY_DEBUG_CHECK(instance);
+            MY_DEBUG_ASSERT(instance);
             CheckResult(assignArgumentValues(inArgs, arguments...));
 
             Class* const api = instance->as<Class*>();
-            MY_DEBUG_CHECK(api);
+            MY_DEBUG_ASSERT(api);
             if (!api)
             {
                 return MakeError("Api not supported");
@@ -350,7 +350,7 @@ namespace my::kernel_detail
 
         const IMethodInfo& getMethod(size_t i) const override
         {
-            NAU_ASSERT(getMethodsCount() > 0 && i < getMethodsCount());
+            MY_DEBUG_ASSERT(getMethodsCount() > 0 && i < getMethodsCount());
 
             const IMethodInfo* methodInfoPtr = nullptr;
 
@@ -362,7 +362,7 @@ namespace my::kernel_detail
                 });
             }
 
-            NAU_ASSERT(methodInfoPtr);
+            MY_DEBUG_ASSERT(methodInfoPtr);
 
             return *methodInfoPtr;
         }
@@ -429,7 +429,7 @@ namespace my::kernel_detail
             // but currently checking only for allocator
             if (!args.empty())
             {
-                MY_DEBUG_CHECK(!args.front() || args.front()->is<IMemAllocator>(), "Instance creation method supports only IMemAllocator as argument");
+                MY_DEBUG_ASSERT(!args.front() || args.front()->is<IMemAllocator>(), "Instance creation method supports only IMemAllocator as argument");
             }
 
             Ptr<IRttiObject> resultInstance;
@@ -511,7 +511,7 @@ namespace my::kernel_detail
 
         const IInterfaceInfo& getInterface(size_t i) const override
         {
-            NAU_ASSERT(getInterfaceCount() > 0 && i < getInterfaceCount());
+            MY_DEBUG_ASSERT(getInterfaceCount() > 0 && i < getInterfaceCount());
 
             const IInterfaceInfo* interfaceInfoPtr = nullptr;
 
@@ -520,7 +520,7 @@ namespace my::kernel_detail
                 interfaceInfoPtr = &interfaceInfo;
             });
 
-            NAU_ASSERT(interfaceInfoPtr);
+            MY_DEBUG_ASSERT(interfaceInfoPtr);
 
             return *interfaceInfoPtr;
         }

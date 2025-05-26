@@ -4,7 +4,7 @@
 
 #include <concepts>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/weak_ptr.h"
 #include "my/serialization/runtime_value.h"
 #include "my/serialization/runtime_value_events.h"
@@ -24,8 +24,8 @@ namespace my::ser_detail
         SubscriptionHandle subscribeOnChanges(my::Ptr<IRuntimeValueChangesHandler> handler) final
         {
             MY_DEBUG_FATAL(handler);
-#if MY_DEBUG_CHECK_ENABLED
-            MY_DEBUG_CHECK(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
+#if MY_DEBUG_ASSERT_ENABLED
+            MY_DEBUG_ASSERT(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
             scope_on_leave
             {
                 m_concurrentCheckFlag.store(false, std::memory_order_release);
@@ -78,8 +78,8 @@ namespace my::ser_detail
 
         void notifyHandlers(const RuntimeValue& thisAsRuntimeValue, std::string_view childKey)
         {
-#if MY_DEBUG_CHECK_ENABLED
-            MY_DEBUG_CHECK(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
+#if MY_DEBUG_ASSERT_ENABLED
+            MY_DEBUG_ASSERT(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
             scope_on_leave
             {
                 m_concurrentCheckFlag.store(false, std::memory_order_release);
@@ -97,8 +97,8 @@ namespace my::ser_detail
 
         void unsubscribe(uint32_t id) final
         {
-#if MY_DEBUG_CHECK_ENABLED
-            MY_DEBUG_CHECK(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
+#if MY_DEBUG_ASSERT_ENABLED
+            MY_DEBUG_ASSERT(m_concurrentCheckFlag.exchange(true, std::memory_order_acquire) == false);
             scope_on_leave
             {
                 m_concurrentCheckFlag.store(false, std::memory_order_release);
@@ -118,7 +118,7 @@ namespace my::ser_detail
         std::vector<ChangesHandlerEntry> m_changeHandlers;
         uint32_t m_id = 0;
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         mutable std::atomic<bool> m_concurrentCheckFlag{false};
 #endif
     };
@@ -154,7 +154,7 @@ namespace my::ser_detail
     public:
         void setParent(my::Ptr<ParentMutabilityGuard>&& parentGuard)
         {
-            MY_DEBUG_CHECK(!m_parentGuard);
+            MY_DEBUG_ASSERT(!m_parentGuard);
             m_parentGuard = std::move(parentGuard);
         }
 
@@ -229,7 +229,7 @@ namespace my::ser_detail
         template <std::derived_from<RuntimeValue> U>
         void setThisAsParent(my::Ptr<U>& value) const
         {
-            MY_DEBUG_CHECK(value);
+            MY_DEBUG_ASSERT(value);
             if(NativeChildValue* const childValue = value->template as<NativeChildValue*>())
             {
                 childValue->setParent(getThisMutabilityGuard());

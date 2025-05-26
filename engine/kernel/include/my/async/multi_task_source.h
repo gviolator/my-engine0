@@ -61,7 +61,7 @@ namespace my::async
         bool isReady() const
         {
             lock_(m_mutex);
-            MY_DEBUG_CHECK(static_cast<bool>(*this), "Invalid state");
+            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
             if(!static_cast<bool>(*this))
             {
                 return false;
@@ -74,7 +74,7 @@ namespace my::async
         requires(IsVoid || std::is_constructible_v<T, Args...>)
         bool resolve(Args&&... args)
         {
-            MY_DEBUG_CHECK(static_cast<bool>(*this), "Invalid state");
+            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
             if(!static_cast<bool>(*this))
             {
                 return false;
@@ -92,7 +92,7 @@ namespace my::async
             {
                 resolved = getCoreTask().tryResolve([&](CoreTask::Rejector&) noexcept
                 {
-                    MY_DEBUG_CHECK(!getClientData().result);
+                    MY_DEBUG_ASSERT(!getClientData().result);
                     getClientData().result.emplace(std::forward<Args>(args)...);
                 });
             }
@@ -153,7 +153,7 @@ namespace my::async
 
         bool reject(Error::Ptr error)
         {
-            MY_DEBUG_CHECK(static_cast<bool>(*this), "Invalid state");
+            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
             if(!static_cast<bool>(*this))
             {
                 return false;
@@ -186,7 +186,7 @@ namespace my::async
         {
             lock_(m_mutex);
 
-            MY_DEBUG_CHECK(static_cast<bool>(*this), "Invalid state");
+            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
             if(!static_cast<bool>(*this))
             {
                 return Task<T>::makeRejected(MakeError("Task source invalid state"));

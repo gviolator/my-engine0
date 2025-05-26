@@ -103,7 +103,7 @@ namespace my::ser_detail
                 if(iter == m_dict.end())
                 {
                     auto [emplacedIter, emplaceOk] = m_dict.try_emplace(typename DictionaryType::key_type{key.data(), key.size()});
-                    MY_DEBUG_CHECK(emplaceOk);
+                    MY_DEBUG_ASSERT(emplaceOk);
                     iter = emplacedIter;
                 }
 

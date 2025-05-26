@@ -243,7 +243,7 @@ namespace my::ser_detail
 
         void* getValuePtr() override
         {
-            MY_DEBUG_CHECK(isMutable());
+            MY_DEBUG_ASSERT(isMutable());
             if constexpr (IsMutable)
             {
                 return reinterpret_cast<ValueType*>(&m_object);

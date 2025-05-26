@@ -13,8 +13,8 @@
 
 #include "EASTL/functional.h"
 #include "EASTL/string.h"
-#include "nau/io/file_system.h"
-#include "nau/service/service_provider.h"
+#include "my/io/file_system.h"
+#include "my/service/service_provider.h"
 
 namespace spdlog
 {

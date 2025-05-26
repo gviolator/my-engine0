@@ -68,13 +68,13 @@ namespace my::io
 
     FsPath& FsPath::append(const FsPath& other)
     {
-        MY_DEBUG_CHECK(!other.isAbsolute());
+        MY_DEBUG_ASSERT(!other.isAbsolute());
         return append(other.m_path);
     }
 
     FsPath& FsPath::appendInternal(std::string_view name)
     {
-        MY_DEBUG_CHECK(!FsPath{std::string{name}}.isAbsolute());
+        MY_DEBUG_ASSERT(!FsPath{std::string{name}}.isAbsolute());
 
         scope_on_leave
         {

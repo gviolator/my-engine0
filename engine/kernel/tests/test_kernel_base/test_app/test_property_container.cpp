@@ -70,7 +70,7 @@ namespace my::test
         static testing::AssertionResult mergeFromJson(PropertyContainer& props, std::string_view json)
         {
             auto stream = io::createReadonlyMemoryStream({reinterpret_cast<const std::byte*>(json.data()), json.size()});
-            if (auto parseRes = merge_properties_from_stream(props, *stream, "application/json"); !parseRes)
+            if (auto parseRes = mergePropertiesFromStream(props, *stream, "application/json"); !parseRes)
             {
                 return testing::AssertionFailure() << parseRes.getError()->getMessage().c_str();
             }
@@ -354,4 +354,4 @@ namespace my::test
         const auto str3 = *m_props->getValue<std::string>("prop3");
         EXPECT_EQ(str3, "AAA,$test1{value2},$test2{value1},BBB");
     }
-}  // namespace nau::test
+}  // namespace my::test

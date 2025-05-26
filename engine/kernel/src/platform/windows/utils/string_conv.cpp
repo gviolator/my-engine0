@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/utils/string_conv.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my::strings
 {

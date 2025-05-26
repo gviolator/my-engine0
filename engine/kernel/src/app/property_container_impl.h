@@ -12,8 +12,7 @@ namespace my
      */
     class PropertyContainerImpl final : public PropertyContainer
     {
-        MY_TYPEID(my::PropertyContainerImpl)
-        MY_CLASS_BASE(PropertyContainer)
+        MY_RTTI_CLASS(my::PropertyContainerImpl, PropertyContainer)
 
     public:
         PropertyContainerImpl();

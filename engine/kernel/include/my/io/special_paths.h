@@ -25,7 +25,7 @@ namespace my::io
      * suitable for use in file operations where a temporary file is required.
      *
      * @param prefixFileName The prefix to use for the temporary file name..
-     * @return An `std::u8string` representing the generated temporary file path.
+     * @return A path representing the generated temporary file path.
      */
     MY_KERNEL_EXPORT
     std::filesystem::path getNativeTempFilePath(std::string_view prefixFileName);
@@ -33,9 +33,8 @@ namespace my::io
     /**
         @brief Retrieves the full path of a known folder identified by the folder.
         @param folder The folder id.
-        @return  UTF-8 string that specifies the path of the known folder.
+        @return  the path of the known folder.
      */
     MY_KERNEL_EXPORT
     std::filesystem::path getKnownFolderPath(KnownFolder folder);
-
 }  // namespace my::io

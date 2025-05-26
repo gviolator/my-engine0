@@ -43,7 +43,7 @@ namespace my::diag
         ++s_recursionCounter;
         scope_on_leave
         {
-            MY_DEBUG_CHECK(s_recursionCounter > 0);
+            MY_DEBUG_ASSERT(s_recursionCounter > 0);
             --s_recursionCounter;
         };
 
@@ -80,7 +80,7 @@ namespace my::diag
     {
         lock_(m_mutex);
 
-        MY_DEBUG_CHECK(m_subscriptions.contains(subscription));
+        MY_DEBUG_ASSERT(m_subscriptions.contains(subscription));
         m_subscriptions.removeElement(subscription);
     }
 
@@ -95,12 +95,12 @@ namespace my::diag
     }
 
 
-    LoggerPtr create_logger()
+    LoggerPtr createLogger()
     {
         return rtti::createInstance<LoggerImpl>();
     }
 
-    void set_default_logger(LoggerPtr logger, LoggerPtr* oldLogger)
+    void setDefaultLogger(LoggerPtr logger, LoggerPtr* oldLogger)
     {
         if (oldLogger && s_defaultLogger.get() != s_internalLogger.get())
         {
@@ -117,7 +117,7 @@ namespace my::diag
         }
     }
 
-    Logger& get_default_logger()
+    Logger& getDefaultLogger()
     {
         return *s_defaultLogger;
     }
@@ -144,7 +144,7 @@ namespace my::diag
         {
             return entry.id == subscriptionId;
         });
-        MY_DEBUG_CHECK(iter != m_subscribers.end());
+        MY_DEBUG_ASSERT(iter != m_subscribers.end());
 
         if (iter != m_subscribers.end())
         {
@@ -216,7 +216,7 @@ namespace my::diag
         m_logger(std::move(other.m_logger)),
         m_id(std::exchange(other.m_id, 0))
     {
-        MY_DEBUG_CHECK(other.m_logger.expired());
+        MY_DEBUG_ASSERT(other.m_logger.expired());
     }
 
     Logger::SubscriptionHandle::~SubscriptionHandle()
@@ -231,7 +231,7 @@ namespace my::diag
         m_logger = std::move(other.m_logger);
         m_id = std::exchange(other.m_id, 0);
 
-        MY_DEBUG_CHECK(other.m_logger.expired());
+        MY_DEBUG_ASSERT(other.m_logger.expired());
 
         return *this;
     }
@@ -268,7 +268,7 @@ namespace my::diag
 
     void setLogger(Logger::Ptr&& logger)
     {
-        MY_DEBUG_CHECK(!logger || !getLoggerRef(), "Logger instance already set");
+        MY_DEBUG_ASSERT(!logger || !getLoggerRef(), "Logger instance already set");
         getLoggerRef() = std::move(logger);
     }
 

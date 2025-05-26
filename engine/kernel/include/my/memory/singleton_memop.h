@@ -1,7 +1,7 @@
 // #my_engine_source_file
 
 #pragma once
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my::kernel_detail
 {
@@ -46,8 +46,8 @@ namespace my::kernel_detail
         static void operator_delete([[maybe_unused]] void* ptr, size_t) noexcept
         {
             decltype(auto) state = getSingletonState();
-            MY_DEBUG_CHECK(state.allocated);
-            MY_DEBUG_CHECK(ptr == &state.storage);
+            MY_DEBUG_ASSERT(state.allocated);
+            MY_DEBUG_ASSERT(ptr == &state.storage);
             state.allocated = false;
 
             memset(ptr, 0, sizeof(Class));

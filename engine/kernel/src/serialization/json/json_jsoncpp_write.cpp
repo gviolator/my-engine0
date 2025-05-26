@@ -185,7 +185,7 @@ namespace my::serialization
 
     Result<> jsonWrite(io::IStream& writer, const Json::Value& value, JsonSettings settings)
     {
-        MY_DEBUG_CHECK(writer.canWrite());
+        MY_DEBUG_ASSERT(writer.canWrite());
 
         WriterStreambuf buf{writer};
         std::ostream stream(&buf);
@@ -196,7 +196,7 @@ namespace my::serialization
 
     Result<> jsonWrite(io::IStream& writer, const RuntimeValuePtr& value, JsonSettings settings)
     {
-        MY_DEBUG_CHECK(writer.canWrite());
+        MY_DEBUG_ASSERT(writer.canWrite());
 
         Json::Value root;
         if(auto result = makeJsonValue(root, value, settings); !result)

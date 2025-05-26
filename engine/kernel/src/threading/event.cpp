@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/threading/event.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my::threading_detail
 {
@@ -66,7 +66,7 @@ namespace my::threading
             {
                 return m_state;
             });
-            MY_DEBUG_CHECK(m_state);
+            MY_DEBUG_ASSERT(m_state);
             ready = true;
         }
 

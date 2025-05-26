@@ -73,7 +73,7 @@ namespace my::async
 
             do
             {
-                MY_DEBUG_CHECK((value & mask) == 0, "Flags ({}) already set", mask);
+                MY_DEBUG_ASSERT((value & mask) == 0, "Flags ({}) already set", mask);
             } while (!bits.compare_exchange_weak(value, value | mask));
         }
 
@@ -179,7 +179,7 @@ namespace my::async
 
     void CoreTaskImpl::addRef()
     {
-        MY_CHECK(m_refsCount.fetch_add(1) > 0);
+        MY_ASSERT(m_refsCount.fetch_add(1) > 0);
     }
 
     void CoreTaskImpl::releaseRef()
@@ -190,7 +190,7 @@ namespace my::async
         }
 
         // auto allocator = std::move(m_allocator);
-        // MY_DEBUG_CHECK(allocator);
+        // MY_DEBUG_ASSERT(allocator);
 
         void* const storage = m_allocatedStorage;
         std::destroy_at(this);
@@ -230,7 +230,7 @@ namespace my::async
 
     Error::Ptr CoreTaskImpl::getError() const
     {
-        MY_DEBUG_CHECK(isReady(), "Can request state/error only after task is ready");
+        MY_DEBUG_ASSERT(isReady(), "Can request state/error only after task is ready");
 
         const LockFlagGuard lockResolve{m_flags, TaskFlag_ResolveLocked};
         return m_error;
@@ -253,8 +253,8 @@ namespace my::async
 
     void CoreTaskImpl::setContinuation(TaskContinuation continuation)
     {
-        MY_DEBUG_CHECK(!m_continuation);
-        MY_DEBUG_CHECK(continuation);
+        MY_DEBUG_ASSERT(!m_continuation);
+        MY_DEBUG_ASSERT(continuation);
 
         m_continuation = std::move(continuation);
         if (!m_isContinueOnCapturedExecutor.load(std::memory_order_acquire))
@@ -279,7 +279,7 @@ namespace my::async
 
     void CoreTaskImpl::setContinueOnCapturedExecutor(bool continueOnCapturedExecutor)
     {
-        MY_DEBUG_CHECK(!hasFlags(m_flags, TaskFlag_HasContinuation | TaskFlag_ContinuationScheduled), "Can not change ContinueOnCapturedExecutor after continuation is set");
+        MY_DEBUG_ASSERT(!hasFlags(m_flags, TaskFlag_HasContinuation | TaskFlag_ContinuationScheduled), "Can not change ContinueOnCapturedExecutor after continuation is set");
 
         m_isContinueOnCapturedExecutor.store(continueOnCapturedExecutor, std::memory_order_release);
     }
@@ -317,7 +317,7 @@ namespace my::async
         {
             const LockFlagGuard lockReady{m_flags, TaskFlag_ReadyCallbackLocked};
             Executor::Invocation callback = std::move(m_readyCallback);
-            MY_DEBUG_CHECK(!m_readyCallback);
+            MY_DEBUG_ASSERT(!m_readyCallback);
             return callback;
         };
 
@@ -347,8 +347,8 @@ namespace my::async
         }
 
         TaskContinuation continuation = std::move(m_continuation);
-        MY_DEBUG_CHECK(continuation);
-        MY_DEBUG_CHECK(!m_continuation);
+        MY_DEBUG_ASSERT(continuation);
+        MY_DEBUG_ASSERT(!m_continuation);
 
         Executor::Ptr executor = continuation.executor ? std::move(continuation.executor) : Executor::getCurrent();
         if (executor && m_isContinueOnCapturedExecutor.load(std::memory_order_acquire))
@@ -372,7 +372,7 @@ namespace my::async
 
     void CoreTaskImpl::setNext(CoreTaskImpl* nextTask)
     {
-        MY_DEBUG_CHECK(!nextTask || !m_next);
+        MY_DEBUG_ASSERT(!nextTask || !m_next);
         m_next = nextTask;
     }
 
@@ -427,13 +427,13 @@ namespace my::async
 
     CoreTask& CoreTaskPtr::getCoreTask() noexcept
     {
-        MY_DEBUG_CHECK(static_cast<bool>(*this), "Task is stateless");
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Task is stateless");
         return *m_coreTask;
     }
 
     const CoreTask& CoreTaskPtr::getCoreTask() const noexcept
     {
-        MY_DEBUG_CHECK(static_cast<bool>(*this), "Task is stateless");
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Task is stateless");
         return *m_coreTask;
     }
 
@@ -451,8 +451,8 @@ namespace my::async
     {
         static TaskAllocatorHolder g_taskAllocatorHolder;
 
-        MY_DEBUG_CHECK(is_power_of2(dataAlignment));
-        MY_DEBUG_CHECK(dataAlignment < DefaultAlign || (dataAlignment % DefaultAlign) == 0);
+        MY_DEBUG_ASSERT(is_power_of2(dataAlignment));
+        MY_DEBUG_ASSERT(dataAlignment < DefaultAlign || (dataAlignment % DefaultAlign) == 0);
 
         // storageSize must be sufficient to store any properly aligned object.
         const size_t storageSize = getCoreTaskStorageSize(dataSize, dataAlignment);
@@ -460,7 +460,7 @@ namespace my::async
 
         // the allocated storage may be different from where the CoreTaskImpl will actually be created.
         void* const allocatedStorage = allocator.alloc(storageSize);
-        MY_DEBUG_CHECK(allocatedStorage);
+        MY_DEBUG_ASSERT(allocatedStorage);
 
         // By default the placement storage is the same as the allocated one, but it can be changed if it requires by type alignment
         void* placementStorage = allocatedStorage;

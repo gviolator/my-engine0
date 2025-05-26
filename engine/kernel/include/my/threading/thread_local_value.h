@@ -8,7 +8,7 @@
 #pragma once
 
 #include "my/kernel/kernel_config.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 #include <functional>
 #include <mutex>
@@ -253,7 +253,7 @@ namespace my
             auto statusLine = ptrAlinged + sizeof(Type) * m_lineSize;
             auto status = reinterpret_cast<Status*>(statusLine + sizeof(Status) * offset);
             auto valPtr = reinterpret_cast<Type*>(ptrAlinged + sizeof(Type) * offset);
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(valPtr) % alignof(Type) == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(valPtr) % alignof(Type) == 0);
             return { status, valPtr };
         }
 

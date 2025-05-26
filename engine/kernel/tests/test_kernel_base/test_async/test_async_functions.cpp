@@ -481,7 +481,7 @@ namespace my::test
         {
             const size_t TotalTasks = param.totalTasks;
             const size_t ExpectReadyTasksCount = param.expectedReadyTasks;
-            MY_DEBUG_CHECK(ExpectReadyTasksCount <= TotalTasks);
+            MY_DEBUG_ASSERT(ExpectReadyTasksCount <= TotalTasks);
 
             const auto runtimeGuard = RuntimeGuard::create();
 
@@ -537,7 +537,7 @@ namespace my::test
                         }
                     }
 
-                    MY_DEBUG_CHECK(index != NotIndex);
+                    MY_DEBUG_ASSERT(index != NotIndex);
                     return index;
                 };
 

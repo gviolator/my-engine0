@@ -4,7 +4,7 @@
 #include <tuple>
 #include <utility>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/ptr.h"
 #include "my/utils/scope_guard.h"
 
@@ -44,8 +44,8 @@ namespace my
             m_releaseFunc(releaseFunc),
             m_customData(customData)
         {
-            MY_DEBUG_CHECK(m_value);
-            MY_DEBUG_CHECK(m_releaseFunc);
+            MY_DEBUG_ASSERT(m_value);
+            MY_DEBUG_ASSERT(m_releaseFunc);
         }
 
         UniPtr(UniPtr<T>&& other) :
@@ -74,7 +74,7 @@ namespace my
 
         UniPtr<T>& operator=(UniPtr<T>&& other) noexcept
         {
-            MY_DEBUG_CHECK(m_value == nullptr && m_releaseFunc == nullptr, "Re-assignment for non null UniPtr supposed to be invalid operation");
+            MY_DEBUG_ASSERT(m_value == nullptr && m_releaseFunc == nullptr, "Re-assignment for non null UniPtr supposed to be invalid operation");
             m_value = std::exchange(other.m_value, nullptr);
             m_releaseFunc = std::exchange(other.m_releaseFunc, nullptr);
             m_customData = std::exchange(other.m_customData, 0);
@@ -183,7 +183,7 @@ namespace std
         else if constexpr (std::is_base_of_v<my::IRttiObject, T>)
         {
             targetPtr = ptr->template as<U*>();
-            MY_DEBUG_CHECK(targetPtr);
+            MY_DEBUG_ASSERT(targetPtr);
         }
         else
         {
@@ -214,7 +214,7 @@ namespace std
         else if constexpr (std::is_base_of_v<my::IRttiObject, U>)
         {
             T* const targetPtr = ptr->template as<T*>();
-            MY_DEBUG_CHECK(targetPtr);
+            MY_DEBUG_ASSERT(targetPtr);
             smartPtr = std::unique_ptr<T>{targetPtr};
         }
         else

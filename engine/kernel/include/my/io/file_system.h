@@ -187,8 +187,8 @@ namespace my::io
             file(infile),
             ptr(file.memMap(offset, count))
         {
-            // MY_DEBUG_CHECK(file.supports(IFile::FileFeature::MemoryMapping));
-            MY_DEBUG_CHECK(ptr != nullptr);
+            // MY_DEBUG_ASSERT(file.supports(IFile::FileFeature::MemoryMapping));
+            MY_DEBUG_ASSERT(ptr != nullptr);
         }
 
         /**

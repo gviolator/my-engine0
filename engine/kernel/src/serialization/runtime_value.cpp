@@ -259,8 +259,8 @@ namespace my
 
     Result<> RuntimeValue::assign(RuntimeValuePtr dst, RuntimeValuePtr src, ValueAssignOptionFlag option)
     {
-        MY_DEBUG_CHECK(dst);
-        MY_DEBUG_CHECK(dst->isMutable());
+        MY_DEBUG_ASSERT(dst);
+        MY_DEBUG_ASSERT(dst->isMutable());
 
         if (RuntimeValueRef* const valueRef = dst->as<RuntimeValueRef*>())
         {
@@ -268,7 +268,7 @@ namespace my
             return {};
         }
 
-        MY_DEBUG_CHECK(src);
+        MY_DEBUG_ASSERT(src);
 
         const auto clearDstIfOptionalSrcIsNull = [&dst]() -> Result<>
         {

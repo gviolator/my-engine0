@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/source_info.h"
 #include "my/kernel/kernel_config.h"
 
@@ -35,18 +35,18 @@ namespace my::diag
         FailureData& operator=(const FailureData&) = delete;
     };
 
-    struct ICheckHandler
+    struct IAssertHandler
     {
-        virtual ~ICheckHandler() = default;
+        virtual ~IAssertHandler() = default;
 
-        virtual FailureActionFlag handleCheckFailure(const FailureData&) = 0;
+        virtual FailureActionFlag handleAssertFailure(const FailureData&) = 0;
     };
 
-    using CheckHandlerPtr = std::unique_ptr<ICheckHandler>;
+    using AssertHandlerPtr = std::unique_ptr<IAssertHandler>;
 
-    MY_KERNEL_EXPORT void setCheckHandler(CheckHandlerPtr newHandler, CheckHandlerPtr* prevHandler = nullptr);
+    MY_KERNEL_EXPORT void setAssertHandler(AssertHandlerPtr newHandler, AssertHandlerPtr* prevHandler = nullptr);
 
-    MY_KERNEL_EXPORT ICheckHandler* getCurrentCheckHandler();
+    MY_KERNEL_EXPORT IAssertHandler* getCurrentAssertHandler();
 
-    MY_KERNEL_EXPORT CheckHandlerPtr createDefaultCheckHandler();
+    MY_KERNEL_EXPORT AssertHandlerPtr createDefaultAssertHandler();
 }  // namespace my::diag

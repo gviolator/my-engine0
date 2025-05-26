@@ -77,8 +77,8 @@ namespace my::io
         WinFileMapping(my::Ptr<WinFile> file) :
             m_file(std::move(file))
         {
-            MY_DEBUG_CHECK(m_file);
-            MY_DEBUG_CHECK(m_file->isOpened());
+            MY_DEBUG_ASSERT(m_file);
+            MY_DEBUG_ASSERT(m_file->isOpened());
             if(!m_file || !m_file->isOpened())
             {
                 return;
@@ -87,7 +87,7 @@ namespace my::io
             const DWORD pageProtectFlag = m_file->getAccessMode() && AccessMode::Write ? PAGE_READWRITE : PAGE_READONLY;
             m_fileMappingHandle = ::CreateFileMappingA(m_file->getFileHandle(), nullptr, pageProtectFlag, 0, 0, nullptr);
 
-            MY_DEBUG_CHECK(m_fileMappingHandle != nullptr);
+            MY_DEBUG_ASSERT(m_fileMappingHandle != nullptr);
         }
 
         ~WinFileMapping()
@@ -105,10 +105,10 @@ namespace my::io
 
         void* memMap(size_t offset, std::optional<size_t> count) override
         {
-            MY_DEBUG_CHECK(m_fileMappingHandle != nullptr);
-            MY_DEBUG_CHECK(m_file);
-            MY_DEBUG_CHECK(m_file->getAccessMode().hasAny(AccessMode::Read, AccessMode::Write));
-            MY_DEBUG_CHECK(offset < m_file->getSize());
+            MY_DEBUG_ASSERT(m_fileMappingHandle != nullptr);
+            MY_DEBUG_ASSERT(m_file);
+            MY_DEBUG_ASSERT(m_file->getAccessMode().hasAny(AccessMode::Read, AccessMode::Write));
+            MY_DEBUG_ASSERT(offset < m_file->getSize());
 
             const DWORD access = (m_file->getAccessMode() && AccessMode::Write) ? (FILE_MAP_READ | FILE_MAP_WRITE) : FILE_MAP_READ;
 
@@ -117,20 +117,20 @@ namespace my::io
             const SIZE_T mapSize = static_cast<SIZE_T>(count.value_or(0));
 
             void* const ptr = ::MapViewOfFile(m_fileMappingHandle, access, offsetHigh, offsetLow, mapSize);
-            MY_DEBUG_CHECK(ptr, "MapViewOfFile returns nullptr");
+            MY_DEBUG_ASSERT(ptr, "MapViewOfFile returns nullptr");
 
             return ptr;
         }
 
         void memUnmap(const void* ptr) override
         {
-            MY_DEBUG_CHECK(m_fileMappingHandle != nullptr);
+            MY_DEBUG_ASSERT(m_fileMappingHandle != nullptr);
 
             if(ptr != nullptr)
             {
                 [[maybe_unused]]
                 const BOOL unmapSuccess = ::UnmapViewOfFile(ptr);
-                MY_DEBUG_CHECK(unmapSuccess);
+                MY_DEBUG_ASSERT(unmapSuccess);
             }
         }
 
@@ -143,7 +143,7 @@ namespace my::io
         m_accessMode(accessMode),
         m_fileHandle(create_file(path, accessMode, openMode, attributes))
     {
-        // MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE, "Fail to open file: ({})", path);
+        // MY_DEBUG_ASSERT(m_fileHandle != INVALID_HANDLE_VALUE, "Fail to open file: ({})", path);
     }
 
     WinFile::~WinFile()
@@ -187,7 +187,7 @@ namespace my::io
 
     StreamBasePtr WinFile::createStream([[maybe_unused]] std::optional<AccessModeFlag> accessMode)
     {
-        MY_DEBUG_CHECK(isOpened());
+        MY_DEBUG_ASSERT(isOpened());
         if (!isOpened())
         {
             return nullptr;
@@ -198,7 +198,7 @@ namespace my::io
         // TODO: use dynamic buffer
         [[maybe_unused]]
         const DWORD pathLen = ::GetFinalPathNameByHandleW(m_fileHandle, path.data(), static_cast<DWORD>(path.size()), FILE_NAME_NORMALIZED);
-        MY_DEBUG_CHECK(::GetLastError() == 0);
+        MY_DEBUG_ASSERT(::GetLastError() == 0);
 
         const std::wstring_view pathStr{path.data(), static_cast<size_t>(pathLen)};
 
@@ -207,9 +207,9 @@ namespace my::io
 
     void* WinFile::memMap([[maybe_unused]] size_t offset, [[maybe_unused]] size_t count)
     {
-        MY_DEBUG_CHECK(isOpened());
-        MY_DEBUG_CHECK(getAccessMode().hasAny(AccessMode::Read, AccessMode::Write));
-        MY_DEBUG_CHECK(offset < getSize());
+        MY_DEBUG_ASSERT(isOpened());
+        MY_DEBUG_ASSERT(getAccessMode().hasAny(AccessMode::Read, AccessMode::Write));
+        MY_DEBUG_ASSERT(offset < getSize());
 
         lock_(m_mutex);
         if (++m_fileMappingCounter == 1)
@@ -221,7 +221,7 @@ namespace my::io
             const SIZE_T mapSize = static_cast<SIZE_T>(count);
 
             m_mappedPtr = ::MapViewOfFile(m_fileMappingHandle, access, offsetHigh, offsetLow, mapSize);
-            MY_DEBUG_CHECK(m_mappedPtr, "MapViewOfFile returns nullptr");
+            MY_DEBUG_ASSERT(m_mappedPtr, "MapViewOfFile returns nullptr");
         }
 
         return m_mappedPtr;
@@ -229,12 +229,12 @@ namespace my::io
 
     void WinFile::memUnmap(const void* ptr)
     {
-        MY_DEBUG_CHECK(ptr == nullptr || ptr == m_mappedPtr);
+        MY_DEBUG_ASSERT(ptr == nullptr || ptr == m_mappedPtr);
 
         const void* const ptrToUnmap = EXPR_Block->const void*
         {
             lock_(m_mutex);
-            MY_DEBUG_CHECK(m_fileMappingCounter > 0);
+            MY_DEBUG_ASSERT(m_fileMappingCounter > 0);
             if (m_fileMappingCounter == 0 || --m_fileMappingCounter > 0)
             {
                 return nullptr;
@@ -246,13 +246,13 @@ namespace my::io
         if (ptrToUnmap)
         {
             const BOOL unmapSuccess = ::UnmapViewOfFile(ptrToUnmap);
-            MY_DEBUG_CHECK(unmapSuccess);
+            MY_DEBUG_ASSERT(unmapSuccess);
         }
     }
 
     size_t WinFile::getSize() const
     {
-        MY_DEBUG_CHECK(isOpened());
+        MY_DEBUG_ASSERT(isOpened());
 
         if (!isOpened())
         {
@@ -280,7 +280,7 @@ namespace my::io
 
     fs::path WinFile::getNativePath() const
     {
-        MY_DEBUG_CHECK(isOpened());
+        MY_DEBUG_ASSERT(isOpened());
         if (!isOpened())
         {
             return {};
@@ -290,7 +290,7 @@ namespace my::io
 
         [[maybe_unused]]
         const DWORD pathLen = ::GetFinalPathNameByHandleA(m_fileHandle, path.data(), static_cast<DWORD>(path.size()), FILE_NAME_NORMALIZED);
-        MY_DEBUG_CHECK(::GetLastError() == 0);
+        MY_DEBUG_ASSERT(::GetLastError() == 0);
 
         return std::string{path.data(), pathLen};
     }
@@ -303,7 +303,7 @@ namespace my::io
     // WinFileStream::WinFileStream(HANDLE fileHandle) :
     //     m_fileHandle(fileHandle)
     // {
-    //     MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE);
+    //     MY_DEBUG_ASSERT(m_fileHandle != INVALID_HANDLE_VALUE);
     // }
 
     WinFileStream::WinFileStream(const fs::path& path, AccessModeFlag accessMode, OpenFileMode openMode) :
@@ -322,7 +322,7 @@ namespace my::io
 
     size_t WinFileStream::getPosition() const
     {
-        MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE);
+        MY_DEBUG_ASSERT(m_fileHandle != INVALID_HANDLE_VALUE);
         if (m_fileHandle == INVALID_HANDLE_VALUE)
         {
             return 0;
@@ -333,14 +333,14 @@ namespace my::io
 
         [[maybe_unused]]
         const auto success = ::SetFilePointerEx(getFileHandle(), offset, &currentOffset, FILE_CURRENT);
-        MY_DEBUG_CHECK(success);
+        MY_DEBUG_ASSERT(success);
 
         return static_cast<size_t>(currentOffset.QuadPart);
     }
 
     size_t WinFileStream::setPosition(OffsetOrigin origin, int64_t value)
     {
-        MY_DEBUG_CHECK(m_fileHandle != INVALID_HANDLE_VALUE);
+        MY_DEBUG_ASSERT(m_fileHandle != INVALID_HANDLE_VALUE);
         if (m_fileHandle == INVALID_HANDLE_VALUE)
         {
             return 0;
@@ -359,21 +359,21 @@ namespace my::io
             {
                 return FILE_END;
             }
-            MY_DEBUG_CHECK(origin == OffsetOrigin::Current);
+            MY_DEBUG_ASSERT(origin == OffsetOrigin::Current);
 
             return FILE_CURRENT;
         };
 
         [[maybe_unused]]
         const auto success = ::SetFilePointerEx(getFileHandle(), offset, &newOffset, offsetMethod);
-        MY_DEBUG_CHECK(success);
+        MY_DEBUG_ASSERT(success);
 
         return static_cast<size_t>(newOffset.QuadPart);
     }
 
     Result<size_t> WinFileStream::read(std::byte* ptr, size_t count)
     {
-        MY_DEBUG_CHECK(isOpened());
+        MY_DEBUG_ASSERT(isOpened());
         if (!isOpened())
         {
             return MakeError("File is not opened");
@@ -392,7 +392,7 @@ namespace my::io
 
     Result<size_t> WinFileStream::write(const std::byte* ptr, size_t count)
     {
-        MY_DEBUG_CHECK(isOpened());
+        MY_DEBUG_ASSERT(isOpened());
         if (!isOpened())
         {
             return MakeError("File is not opened");
@@ -433,7 +433,7 @@ namespace my::io
     {
         accessMode -= AccessMode::Async;
 
-        // MY_DEBUG_CHECK(!(accessMode && AccessMode::Async), "Async IO not supported yet");
+        // MY_DEBUG_ASSERT(!(accessMode && AccessMode::Async), "Async IO not supported yet");
 
         return rtti::createInstance<WinFileStream>(path, accessMode, openMode);
 

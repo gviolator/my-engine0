@@ -81,7 +81,7 @@ namespace my
         using namespace my::async;
 
         lock_(m_mutex);
-        MY_DEBUG_CHECK(!m_isPolled);
+        MY_DEBUG_ASSERT(!m_isPolled);
 
         if (!m_invocations.empty())
         {
@@ -104,7 +104,7 @@ namespace my
 
         using Timer = system_clock;
 
-        MY_DEBUG_CHECK(!m_isPolled);
+        MY_DEBUG_ASSERT(!m_isPolled);
         m_isPolled = true;
 
         scope_on_leave
@@ -211,7 +211,7 @@ namespace my
         notifyInternal();
     }
 
-    WorkQueue::Ptr WorkQueue::create()
+    WorkQueuePtr createWorkQueue()
     {
         return rtti::createInstance<WorkQueueImpl, WorkQueue>();
     }

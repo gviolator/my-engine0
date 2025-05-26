@@ -5,7 +5,7 @@
 #include <exception>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/utils/preprocessor.h"
 
@@ -76,7 +76,7 @@ namespace my::kernel_detail
         ScopeGuard_OnSuccess(F callback_) :
             callback(std::move(callback_))
         {
-            MY_DEBUG_CHECK(std::uncaught_exceptions() == 0, "SCOPE Success can not be declared while there is uncaught exception.");
+            MY_DEBUG_ASSERT(std::uncaught_exceptions() == 0, "SCOPE Success can not be declared while there is uncaught exception.");
         }
 
         ~ScopeGuard_OnSuccess() noexcept(noexcept(callback()))

@@ -1,7 +1,7 @@
 #pragma once
 #include <iterator>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my
 {
@@ -43,7 +43,7 @@ namespace my
 
             iterator& operator++()
             {
-                MY_DEBUG_CHECK(node != nullptr, "can not be increment iterator");
+                MY_DEBUG_ASSERT(node != nullptr, "can not be increment iterator");
 
                 node = node->m_next;
 
@@ -52,7 +52,7 @@ namespace my
 
             iterator operator++(int)
             {
-                MY_DEBUG_CHECK(node != nullptr, "can not be increment iterator");
+                MY_DEBUG_ASSERT(node != nullptr, "can not be increment iterator");
 
                 iterator retIter(node);
 
@@ -63,9 +63,9 @@ namespace my
 
             iterator& operator--()
             {
-                MY_DEBUG_CHECK(node != nullptr, "can not be decrement iterator");
+                MY_DEBUG_ASSERT(node != nullptr, "can not be decrement iterator");
 
-                MY_DEBUG_CHECK(node->m_prev != nullptr, "can not be decrement iterator");
+                MY_DEBUG_ASSERT(node->m_prev != nullptr, "can not be decrement iterator");
 
                 node = node->m_prev;
 
@@ -74,9 +74,9 @@ namespace my
 
             iterator operator--(int)
             {
-                MY_DEBUG_CHECK(node != nullptr, "can not be decrement iterator");
+                MY_DEBUG_ASSERT(node != nullptr, "can not be decrement iterator");
 
-                MY_DEBUG_CHECK(node->m_prev != nullptr, "can not be decrement iterator");
+                MY_DEBUG_ASSERT(node->m_prev != nullptr, "can not be decrement iterator");
 
                 iterator retIter(node);
 
@@ -87,28 +87,28 @@ namespace my
 
             const_reference operator*() const
             {
-                MY_DEBUG_CHECK(node != nullptr, "intrusive list iterator can not be dereferenced");
+                MY_DEBUG_ASSERT(node != nullptr, "intrusive list iterator can not be dereferenced");
 
                 return *static_cast<T*>(node);
             }
 
             reference operator*()
             {
-                MY_DEBUG_CHECK(node != nullptr, "intrusive list iterator can not be dereferenced");
+                MY_DEBUG_ASSERT(node != nullptr, "intrusive list iterator can not be dereferenced");
 
                 return *static_cast<T*>(node);
             }
 
             pointer operator->()
             {
-                MY_DEBUG_CHECK(node != nullptr, "intrusive list iterator can not be dereferenced");
+                MY_DEBUG_ASSERT(node != nullptr, "intrusive list iterator can not be dereferenced");
 
                 return static_cast<T*>(node);
             }
 
             const_pointer operator->() const
             {
-                MY_DEBUG_CHECK(node != nullptr, "intrusive list iterator can not be dereferenced");
+                MY_DEBUG_ASSERT(node != nullptr, "intrusive list iterator can not be dereferenced");
 
                 return static_cast<T*>(node);
             }
@@ -150,7 +150,7 @@ namespace my
         size_t size() const noexcept;
 
         /// <summary>
-        /// MY_DEBUG_CHECK that list is empty.
+        /// MY_DEBUG_ASSERT that list is empty.
         /// </summary>
         /// <returns>true if list contains no element, false otherwise</returns>
         bool empty() const noexcept;
@@ -293,7 +293,7 @@ namespace my
 
         clear();
 
-        MY_DEBUG_CHECK(m_head == nullptr && m_tail == nullptr);
+        MY_DEBUG_ASSERT(m_head == nullptr && m_tail == nullptr);
 
         std::swap(m_head, list.m_head);
         std::swap(m_tail, list.m_tail);
@@ -367,7 +367,7 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::reference IntrusiveList<T>::back()
     {
-        MY_DEBUG_CHECK(m_tail != nullptr, "list is empty (or invalid state)");
+        MY_DEBUG_ASSERT(m_tail != nullptr, "list is empty (or invalid state)");
 
         return *static_cast<T*>(m_tail);
     }
@@ -375,7 +375,7 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::const_reference IntrusiveList<T>::back() const
     {
-        MY_DEBUG_CHECK(m_tail != nullptr, "list is empty (or invalid state)");
+        MY_DEBUG_ASSERT(m_tail != nullptr, "list is empty (or invalid state)");
 
         return *static_cast<const T*>(m_tail);
     }
@@ -383,7 +383,7 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::reference IntrusiveList<T>::front()
     {
-        MY_DEBUG_CHECK(m_head != nullptr, "list is empty (or invalid state)");
+        MY_DEBUG_ASSERT(m_head != nullptr, "list is empty (or invalid state)");
 
         return *static_cast<T*>(m_head);
     }
@@ -391,7 +391,7 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::const_reference IntrusiveList<T>::front() const
     {
-        MY_DEBUG_CHECK(m_head != nullptr, "list is empty (or invalid state)");
+        MY_DEBUG_ASSERT(m_head != nullptr, "list is empty (or invalid state)");
 
         return *static_cast<const T*>(m_head);
     }
@@ -405,14 +405,14 @@ namespace my
 
         if (m_head == nullptr)
         {
-            MY_DEBUG_CHECK(m_tail == nullptr);
+            MY_DEBUG_ASSERT(m_tail == nullptr);
 
             m_head = &node;
             m_tail = m_head;
         }
         else
         {
-            MY_DEBUG_CHECK(m_tail != nullptr);
+            MY_DEBUG_ASSERT(m_tail != nullptr);
 
             m_tail->m_next = &node;
 
@@ -430,7 +430,7 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::iterator IntrusiveList<T>::insert(iterator pos, T& element)
     {
-        MY_DEBUG_CHECK(pos.node == nullptr || pos.node->m_list == this, "Invalid iterator");
+        MY_DEBUG_ASSERT(pos.node == nullptr || pos.node->m_list == this, "Invalid iterator");
 
         if (pos.node == nullptr)
         {  // end
@@ -465,9 +465,9 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::iterator IntrusiveList<T>::erase(iterator first, iterator last)
     {
-        MY_DEBUG_CHECK(first.node != nullptr, "Iterator can not be dereferenced");
+        MY_DEBUG_ASSERT(first.node != nullptr, "Iterator can not be dereferenced");
 
-        MY_DEBUG_CHECK(first.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
+        MY_DEBUG_ASSERT(first.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
 
         if (last == end())
         {
@@ -483,12 +483,12 @@ namespace my
         }
         else
         {
-            // MY_DEBUG_CHECK than the last is belong to this list
-            MY_DEBUG_CHECK(last.node != nullptr, "Iterator can not be dereferenced");
+            // MY_DEBUG_ASSERT than the last is belong to this list
+            MY_DEBUG_ASSERT(last.node != nullptr, "Iterator can not be dereferenced");
 
-            MY_DEBUG_CHECK(last.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
+            MY_DEBUG_ASSERT(last.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
 
-            // MY_DEBUG_CHECK that the last stays after the first
+            // MY_DEBUG_ASSERT that the last stays after the first
             bool lastStaysAfterFirst = false;
 
             iterator firstPP = first;
@@ -500,7 +500,7 @@ namespace my
                     break;
                 }
             }
-            MY_DEBUG_CHECK(lastStaysAfterFirst, "The last iterator doesn't stay before the first one");
+            MY_DEBUG_ASSERT(lastStaysAfterFirst, "The last iterator doesn't stay before the first one");
 
             // remove all elements from the first to the last (the last must stay in the list)
             iterator nextAfterRemoved = first;
@@ -517,15 +517,15 @@ namespace my
     template <typename T>
     typename IntrusiveList<T>::iterator IntrusiveList<T>::erase(iterator pos)
     {
-        MY_DEBUG_CHECK(pos.node != nullptr, "Iterator can not be dereferenced");
-        MY_DEBUG_CHECK(pos.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
+        MY_DEBUG_ASSERT(pos.node != nullptr, "Iterator can not be dereferenced");
+        MY_DEBUG_ASSERT(pos.node->m_list == this, "Invalid list reference. Possible element pointed by iterator already removed from list.");
 
         auto prev = pos.node->m_prev;
         auto next = pos.node->m_next;
 
         if (prev != nullptr)
         {
-            MY_DEBUG_CHECK(prev->m_next == pos.node);
+            MY_DEBUG_ASSERT(prev->m_next == pos.node);
 
             prev->m_next = next;
         }
@@ -536,7 +536,7 @@ namespace my
 
         if (next != nullptr)
         {
-            MY_DEBUG_CHECK(next->m_prev == pos.node);
+            MY_DEBUG_ASSERT(next->m_prev == pos.node);
 
             next->m_prev = prev;
         }
@@ -589,7 +589,7 @@ namespace my
     {
         auto& node = static_cast<Node&>(element);
 
-        MY_DEBUG_CHECK(node.m_next == nullptr && node.m_prev == nullptr && node.m_list == nullptr, "Node already within list");
+        MY_DEBUG_ASSERT(node.m_next == nullptr && node.m_prev == nullptr && node.m_list == nullptr, "Node already within list");
 
         return node;
     }

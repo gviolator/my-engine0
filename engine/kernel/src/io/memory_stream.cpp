@@ -3,7 +3,7 @@
 
 #include "my/io/memory_stream.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/buffer.h"
 #include "my/rtti/rtti_impl.h"
 
@@ -125,10 +125,10 @@ namespace my::io
         {
             newPos = currentSize + offset;
         }
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         else
         {
-            MY_DEBUG_CHECK(origin == OffsetOrigin::Begin);
+            MY_DEBUG_ASSERT(origin == OffsetOrigin::Begin);
         }
 #endif
 
@@ -169,8 +169,8 @@ namespace my::io
 
     std::span<const std::byte> MemoryStream::getBufferAsSpan(size_t offset, std::optional<size_t> size) const
     {
-        MY_DEBUG_CHECK(offset >= 0 && offset <= m_buffer.size(), "Invalid offset");
-        MY_DEBUG_CHECK(!size || (offset + *size <= m_buffer.size()));
+        MY_DEBUG_ASSERT(offset >= 0 && offset <= m_buffer.size(), "Invalid offset");
+        MY_DEBUG_ASSERT(!size || (offset + *size <= m_buffer.size()));
 
         const size_t actualOffset = std::min(offset, m_buffer.size());
         const size_t actualSize = size.value_or(m_buffer.size() - actualOffset);
@@ -224,10 +224,10 @@ namespace my::io
         {
             newPos = currentSize + offset;
         }
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         else
         {
-            MY_DEBUG_CHECK(origin == OffsetOrigin::Begin);
+            MY_DEBUG_ASSERT(origin == OffsetOrigin::Begin);
         }
 #endif
 
@@ -268,8 +268,8 @@ namespace my::io
 
     std::span<const std::byte> ReadOnlyMemoryStream::getBufferAsSpan(size_t offset, std::optional<size_t> size) const
     {
-        MY_DEBUG_CHECK(offset >= 0 && offset <= m_buffer.size(), "Invalid offset");
-        MY_DEBUG_CHECK(!size || (offset + *size <= m_buffer.size()));
+        MY_DEBUG_ASSERT(offset >= 0 && offset <= m_buffer.size(), "Invalid offset");
+        MY_DEBUG_ASSERT(!size || (offset + *size <= m_buffer.size()));
 
         const size_t actualOffset = std::min(offset, m_buffer.size());
         const size_t actualSize = size.value_or(m_buffer.size() - actualOffset);

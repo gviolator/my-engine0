@@ -58,15 +58,15 @@ namespace my::ser_detail
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            MY_DEBUG_CHECK(index < m_collection.size());
+            MY_DEBUG_ASSERT(index < m_collection.size());
 
             return this->makeChildValue(makeValueRef(m_collection[index]));
         }
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
-            MY_DEBUG_CHECK(index < m_collection.size());
+            MY_DEBUG_ASSERT(value);
+            MY_DEBUG_ASSERT(index < m_collection.size());
 
             return RuntimeValue::assign(makeValueRef(m_collection[index]), value);
         }
@@ -170,7 +170,7 @@ namespace my::ser_detail
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
+            MY_DEBUG_ASSERT(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
             auto element = m_collection.begin();
             std::advance(element, index);
@@ -180,8 +180,8 @@ namespace my::ser_detail
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
-            MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
+            MY_DEBUG_ASSERT(value);
+            MY_DEBUG_ASSERT(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
             auto element = m_collection.begin();
             std::advance(element, index);
@@ -282,7 +282,7 @@ namespace my::ser_detail
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
+            MY_DEBUG_ASSERT(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
             auto element = m_collection.begin();
             std::advance(element, index);
@@ -292,8 +292,8 @@ namespace my::ser_detail
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
-            MY_DEBUG_CHECK(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
+            MY_DEBUG_ASSERT(value);
+            MY_DEBUG_ASSERT(index < m_collection.size(), "[{}], size():{}", index, m_collection.size());
 
             auto element = m_collection.begin();
             std::advance(element, index);
@@ -338,7 +338,7 @@ namespace my::ser_detail
                 typename ContainerType::value_type newElement;
                 CheckResult(RuntimeValue::assign(makeValueRef(newElement), value))
                 [[maybe_unused]] auto [iter, emplaceOk] = m_collection.emplace(std::move(newElement));
-                MY_DEBUG_CHECK(emplaceOk, "Fail to emplace element (expects that collection holds only unique values)");
+                MY_DEBUG_ASSERT(emplaceOk, "Fail to emplace element (expects that collection holds only unique values)");
                 
                 return emplaceOk ? ResultSuccess : MakeError("Fail to append (unique) value");
             }

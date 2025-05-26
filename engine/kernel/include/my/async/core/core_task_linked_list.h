@@ -94,7 +94,7 @@ namespace my::async_detail
 
             if constexpr(std::is_pointer_v<std::remove_reference_t<decltype(taskOrPtr)>>)
             {
-                MY_DEBUG_CHECK(taskOrPtr != nullptr, "Container<Task*> can not contains nullptr");
+                MY_DEBUG_ASSERT(taskOrPtr != nullptr, "Container<Task*> can not contains nullptr");
                 coreTask = static_cast<CoreTaskPtr&>(*taskOrPtr);
             }
             else

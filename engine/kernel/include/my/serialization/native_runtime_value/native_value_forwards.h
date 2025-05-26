@@ -220,13 +220,13 @@ namespace my
 
         static decltype(auto) element(Type& tup, size_t index)
         {
-            MY_DEBUG_CHECK(index < Size, "[{}], size():{}", index, TupleSize);
+            MY_DEBUG_ASSERT(index < Size, "[{}], size():{}", index, TupleSize);
             return tup[index];
         }
 
         static decltype(auto) element(const Type& tup, size_t index)
         {
-            MY_DEBUG_CHECK(index < Size, "[{}], size():{}", index, TupleSize);
+            MY_DEBUG_ASSERT(index < Size, "[{}], size():{}", index, TupleSize);
             return tup[index];
         }
     };

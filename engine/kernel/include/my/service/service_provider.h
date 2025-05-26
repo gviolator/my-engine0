@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/dispatch/class_descriptor.h"
 #include "my/dispatch/class_descriptor_builder.h"
 #include "my/kernel/kernel_config.h"
@@ -26,7 +26,7 @@
 #include "my/utils/scope_guard.h"
 #include "my/utils/type_list/append.h"
 #include "my/utils/type_utility.h"
-
+#include "my/utils/uni_ptr.h"
 
 namespace my::core_detail
 {
@@ -75,8 +75,7 @@ namespace my::core_detail
         static void* getApiHelperInternal(T& instance, const rtti::TypeInfo& targetType, TypeList<U...>)
         {
             void* outPtr = nullptr;
-            [[maybe_unused]]
-            const bool success = (tryStaticCast<U>(instance, targetType, &outPtr) || ...);
+            [[maybe_unused]] const bool success = (tryStaticCast<U>(instance, targetType, &outPtr) || ...);
 
             return outPtr;
         }
@@ -97,7 +96,7 @@ namespace my
             DoNotCreate
         };
 
-        using Ptr = std::unique_ptr<ServiceAccessor>;
+        //        using Ptr = std::unique_ptr<ServiceAccessor>;
 
         virtual ~ServiceAccessor() = default;
 
@@ -107,6 +106,8 @@ namespace my
 
         virtual bool hasApi(const rtti::TypeInfo&) = 0;
     };
+
+    using ServiceAccessorPtr = std::unique_ptr<ServiceAccessor>;
 
 }  // namespace my
 
@@ -141,6 +142,36 @@ namespace my::core_detail
 
     private:
         const SmartPtr m_instance;
+    };
+
+    template <rtti::WithTypeInfo T>
+    class AbstractServiceAccessor final : public ServiceAccessor
+    {
+    public:
+        AbstractServiceAccessor(std::unique_ptr<T>&& instance) :
+            m_instance(std::move(instance)),
+            m_typeInfo(rtti::getTypeInfo<T>())
+        {
+        }
+
+        void* getApi(const rtti::TypeInfo& type, [[maybe_unused]] GetApiMode) override
+        {
+            if (type == m_typeInfo)
+            {
+                return m_instance.get();
+            }
+
+            return nullptr;
+        }
+
+        bool hasApi(const rtti::TypeInfo& type) override
+        {
+            return type == m_typeInfo;
+        }
+
+    private:
+        const std::unique_ptr<T> m_instance;
+        const rtti::TypeInfo m_typeInfo;
     };
 
     /**
@@ -181,8 +212,8 @@ namespace my::core_detail
         RefCountedLazyServiceAccessor(TypeTag<T>) :
             m_classDescriptor(my::getClassDescriptor<T>())
         {
-            MY_DEBUG_CHECK(m_classDescriptor);
-            MY_DEBUG_CHECK(m_classDescriptor->getConstructor() != nullptr);
+            MY_DEBUG_ASSERT(m_classDescriptor);
+            MY_DEBUG_ASSERT(m_classDescriptor->getConstructor() != nullptr);
         }
 
         inline void* getApi(const rtti::TypeInfo& type, GetApiMode getApiMode) override
@@ -203,13 +234,15 @@ namespace my::core_detail
                     }
 
                     const IMethodInfo* const ctor = m_classDescriptor->getConstructor();
-                    Result<IRttiObject*> instance = ctor->invoke(nullptr, {});
+                    Result<UniPtr<IRttiObject>> instance = ctor->invoke(nullptr, {});
                     MY_DEBUG_FATAL(instance);
 
-                    IRefCounted* const refCounted = (*instance)->as<IRefCounted*>();
-                    MY_DEBUG_FATAL(refCounted, "Only refcounted objects currently are supported");
+                    m_instance = (*instance).release<Ptr<>>();
 
-                    m_instance = rtti::TakeOwnership{refCounted};
+                    // IRefCounted* const refCounted = (*instance)->as<IRefCounted*>();
+                    // MY_DEBUG_FATAL(refCounted, "Only refcounted objects currently are supported");
+
+                    // m_instance = rtti::TakeOwnership{refCounted};
                 }
             }
 
@@ -230,7 +263,7 @@ namespace my::core_detail
     private:
         const ClassDescriptorPtr m_classDescriptor;
         std::mutex m_mutex;
-        my::Ptr<> m_instance;
+        Ptr<> m_instance;
     };
     /**
      */
@@ -310,8 +343,6 @@ namespace my
     {
         MY_INTERFACE(ServiceProvider, IRttiObject)
 
-        using Ptr = std::unique_ptr<ServiceProvider>;
-
         virtual ~ServiceProvider() = default;
 
         my::Cancellation getCancellation();
@@ -380,10 +411,12 @@ namespace my
 
         virtual void findAllInternal(const rtti::TypeInfo&, void (*)(void* instancePtr, void*), void*, ServiceAccessor::GetApiMode = ServiceAccessor::GetApiMode::AllowLazyCreation) = 0;
 
-        virtual void addServiceAccessorInternal(ServiceAccessor::Ptr, ClassDescriptorPtr = nullptr) = 0;
+        virtual void addServiceAccessorInternal(ServiceAccessorPtr, ClassDescriptorPtr = nullptr) = 0;
 
         virtual bool hasApiInternal(const rtti::TypeInfo&) = 0;
     };
+
+    using ServiceProviderPtr = std::unique_ptr<ServiceProvider>;
 
     template <rtti::WithTypeInfo T>
     bool ServiceProvider::has()
@@ -395,7 +428,7 @@ namespace my
     T& ServiceProvider::get()
     {
         void* const service = findInternal(rtti::getTypeInfo<T>());
-        MY_DEBUG_CHECK(service, "Service ({}) does not exists", rtti::getTypeInfo<T>().getTypeName());
+        MY_DEBUG_ASSERT(service, "Service ({}) does not exists", rtti::getTypeInfo<T>().getTypeName());
         return *reinterpret_cast<T*>(service);
     }
 
@@ -440,7 +473,7 @@ namespace my
     template <rtti::WithTypeInfo T>
     void ServiceProvider::addService(std::unique_ptr<T>&& instance)
     {
-        MY_DEBUG_CHECK(instance);
+        MY_DEBUG_ASSERT(instance);
         if (!instance)
         {
             return;
@@ -451,10 +484,14 @@ namespace my
             using Accessor = core_detail::RttiServiceAccessor<std::unique_ptr>;
             addServiceAccessorInternal(std::make_unique<Accessor>(std::move(instance)));
         }
+        else if constexpr (std::is_abstract_v<T>)
+        {
+            // Single interface access
+            using Accessor = core_detail::AbstractServiceAccessor<T>;
+            addServiceAccessorInternal(std::make_unique<Accessor>(std::move(instance)));
+        }
         else
         {
-            static_assert(!std::is_abstract_v<T>, "Type can not be registered as service because runtime type info access is not avail (abstract or non IRttiObject)");
-
             using Accessor = core_detail::NonRttiServiceAccessor<T, std::unique_ptr<T>>;
             addServiceAccessorInternal(std::make_unique<Accessor>(std::move(instance)));
         }
@@ -463,7 +500,7 @@ namespace my
     template <rtti::WithTypeInfo T>
     void ServiceProvider::addService(my::Ptr<T> instance)
     {
-        MY_DEBUG_CHECK(instance);
+        MY_DEBUG_ASSERT(instance);
         if (!instance)
         {
             return;
@@ -525,8 +562,9 @@ namespace my
         using namespace my::rtti;
         if constexpr (sizeof...(U) > 0)
         {
-            std::array types = {&getTypeInfo<T>(), &getTypeInfo<U>()...};
-            return findClasses(std::span<const TypeInfo*>{types.data(), types.size()}, anyType);
+            std::array types = {getTypeInfo<T>(), getTypeInfo<U>()...};
+            return findClasses(std::span{types.data(), types.size()}, anyType);
+            //\return findClasses(types, anyType);
         }
         else
         {
@@ -534,9 +572,9 @@ namespace my
         }
     }
 
-    MY_KERNEL_EXPORT ServiceProvider::Ptr createServiceProvider();
+    MY_KERNEL_EXPORT ServiceProviderPtr createServiceProvider();
 
-    MY_KERNEL_EXPORT void setDefaultServiceProvider(ServiceProvider::Ptr&&);
+    MY_KERNEL_EXPORT void setDefaultServiceProvider(ServiceProviderPtr&&);
 
     MY_KERNEL_EXPORT bool hasServiceProvider();
 

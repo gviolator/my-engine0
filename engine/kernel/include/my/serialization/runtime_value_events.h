@@ -6,7 +6,7 @@
 #include <string_view>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/rtti_impl.h"
 #include "my/rtti/weak_ptr.h"
@@ -76,11 +76,11 @@ namespace my
 
             void reset()
             {
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
                 scope_on_leave
                 {
-                    MY_DEBUG_CHECK(!m_valueRef);
-                    MY_DEBUG_CHECK(m_uid == 0);
+                    MY_DEBUG_ASSERT(!m_valueRef);
+                    MY_DEBUG_ASSERT(m_uid == 0);
                 };
 #endif
                 if(!m_valueRef)

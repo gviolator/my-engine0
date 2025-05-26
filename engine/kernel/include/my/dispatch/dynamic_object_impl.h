@@ -5,21 +5,21 @@
 
 #pragma once
 
-#include "nau/dispatch/class_descriptor_builder.h"
-#include "nau/dispatch/dynamic_object.h"
-#include "nau/kernel/kernel_config.h"
-#include "nau/serialization/runtime_value_builder.h"
+#include "my/dispatch/class_descriptor_builder.h"
+#include "my/dispatch/dynamic_object.h"
+#include "my/kernel/kernel_config.h"
+#include "my/serialization/runtime_value_builder.h"
 
 namespace nau
 {
     /**
      */
-    class NAU_ABSTRACT_TYPE DynamicObjectImpl : public DynamicObject,
+    class MY_ABSTRACT_TYPE DynamicObjectImpl : public DynamicObject,
                                                 public ser_detail::NativeRuntimeValueBase<RuntimeObject>
     {
         using RuntimeValueBase = ser_detail::NativeRuntimeValueBase<RuntimeObject>;
 
-        NAU_INTERFACE(nau::DynamicObjectImpl, DynamicObject, RuntimeValueBase)
+        MY_INTERFACE(nau::DynamicObjectImpl, DynamicObject, RuntimeValueBase)
 
     public:
         bool isMutable() const override
@@ -37,7 +37,7 @@ namespace nau
             return getRuntimeObjectState().getKey(index);
         }
 
-        RuntimeValue::Ptr getValue(std::string_view key) override
+        RuntimeValuePtr getValue(std::string_view key) override
         {
             auto fieldValue = getRuntimeObjectState().getValue(static_cast<const RuntimeValue&>(*this), getThis(), key);
             NAU_FATAL(fieldValue);
@@ -50,7 +50,7 @@ namespace nau
             return getRuntimeObjectState().containsKey(key);
         }
 
-        Result<> setValue(std::string_view key, const RuntimeValue::Ptr& value) override
+        Result<> setValue(std::string_view key, const RuntimeValuePtr& value) override
         {
             // there is no need to tracking changes, because changes notification will propagate from
             // child field (that will be created inside setFieldValue).

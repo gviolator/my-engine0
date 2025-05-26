@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/platform/windows/threading/event.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my::threading
 {
@@ -11,7 +11,7 @@ namespace my::threading
         threading_detail::EventBase(mode),
         m_hEvent(::CreateEventW(nullptr, static_cast<BOOL>(mode == ResetMode::Manual), static_cast<BOOL>(signaled), nullptr))
     {
-        MY_DEBUG_CHECK(m_hEvent);
+        MY_DEBUG_ASSERT(m_hEvent);
     }
 
     Event::~Event()
@@ -42,7 +42,7 @@ namespace my::threading
             return true;
         }
 
-        MY_DEBUG_CHECK(waitResult == WAIT_TIMEOUT);
+        MY_DEBUG_ASSERT(waitResult == WAIT_TIMEOUT);
 
         return false;
     }

@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/utils/type_list/type_list.h"
 
 namespace my
@@ -78,11 +78,11 @@ namespace my
         {
             constexpr size_t Size = std::tuple_size_v<Tuple_>;
             static_assert(Size > 0, "Can not deal with zero-size tuple.");
-            MY_DEBUG_CHECK(index < Size);
+            MY_DEBUG_ASSERT(index < Size);
 
             [[maybe_unused]]
             const bool invoked = invokeAtHelper(tuple, index, accessor, TupleUtils::Indexes<Tuple_>{});
-            MY_DEBUG_CHECK(invoked);
+            MY_DEBUG_ASSERT(invoked);
         }
 
         template <typename Tup, typename Callable, typename... Args>

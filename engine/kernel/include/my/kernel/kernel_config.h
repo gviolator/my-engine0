@@ -48,11 +48,11 @@
     #define MY_DEBUG 0
 #endif
 
-#if !defined(MY_DEBUG_CHECK_ENABLED)
+#if !defined(MY_DEBUG_ASSERT_ENABLED)
     #ifdef _DEBUG
-        #define MY_DEBUG_CHECK_ENABLED 1
+        #define MY_DEBUG_ASSERT_ENABLED 1
     #else
-        #define MY_DEBUG_CHECK_ENABLED 0
+        #define MY_DEBUG_ASSERT_ENABLED 0
     #endif
 #endif
 

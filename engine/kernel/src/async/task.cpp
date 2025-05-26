@@ -22,7 +22,7 @@ namespace my::async_detail
 
     CoreTaskLinkedList::iterator& CoreTaskLinkedList::iterator::operator++()
     {
-        MY_DEBUG_CHECK(m_taskPtr, "Task iterator is not dereferenceable");
+        MY_DEBUG_ASSERT(m_taskPtr, "Task iterator is not dereferenceable");
         m_taskPtr = static_cast<async::CoreTaskImpl*>(m_taskPtr)->getNext();
 
         return *this;
@@ -30,7 +30,7 @@ namespace my::async_detail
 
     CoreTaskLinkedList::iterator CoreTaskLinkedList::iterator::operator++(int)
     {
-        MY_DEBUG_CHECK(m_taskPtr, "Task iterator is not dereferenceable");
+        MY_DEBUG_ASSERT(m_taskPtr, "Task iterator is not dereferenceable");
 
         iterator temp{*this};
         this->operator++();
@@ -39,7 +39,7 @@ namespace my::async_detail
 
     async::CoreTask* CoreTaskLinkedList::iterator::operator*() const
     {
-        MY_DEBUG_CHECK(m_taskPtr, "Task iterator is not dereferenceable");
+        MY_DEBUG_ASSERT(m_taskPtr, "Task iterator is not dereferenceable");
         return m_taskPtr;
     }
 
@@ -71,7 +71,7 @@ namespace my::async_detail
 
             if (prev)
             {
-                MY_DEBUG_CHECK(!prev->getNext());
+                MY_DEBUG_ASSERT(!prev->getNext());
                 prev->setNext(task);
             }
 
@@ -82,7 +82,7 @@ namespace my::async_detail
 
     CoreTaskLinkedList::~CoreTaskLinkedList()
     {
-        MY_DEBUG_CHECK(!m_head, "CoreTaskLinkedList::reset() must be used explicitly");
+        MY_DEBUG_ASSERT(!m_head, "CoreTaskLinkedList::reset() must be used explicitly");
     }
 
     CoreTaskLinkedList::CoreTaskLinkedList(CoreTaskLinkedList&& other) :
@@ -95,8 +95,8 @@ namespace my::async_detail
 
     CoreTaskLinkedList& CoreTaskLinkedList::operator=(CoreTaskLinkedList&& other)
     {
-        MY_DEBUG_CHECK(m_head == nullptr);
-        MY_DEBUG_CHECK(m_size == 0);
+        MY_DEBUG_ASSERT(m_head == nullptr);
+        MY_DEBUG_ASSERT(m_size == 0);
 
         std::swap(m_head, other.m_head);
         std::swap(m_size, other.m_size);
@@ -127,7 +127,7 @@ namespace my::async_detail
             next = next->getNext();
         }
 
-        MY_DEBUG_CHECK(m_size == counter);
+        MY_DEBUG_ASSERT(m_size == counter);
 #endif
 
         return m_size;
@@ -214,7 +214,7 @@ namespace my::async_detail
         {
             void* const mem = getAwaiterStateAllocator().alloc(sizeof(AwaiterState));
 
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(mem) % alignof(AwaiterState) == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(mem) % alignof(AwaiterState) == 0);
 
             return new(mem) AwaiterState(list, std::move(expiration), initialCounter);
         }
@@ -261,7 +261,7 @@ namespace my::async_detail
         bool isCompleted() const
         {
             const auto state = completionState.load(std::memory_order_acquire);
-            MY_DEBUG_CHECK(state != CompletionState::None);
+            MY_DEBUG_ASSERT(state != CompletionState::None);
             return state == CompletionState::WithTrue;
         }
 
@@ -425,7 +425,7 @@ namespace my::async_detail
     ExpirationAwaiter::ExpirationAwaiter(Expiration&& exp) :
         expiration(std::move(exp))
     {
-        MY_DEBUG_CHECK(!expiration.isEternal(), "Can not await never expired expiration");
+        MY_DEBUG_ASSERT(!expiration.isEternal(), "Can not await never expired expiration");
     }
 
     bool ExpirationAwaiter::await_ready() const noexcept
@@ -445,7 +445,7 @@ namespace my::async_detail
             auto continuation = std::move(self.continuation);
             self.continuation = nullptr;
 
-            MY_DEBUG_CHECK(continuation);
+            MY_DEBUG_ASSERT(continuation);
 
             if (auto executor = std::move(self.executor))
             {

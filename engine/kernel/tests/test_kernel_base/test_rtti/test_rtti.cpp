@@ -316,7 +316,7 @@ namespace my::test
                 return rtti::createInstanceInplace<T, IRefCounted>(inplaceStorage);
             }
 
-            MY_DEBUG_CHECK(allocationType == RcClassAllocationType::CustomAllocator);
+            MY_DEBUG_ASSERT(allocationType == RcClassAllocationType::CustomAllocator);
             m_customAllocator = rtti::createInstance<TestAllocator>();
 
             return rtti::createInstanceWithAllocator<T, IRefCounted>(m_customAllocator.get());

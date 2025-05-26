@@ -8,8 +8,8 @@ namespace my::io
         m_fs(std::move(fs)),
         m_path(std::move(path))
     {
-        MY_DEBUG_CHECK(m_fs);
-        MY_DEBUG_CHECK(!m_path.isEmpty());
+        MY_DEBUG_ASSERT(m_fs);
+        MY_DEBUG_ASSERT(!m_path.isEmpty());
     }
 
     DirectoryIterator::~DirectoryIterator()
@@ -22,8 +22,8 @@ namespace my::io
 
     DirectoryIterator::iterator DirectoryIterator::start()
     {
-        MY_DEBUG_CHECK(!m_iteratorState);
-        MY_DEBUG_CHECK(m_fs);
+        MY_DEBUG_ASSERT(!m_iteratorState);
+        MY_DEBUG_ASSERT(m_fs);
 
         if (m_fs && !m_iteratorState)
         {
@@ -47,8 +47,8 @@ namespace my::io
 
     FsEntry DirectoryIterator::increment()
     {
-        MY_DEBUG_CHECK(m_fs);
-        MY_DEBUG_CHECK(m_iteratorState);
+        MY_DEBUG_ASSERT(m_fs);
+        MY_DEBUG_ASSERT(m_iteratorState);
 
         if (!m_iteratorState)
         {
@@ -73,13 +73,13 @@ namespace my::io
 
     bool DirectoryIterator::iterator::operator==([[maybe_unused]] const iterator& other) const
     {
-        MY_DEBUG_CHECK(other.isEnd(), "Dir iterator must be compared only with end()");
+        MY_DEBUG_ASSERT(other.isEnd(), "Dir iterator must be compared only with end()");
         return isEnd() && other.isEnd();
     }
 
     DirectoryIterator::iterator& DirectoryIterator::iterator::operator++()
     {
-        MY_DEBUG_CHECK(m_parent);
+        MY_DEBUG_ASSERT(m_parent);
 
         if (m_fsEntry = m_parent->increment(); !m_fsEntry)
         {
@@ -91,7 +91,7 @@ namespace my::io
 
     DirectoryIterator::iterator DirectoryIterator::iterator::operator++(int)
     {
-        MY_DEBUG_CHECK(m_parent);
+        MY_DEBUG_ASSERT(m_parent);
 
         iterator temp;
         temp.m_parent = m_parent;
@@ -103,14 +103,14 @@ namespace my::io
 
     const FsEntry& DirectoryIterator::iterator::operator*() const&
     {
-        MY_DEBUG_CHECK(m_fsEntry);
+        MY_DEBUG_ASSERT(m_fsEntry);
 
         return (m_fsEntry);
     }
 
     FsEntry&& DirectoryIterator::iterator::operator*() &&
     {
-        MY_DEBUG_CHECK(m_fsEntry);
+        MY_DEBUG_ASSERT(m_fsEntry);
 
         return std::move(m_fsEntry);
     }

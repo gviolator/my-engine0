@@ -92,10 +92,10 @@ namespace my::async_detail
         void await_suspend(std::coroutine_handle<> coroutine) noexcept
         {
             using namespace my::async;
-            MY_DEBUG_CHECK(coreTaskPtr);
+            MY_DEBUG_ASSERT(coreTaskPtr);
 
             CoreTask* const coreTask = getCoreTask(coreTaskPtr);
-            MY_DEBUG_CHECK(coreTask);
+            MY_DEBUG_ASSERT(coreTask);
 
             TaskContinuation continuation{Executor::Invocation::fromCoroutine(coroutine), Executor::getCurrent()};
             coreTask->setContinuation(std::move(continuation));
@@ -103,7 +103,7 @@ namespace my::async_detail
 
         Result<T> await_resume() const
         {
-            MY_DEBUG_CHECK(coreTaskPtr);
+            MY_DEBUG_ASSERT(coreTaskPtr);
 
             async::Task<T> task = async::Task<T>::fromCoreTask(coreTaskPtr);
             scope_on_leave
@@ -111,7 +111,7 @@ namespace my::async_detail
                 task = nullptr;
             };
 
-            MY_DEBUG_CHECK(task.isReady());
+            MY_DEBUG_ASSERT(task.isReady());
             if (!task.isReady())
             {
                 return MakeError("Task is not ready");
@@ -189,7 +189,7 @@ namespace my::async_detail
 
         T await_resume()
         {
-            MY_DEBUG_CHECK(result);
+            MY_DEBUG_ASSERT(result);
             if constexpr (!std::is_same_v<void, T>)
             {
                 return *std::move(result);
@@ -305,7 +305,7 @@ namespace my::async_detail
         CoroutineBreaker yield_value(Error::PtrType<E> err) noexcept
         {
             static_assert(std::is_assignable_v<Error&, E&>, "Can not assign error type: private inheritance used ?");
-            MY_DEBUG_CHECK(err);
+            MY_DEBUG_ASSERT(err);
 
             if (err)
             {
@@ -435,10 +435,10 @@ namespace my::async_detail
     void TaskAwaiter<T>::await_suspend(std::coroutine_handle<Promise> coroutine) noexcept
     {
         using namespace my::async;
-        MY_DEBUG_CHECK(this->coreTaskPtr);
+        MY_DEBUG_ASSERT(this->coreTaskPtr);
 
         CoreTask* const coreTask = getCoreTask(this->coreTaskPtr);
-        MY_DEBUG_CHECK(coreTask);
+        MY_DEBUG_ASSERT(coreTask);
 
         auto& promise = coroutine.promise();
         auto& promiseTaskSource = promise.taskSource;
@@ -488,11 +488,11 @@ namespace my::async_detail
     template <typename T>
     T TaskAwaiter<T>::await_resume() const
     {
-        MY_DEBUG_CHECK(coreTaskPtr);
+        MY_DEBUG_ASSERT(coreTaskPtr);
 
         auto task = async::Task<T>::fromCoreTask(coreTaskPtr);
-        MY_DEBUG_CHECK(task.isReady());
-        MY_DEBUG_CHECK(!task.getError());
+        MY_DEBUG_ASSERT(task.isReady());
+        MY_DEBUG_ASSERT(!task.getError());
 
         scope_on_leave
         {
@@ -515,7 +515,7 @@ namespace my::async_detail
     {
         static_assert(std::is_base_of_v<TaskPromiseTag, Promise>, "Result<> can awaited only from within Task<> coroutine");
 
-        MY_DEBUG_CHECK(this->result.isError());
+        MY_DEBUG_ASSERT(this->result.isError());
 
         auto& promise = continuation.promise();
         promise.taskSource.reject(this->result.getError());
@@ -528,7 +528,7 @@ namespace my::async_detail
     {
         static_assert(std::is_base_of_v<TaskPromiseTag, Promise>, "Result<> can awaited only from within Task<> coroutine");
 
-        MY_DEBUG_CHECK(this->result.isError());
+        MY_DEBUG_ASSERT(this->result.isError());
 
         auto& promise = continuation.promise();
         promise.taskSource.reject(this->result.getError());
@@ -579,10 +579,10 @@ namespace my::async
     template <typename T>
     inline decltype(auto) waitResult(Task<T> task)
     {
-        MY_DEBUG_CHECK(task);
+        MY_DEBUG_ASSERT(task);
         [[maybe_unused]]
         const bool waitOk = async::wait(task);
-        MY_DEBUG_CHECK(waitOk);
+        MY_DEBUG_ASSERT(waitOk);
 
         return std::move(task).asResult();
     }
@@ -591,10 +591,10 @@ namespace my::async
     inline decltype(auto) waitResult(std::reference_wrapper<Task<T>> taskReference)
     {
         decltype(auto) task = static_cast<Task<T>&>(taskReference);
-        MY_DEBUG_CHECK(task);
+        MY_DEBUG_ASSERT(task);
         [[maybe_unused]]
         const bool waitOk = async::wait(task);
-        MY_DEBUG_CHECK(waitOk);
+        MY_DEBUG_ASSERT(waitOk);
 
         return task.asResult();
     }
@@ -718,7 +718,7 @@ namespace std
             void return_value(::my::Error::PtrType<E> error)
             {
                 static_assert(is_assignable_v<my::Error&, E&>, "Can not assign error type: private inheritance used ?");
-                MY_DEBUG_CHECK(error);
+                MY_DEBUG_ASSERT(error);
 
                 if (error)
                 {

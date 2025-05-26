@@ -1,9 +1,9 @@
 // #my_engine_source_file
 #if 0
 #include "helpers/runtime_guard.h"
-#include "nau/async/multi_task_source.h"
-#include "nau/async/task.h"
-#include "nau/threading/barrier.h"
+#include "my/async/multi_task_source.h"
+#include "my/async/task.h"
+#include "my/threading/barrier.h"
 
 using namespace testing;
 using namespace std::chrono_literals;

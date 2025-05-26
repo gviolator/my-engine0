@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/async/async_timer.h"
 #include "my/async/task.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/common_errors.h"
 #include "my/memory/singleton_memop.h"
 #include "my/runtime/disposable.h"
@@ -31,7 +31,7 @@ namespace my::async
 
         ~Win32TimerManager()
         {
-            MY_DEBUG_CHECK(m_timerStateList.empty());
+            MY_DEBUG_ASSERT(m_timerStateList.empty());
 
             ::DeleteTimerQueue(m_hTimerQueue);
         }
@@ -43,7 +43,7 @@ namespace my::async
 
         Task<> executeAfterAsync(std::chrono::milliseconds timeout, async::Executor::Ptr executor, ExecuteAfterCallback callback, void* callbackData)
         {
-            MY_DEBUG_CHECK(callback);
+            MY_DEBUG_ASSERT(callback);
             if (!callback)
             {
                 co_return;
@@ -182,7 +182,7 @@ namespace my::async
                 const auto timerCallback = [](void* ptr, [[maybe_unused]]
                                                          BOOLEAN timerFaired)
                 {
-                    MY_DEBUG_CHECK(timerFaired == TRUE);
+                    MY_DEBUG_ASSERT(timerFaired == TRUE);
 
                     auto promise = TaskSource<TimerOperationResult>::fromCoreTask(CoreTaskOwnership{reinterpret_cast<CoreTask*>(ptr)});
                     [[maybe_unused]]
@@ -193,7 +193,7 @@ namespace my::async
 
                 [[maybe_unused]]
                 const bool result = ::CreateTimerQueueTimer(&hTimer, manager.m_hTimerQueue, timerCallback, reinterpret_cast<void*>(coreTaskPtr), timeMs, 0, WT_EXECUTEDEFAULT);
-                MY_DEBUG_CHECK(result == TRUE);
+                MY_DEBUG_ASSERT(result == TRUE);
             }
 
             ~TimerState()
@@ -206,7 +206,7 @@ namespace my::async
                 if (hTimer)
                 {
                     [[maybe_unused]] BOOL deletedOk = ::DeleteTimerQueueTimer(manager.m_hTimerQueue, hTimer, INVALID_HANDLE_VALUE);
-                    MY_DEBUG_CHECK(deletedOk == TRUE);
+                    MY_DEBUG_ASSERT(deletedOk == TRUE);
                 }
             }
 
@@ -226,7 +226,7 @@ namespace my::async
                 if (auto timerHandle = std::exchange(hTimer, nullptr))
                 {
                     [[maybe_unused]] BOOL deletedOk = ::DeleteTimerQueueTimer(manager.m_hTimerQueue, timerHandle, INVALID_HANDLE_VALUE);
-                    MY_DEBUG_CHECK(deletedOk == TRUE);
+                    MY_DEBUG_ASSERT(deletedOk == TRUE);
                 }
             }
         };
@@ -234,7 +234,7 @@ namespace my::async
         InvokeAfterHandle getNextTimerId()
         {
             const auto id = m_nextTimerStateId.fetch_add(1);
-            MY_DEBUG_CHECK(id < std::numeric_limits<InvokeAfterHandle>::max());
+            MY_DEBUG_ASSERT(id < std::numeric_limits<InvokeAfterHandle>::max());
 
             return id;
         }

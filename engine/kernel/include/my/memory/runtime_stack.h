@@ -1,9 +1,10 @@
 // #my_engine_source_file
 
 #pragma once
-#include "my/memory/mem_allocator.h"
 #include "my/kernel/kernel_config.h"
+#include "my/memory/mem_allocator.h"
 #include "my/utils/preprocessor.h"
+
 
 namespace my
 {
@@ -33,7 +34,6 @@ namespace my
         virtual uintptr_t getAllocationOffset() const = 0;
     };
 
-
     inline IAlignedMemAllocator& get_rt_stack_allocator()
     {
         return RuntimeStackGuard::get_allocator();
@@ -52,9 +52,11 @@ namespace my
         }
     };
 
-
     template <typename T>
     using RtStackStdAllocator = StatelessStdAllocator<T, RtStackAllocatorProvider>;
+
+    template <template <typename T, typename Allocator, typename...> class Container, typename T>
+    using StackContainer = Container<T, RtStackStdAllocator<T>>;
 
 }  // namespace my
 
@@ -64,4 +66,3 @@ namespace my
 #define rtstack_scope const ::my::RuntimeStackGuard ANONYMOUS_VAR(rtStack__){}
 
 // clang-format on
-

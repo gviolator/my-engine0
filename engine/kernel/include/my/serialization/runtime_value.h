@@ -6,7 +6,7 @@
 #include <string_view>
 #include <utility>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/memory/mem_allocator.h"
 #include "my/rtti/ptr.h"
@@ -203,7 +203,7 @@ namespace my
         inline void reset()
         {
             [[maybe_unused]] auto res = this->setValue(nullptr);
-            MY_DEBUG_CHECK(res);
+            MY_DEBUG_ASSERT(res);
             if (res.isError())
             {
                 // Halt(std::format("Fail to reset optional:", res.getError()->Message()));
@@ -331,11 +331,11 @@ namespace my
             {
                 [[maybe_unused]]
                 const auto* const type = getValueTypeInfo();
-                MY_DEBUG_CHECK(*type == rtti::getTypeInfo<T>());
+                MY_DEBUG_ASSERT(*type == rtti::getTypeInfo<T>());
             }
 
             const void* const valuePtr = getReadonlyValuePtr();
-            MY_DEBUG_CHECK(valuePtr);
+            MY_DEBUG_ASSERT(valuePtr);
 
             return *reinterpret_cast<const T*>(valuePtr);
         }
@@ -347,11 +347,11 @@ namespace my
             {
                 [[maybe_unused]]
                 const auto* const type = getValueTypeInfo();
-                MY_DEBUG_CHECK(*type == rtti::getTypeInfo<T>());
+                MY_DEBUG_ASSERT(*type == rtti::getTypeInfo<T>());
             }
 
             void* const valuePtr = getValuePtr();
-            MY_DEBUG_CHECK(valuePtr);
+            MY_DEBUG_ASSERT(valuePtr);
 
             return *reinterpret_cast<T*>(valuePtr);
         }

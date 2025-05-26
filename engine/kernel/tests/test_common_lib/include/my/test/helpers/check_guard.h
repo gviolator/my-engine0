@@ -17,7 +17,7 @@ namespace my::test
   protected:
     ~CheckGuardBase();
 
-    diag::CheckHandlerPtr prevHandler;
+    diag::AssertHandlerPtr prevHandler;
   };
 
   /**

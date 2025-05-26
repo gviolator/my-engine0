@@ -3,11 +3,11 @@
 // Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
 
 
-#include "nau/io/nau_container.h"
+#include "my/io/nau_container.h"
 
-#include "nau/memory/eastl_aliases.h"
-#include "nau/serialization/json.h"
-#include "nau/string/string_utils.h"
+#include "my/memory/eastl_aliases.h"
+#include "my/serialization/json.h"
+#include "my/string/string_utils.h"
 
 namespace my::io
 {
@@ -36,14 +36,14 @@ namespace my::io
                 const size_t actualRead = *stream->read(reinterpret_cast<std::byte*>(buffer), 1);
                 if (actualRead == 0)
                 {
-                    MY_DEBUG_CHECK(false);
+                    MY_DEBUG_ASSERT(false);
                     break;
                 }
 
                 httpHeaderStringify.append(buffer, 1);
             }
 
-            MY_DEBUG_CHECK(httpHeaderStringify.find("\n\n") != eastl::string::npos);
+            MY_DEBUG_ASSERT(httpHeaderStringify.find("\n\n") != eastl::string::npos);
 
             auto httpHeaderLineSequence = strings::split(httpHeaderStringify, eastl::string_view{"\n"});
             for(eastl::string_view headerLine : httpHeaderLineSequence)
@@ -55,7 +55,7 @@ namespace my::io
         }
     }  // namespace
 
-    void writeContainerHeader(IStreamWriter::Ptr outputStream, eastl::string_view kind, const RuntimeValue::Ptr& containerData)
+    void writeContainerHeader(IStreamWriter::Ptr outputStream, eastl::string_view kind, const RuntimeValuePtr& containerData)
     {
         io::IMemoryStream::Ptr tempStream = io::createMemoryStream();
         serialization::jsonWrite(tempStream->as<io::IStreamWriter&>(), containerData).ignore();
@@ -75,7 +75,7 @@ namespace my::io
         io::copyStream(*outputStream, tempStream->as<io::IStreamReader&>()).ignore();
     }
     
-    Result<eastl::tuple<RuntimeValue::Ptr, size_t>> readContainerHeader(IStreamReader::Ptr stream)
+    Result<eastl::tuple<RuntimeValuePtr, size_t>> readContainerHeader(IStreamReader::Ptr stream)
     {
         eastl::vector<eastl::tuple<eastl::string, eastl::string>> httpHeader;
         const size_t headerLength = *readHttpHeader(stream, httpHeader);
@@ -88,11 +88,11 @@ namespace my::io
                 break;
             }
         }
-        MY_DEBUG_CHECK(contentLength != 0);
+        MY_DEBUG_ASSERT(contentLength != 0);
         
         BytesBuffer buffer(contentLength);
         NAU_VERIFY(*stream->read(buffer.data(), contentLength) == contentLength);
-        RuntimeValue::Ptr result = *serialization::jsonParseString(strings::toU8StringView(asStringView(buffer)));
+        RuntimeValuePtr result = *serialization::jsonParseString(strings::toU8StringView(asStringView(buffer)));
         
         return eastl::make_tuple(result, contentLength + headerLength);
     }

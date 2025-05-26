@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "my/async/executor.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/error.h"
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/type_info.h"

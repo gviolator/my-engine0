@@ -1,9 +1,9 @@
 // #my_engine_source_file
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 #include "my/debug/debugger.h"
-#include "my/diag/check_handler.h"
+#include "my/diag/assert_handler.h"
 #include "my/memory/singleton_memop.h"
 #include "my/utils/scope_guard.h"
 
@@ -12,15 +12,15 @@ namespace my::diag
     namespace
     {
 
-        CheckHandlerPtr& getCheckHandlerRef()
+        AssertHandlerPtr& getCheckHandlerRef()
         {
-            static CheckHandlerPtr s_handler;
+            static AssertHandlerPtr s_handler;
             return (s_handler);
         }
 
     }  // namespace
 
-    void setCheckHandler(CheckHandlerPtr newHandler, CheckHandlerPtr* prevHandler)
+    void setAssertHandler(AssertHandlerPtr newHandler, AssertHandlerPtr* prevHandler)
     {
         if (prevHandler)
         {
@@ -30,7 +30,7 @@ namespace my::diag
         getCheckHandlerRef() = std::move(newHandler);
     }
 
-    ICheckHandler* getCurrentCheckHandler()
+    IAssertHandler* getCurrentAssertHandler()
     {
         return getCheckHandlerRef().get();
     }
@@ -66,18 +66,18 @@ namespace my::diag_detail
                 condition,
                 message};
 
-            return handler->handleCheckFailure(failureData);
+            return handler->handleAssertFailure(failureData);
         }
 
         return kind == AssertionKind::Default ? FailureAction::DebugBreak : (FailureAction::DebugBreak | FailureAction::Abort);
     }
 
-    class DefaultCheckHandler final : public diag::ICheckHandler
+    class DefaultCheckHandler final : public diag::IAssertHandler
     {
     public:
         MY_DECLARE_SINGLETON_MEMOP(DefaultCheckHandler)
 
-        diag::FailureActionFlag handleCheckFailure(const diag::FailureData& data) override
+        diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
         {
             using namespace my::diag;
 
@@ -117,7 +117,7 @@ namespace my::diag_detail
 
 namespace my::diag
 {
-    CheckHandlerPtr createDefaultDeviceError()
+    AssertHandlerPtr createDefaultDeviceError()
     {
         return std::make_unique<diag_detail::DefaultCheckHandler>();
     }

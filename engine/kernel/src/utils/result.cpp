@@ -20,7 +20,7 @@ namespace my
 
     Error::Ptr Result<void>::getError() const
     {
-        MY_DEBUG_CHECK(isError(), "Result<void> has no error");
+        MY_DEBUG_ASSERT(isError(), "Result<void> has no error");
 
         return m_error;
     }
@@ -38,7 +38,7 @@ namespace my
 
     void Result<void>::ignore() const noexcept
     {
-        MY_DEBUG_CHECK(!m_error, "Ignoring Result<> that holds an error:{}", m_error->getMessage());
+        MY_DEBUG_ASSERT(!m_error, "Ignoring Result<> that holds an error:{}", m_error->getMessage());
     }
 
 } // namespace nau

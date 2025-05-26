@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/ptr.h"
 
 namespace my
@@ -61,7 +61,7 @@ namespace my
         {
             reset();
 
-            MY_DEBUG_CHECK(m_weakRef == nullptr);
+            MY_DEBUG_ASSERT(m_weakRef == nullptr);
             std::swap(m_weakRef, other.m_weakRef);
 
             return *this;
@@ -90,7 +90,7 @@ namespace my
 
             T* const targetInstance = ptr->as<T*>();
 
-            MY_DEBUG_CHECK(targetInstance, "RefCounted object acquired through weak reference, but instance doesn't provide target interface");
+            MY_DEBUG_ASSERT(targetInstance, "RefCounted object acquired through weak reference, but instance doesn't provide target interface");
 
             return rtti::TakeOwnership{targetInstance};
         }

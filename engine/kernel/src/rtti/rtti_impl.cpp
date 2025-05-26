@@ -8,13 +8,13 @@ namespace my::rtti_detail
         inline void addRef(std::atomic<uint32_t>& counter)
         {
             [[maybe_unused]] const auto value = counter.fetch_add(1, std::memory_order_release);
-            MY_DEBUG_CHECK(value > 0);
+            MY_DEBUG_ASSERT(value > 0);
         }
 
         inline uint32_t removeRef(std::atomic<uint32_t>& counter)
         {
             const auto value = counter.fetch_sub(1, std::memory_order_release);
-            MY_DEBUG_CHECK(value > 0);
+            MY_DEBUG_ASSERT(value > 0);
             return value;
         }
 
@@ -40,10 +40,10 @@ namespace my::rtti_detail
         m_destructorFunc(destructor),
         m_allocatedPtr(allocatedPtr)
     {
-        MY_DEBUG_CHECK(m_acquireFunc);
-        MY_DEBUG_CHECK(m_destructorFunc);
-        MY_DEBUG_CHECK(m_stateCounter.load(std::memory_order_relaxed) == 1);
-        MY_DEBUG_CHECK(m_instanceCounter.load(std::memory_order_relaxed) == 1);
+        MY_DEBUG_ASSERT(m_acquireFunc);
+        MY_DEBUG_ASSERT(m_destructorFunc);
+        MY_DEBUG_ASSERT(m_stateCounter.load(std::memory_order_relaxed) == 1);
+        MY_DEBUG_ASSERT(m_instanceCounter.load(std::memory_order_relaxed) == 1);
     }
 
     IMemAllocator* RttiClassSharedState::getAllocator() const
@@ -83,8 +83,8 @@ namespace my::rtti_detail
     {
         if (removeRef(m_stateCounter) == 1)
         {
-            MY_DEBUG_CHECK(m_stateCounter.load(std::memory_order_relaxed) == 0);
-            MY_DEBUG_CHECK(m_instanceCounter.load(std::memory_order_relaxed) == 0);
+            MY_DEBUG_ASSERT(m_stateCounter.load(std::memory_order_relaxed) == 0);
+            MY_DEBUG_ASSERT(m_instanceCounter.load(std::memory_order_relaxed) == 0);
 
             std::destroy_at(this);
 
@@ -121,7 +121,7 @@ namespace my::rtti_detail
 
     bool RttiClassSharedState::isDead() const
     {
-        MY_DEBUG_CHECK(m_stateCounter.load() > 0);
+        MY_DEBUG_ASSERT(m_stateCounter.load() > 0);
         return m_instanceCounter.load(std::memory_order_relaxed) == 0;
     }
 
@@ -129,13 +129,13 @@ namespace my::rtti_detail
     {
         // static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_REFCOUNTED_CLASS/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
         // static_assert((alignof(T) <= alignof(SharedState)) || (alignof(T) % alignof(SharedState) == 0), "Unsupported type alignment.");
-        MY_DEBUG_CHECK(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
+        MY_DEBUG_ASSERT(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
 
         // const auto acquire = [](void* instancePtr) -> IRefCounted*
         // {
         //     T* const instance = reinterpret_cast<T*>(instancePtr);
         //     auto const refCounted = rtti::staticCast<IRefCounted*>(instance);
-        //     MY_DEBUG_CHECK(refCounted, "Runtime cast ({}) -> IRefCounted failed", rtti::getTypeInfo<T>().getTypeName());
+        //     MY_DEBUG_ASSERT(refCounted, "Runtime cast ({}) -> IRefCounted failed", rtti::getTypeInfo<T>().getTypeName());
 
         //     return refCounted;
         // };

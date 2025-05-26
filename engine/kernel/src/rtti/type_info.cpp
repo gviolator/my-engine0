@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/rtti/type_info.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/threading/lock_guard.h"
 
 template <>
@@ -40,8 +40,8 @@ namespace my::rtti_detail
 
     TypeId register_runtime_type_internal(const size_t typeHash, std::string_view typeName)
     {
-        MY_DEBUG_CHECK(typeHash != 0);
-        MY_DEBUG_CHECK(!typeName.empty());
+        MY_DEBUG_ASSERT(typeHash != 0);
+        MY_DEBUG_ASSERT(!typeName.empty());
 
         if (typeHash == 0 || typeName.empty())
         {
@@ -53,14 +53,14 @@ namespace my::rtti_detail
             typeName.remove_suffix(1);
         }
 
-        MY_DEBUG_CHECK(!typeName.empty());
+        MY_DEBUG_ASSERT(!typeName.empty());
 
         auto& registry = get_types_registry();
 
         lock_(registry.mutex);
 
         [[maybe_unused]] auto [iter, emplaceOk] = registry.types.try_emplace(typeHash, TypeEntry{typeName});
-        MY_DEBUG_CHECK(emplaceOk || iter->second.typeName == typeName);
+        MY_DEBUG_ASSERT(emplaceOk || iter->second.typeName == typeName);
         return iter->first;
     }
 

@@ -23,7 +23,7 @@ namespace my::serialization
 
     Result<RuntimeValuePtr> jsonParse(io::IStream& reader, IMemAllocator* allocator)
     {
-        MY_DEBUG_CHECK(reader.canRead());
+        MY_DEBUG_ASSERT(reader.canRead());
 
         constexpr size_t BlockSize = 256;
 

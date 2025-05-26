@@ -3,7 +3,7 @@
 #pragma once
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/rtti_impl.h"
 #include "my/serialization/native_runtime_value/native_value_base.h"
 

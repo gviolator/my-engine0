@@ -2,7 +2,7 @@
 
 
 #pragma once
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/threading/thread_safe_annotations.h"
 #include "my/utils/scope_guard.h"
@@ -40,7 +40,7 @@ namespace my::threading
             const std::thread::id NoThread{};
             const std::thread::id ThisThread = std::this_thread::get_id();
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
             // Check same thread lock twice (which is not supported by this kind of mutex)
             if (m_threadOwner.load(std::memory_order_relaxed) == ThisThread)
             {
@@ -93,8 +93,8 @@ namespace my::threading
 
         ~RecursiveSpinLock()
         {
-            MY_DEBUG_CHECK(m_threadOwner == std::thread::id{}, "Mutex is locked while destructed");
-            MY_DEBUG_CHECK(m_lockCounter == 0);
+            MY_DEBUG_ASSERT(m_threadOwner == std::thread::id{}, "Mutex is locked while destructed");
+            MY_DEBUG_ASSERT(m_lockCounter == 0);
         }
 
         inline void lock() THREAD_ACQUIRE()
@@ -104,14 +104,14 @@ namespace my::threading
 
             scope_on_leave
             {
-                MY_DEBUG_CHECK(m_threadOwner == ThisThread);
+                MY_DEBUG_ASSERT(m_threadOwner == ThisThread);
                 ++m_lockCounter;
             };
 
             auto expectedValue = m_threadOwner.load(std::memory_order_acquire);
             if(expectedValue == ThisThread)
             {
-                MY_DEBUG_CHECK(m_lockCounter > 0);
+                MY_DEBUG_ASSERT(m_lockCounter > 0);
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace my::threading
                 expectedValue = NoThread;
                 if(m_threadOwner.compare_exchange_strong(expectedValue, ThisThread, std::memory_order_seq_cst, std::memory_order_acquire))
                 {
-                    MY_DEBUG_CHECK(m_lockCounter == 0);
+                    MY_DEBUG_ASSERT(m_lockCounter == 0);
                     break;
                 }
 
@@ -133,8 +133,8 @@ namespace my::threading
 
         inline void unlock() THREAD_RELEASE()
         {
-            MY_DEBUG_CHECK(m_threadOwner == std::this_thread::get_id());
-            MY_DEBUG_CHECK(m_lockCounter > 0);
+            MY_DEBUG_ASSERT(m_threadOwner == std::this_thread::get_id());
+            MY_DEBUG_ASSERT(m_lockCounter > 0);
 
             if(--m_lockCounter == 0)
             {

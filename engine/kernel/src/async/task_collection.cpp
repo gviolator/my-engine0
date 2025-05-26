@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/async/task_collection.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/threading/lock_guard.h"
 
 namespace my::async
@@ -18,7 +18,7 @@ namespace my::async
 
     TaskCollection::~TaskCollection()
     {
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
         lock_(m_mutex);
         MY_DEBUG_FATAL(!m_closeAwaiter);
         MY_DEBUG_FATAL(m_tasks.empty(), "All task collection must be be awaited");
@@ -33,7 +33,7 @@ namespace my::async
 
     void TaskCollection::pushInternal(CoreTaskPtr task)
     {
-        MY_DEBUG_CHECK(task);
+        MY_DEBUG_ASSERT(task);
         if (!task)
         {
             return;
@@ -50,7 +50,7 @@ namespace my::async
 
         {
             lock_(m_mutex);
-            MY_DEBUG_CHECK(!m_isDisposed);
+            MY_DEBUG_ASSERT(!m_isDisposed);
             m_tasks.emplace_back(std::move(task));
         }
 
@@ -69,7 +69,7 @@ namespace my::async
             {
                 return task == completedTask;
             });
-            MY_DEBUG_CHECK(iter != tasks.end());
+            MY_DEBUG_ASSERT(iter != tasks.end());
             if (iter != tasks.end())
             {
                 tasks.erase(iter);
@@ -77,7 +77,7 @@ namespace my::async
 
             if (tasks.empty() && self.m_closeAwaiter)
             {
-                MY_DEBUG_CHECK(self.m_isDisposing);
+                MY_DEBUG_ASSERT(self.m_isDisposing);
                 auto awaiter = std::move(self.m_closeAwaiter);
                 awaiter.resolve();
             }
@@ -90,7 +90,7 @@ namespace my::async
             lock_(m_mutex);
             const bool alreadyDisposing = std::exchange(m_isDisposing, true);
 
-            MY_DEBUG_CHECK(!alreadyDisposing, "TaskCollection::disposeAsync called multiply times");
+            MY_DEBUG_ASSERT(!alreadyDisposing, "TaskCollection::disposeAsync called multiply times");
             if (alreadyDisposing)
             {
                 co_return;
@@ -100,7 +100,7 @@ namespace my::async
         scope_on_leave
         {
             lock_(m_mutex);
-            MY_DEBUG_CHECK(m_isDisposing);
+            MY_DEBUG_ASSERT(m_isDisposing);
             m_isDisposing = false;
         };
 
@@ -114,13 +114,13 @@ namespace my::async
                 {
                     if (dispose)
                     {
-                        MY_DEBUG_CHECK(!m_isDisposed);
+                        MY_DEBUG_ASSERT(!m_isDisposed);
                         m_isDisposed = true;
                     }
                     break;
                 }
 
-                MY_DEBUG_CHECK(!m_closeAwaiter);
+                MY_DEBUG_ASSERT(!m_closeAwaiter);
                 m_closeAwaiter = {};
                 awaiterTask = m_closeAwaiter.getTask();
             }

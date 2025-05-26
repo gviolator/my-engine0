@@ -8,7 +8,7 @@ namespace my::ser_detail
     {
         auto fields = getFields();
 
-        MY_DEBUG_CHECK(index < fields.size());
+        MY_DEBUG_ASSERT(index < fields.size());
         return fields[index].getName();
     }
 

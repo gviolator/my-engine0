@@ -6,7 +6,7 @@
 #include <type_traits>
 
 #include "my/async/cpp_coroutine.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/ptr.h"
 #include "my/rtti/rtti_object.h"
 #include "my/rtti/weak_ptr.h"
@@ -133,7 +133,7 @@ namespace my::async
         ExecutorAwaiter(Executor::Ptr exec) :
             executor(std::move(exec))
         {
-            MY_DEBUG_CHECK(executor, "Executor must be specified");
+            MY_DEBUG_ASSERT(executor, "Executor must be specified");
         }
 
         constexpr bool await_ready() const noexcept
@@ -162,7 +162,7 @@ namespace my::async
     inline ExecutorAwaiter operator co_await(Executor::WeakPtr executorWeakRef)
     {
         auto executor = executorWeakRef.acquire();
-        MY_DEBUG_CHECK(executor, "Executor instance expired");
+        MY_DEBUG_ASSERT(executor, "Executor instance expired");
 
         return {std::move(executor)};
     }
@@ -172,7 +172,7 @@ namespace my::async
 #define ASYNC_SWITCH_EXECUTOR(executorExpression)                         \
     {                                                                     \
         ::my::async::Executor::Ptr executorVar = executorExpression;     \
-        MY_DEBUG_CHECK(executorVar);                                            \
+        MY_DEBUG_ASSERT(executorVar);                                            \
                                                                           \
         if(my::async::Executor::getCurrent().get() != executorVar.get()) \
         {                                                                 \

@@ -2,7 +2,7 @@
 
 #include "my/memory/buffer.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/fixed_size_block_allocator.h"
 #include "my/memory/mem_allocator.h"
 #include "my/utils/scope_guard.h"
@@ -212,7 +212,7 @@ namespace my
 
     Buffer BufferStorage::bufferFromHandle(BufferHandle handle)
     {
-        MY_DEBUG_CHECK(handle);
+        MY_DEBUG_ASSERT(handle);
         return Buffer(handle);
     }
 
@@ -285,13 +285,13 @@ namespace my
 
     BufferBase::Header& BufferBase::header()
     {
-        MY_DEBUG_CHECK(m_storage != nullptr);
+        MY_DEBUG_ASSERT(m_storage != nullptr);
         return *m_storage;
     }
 
     const BufferBase::Header& BufferBase::header() const
     {
-        MY_DEBUG_CHECK(m_storage != nullptr);
+        MY_DEBUG_ASSERT(m_storage != nullptr);
         return *m_storage;
     }
 
@@ -383,7 +383,7 @@ namespace my
 
         // if (const void* const ptr = data())
         // {
-        //     //MY_DEBUG_CHECK(m_storage->size > 0);
+        //     //MY_DEBUG_ASSERT(m_storage->size > 0);
 
         //     const size_t copySize = std::min(header().size, newSize);
         //     memcpy(clientData(storage), ptr, copySize);
@@ -392,7 +392,7 @@ namespace my
         // this->release();
         // m_storage = storage;
 
-        // //MY_DEBUG_CHECK(header().size == newSize);
+        // //MY_DEBUG_ASSERT(header().size == newSize);
     }
 
     ReadOnlyBuffer Buffer::toReadOnly()
@@ -430,7 +430,7 @@ namespace my
 
     ReadOnlyBuffer::ReadOnlyBuffer(Buffer&& buffer) noexcept
     {
-        MY_DEBUG_CHECK(!buffer || BufferUtils::refsCount(buffer) == 1);
+        MY_DEBUG_ASSERT(!buffer || BufferUtils::refsCount(buffer) == 1);
         *this = std::move(buffer);
     }
 
@@ -439,7 +439,7 @@ namespace my
     {
         if (m_storage)
         {
-            MY_CHECK(m_storage->refs.fetch_add(1) > 0);
+            MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
         }
     }
 
@@ -462,7 +462,7 @@ namespace my
         release();
         if (m_storage = other.m_storage; m_storage)
         {
-            MY_CHECK(m_storage->refs.fetch_add(1) > 0);
+            MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
         }
 
         return *this;
@@ -525,11 +525,11 @@ namespace my
     {
         if (!m_buffer)
         {
-            MY_DEBUG_CHECK(m_offset == 0 && (!size_ || *size_ == 0), "Invalid parameters while construct BufferView from empty ReadOnlyBuffer");
+            MY_DEBUG_ASSERT(m_offset == 0 && (!size_ || *size_ == 0), "Invalid parameters while construct BufferView from empty ReadOnlyBuffer");
         }
         else
         {
-            MY_DEBUG_CHECK(m_offset + m_size <= m_buffer.size());
+            MY_DEBUG_ASSERT(m_offset + m_size <= m_buffer.size());
         }
     }
 
@@ -540,11 +540,11 @@ namespace my
     {
         if (!m_buffer)
         {
-            MY_DEBUG_CHECK(m_offset == 0 && (!size_ || *size_ == 0), "Invalid parameters while construct BufferView from empty ReadOnlyBuffer");
+            MY_DEBUG_ASSERT(m_offset == 0 && (!size_ || *size_ == 0), "Invalid parameters while construct BufferView from empty ReadOnlyBuffer");
         }
         else
         {
-            MY_DEBUG_CHECK(m_offset + m_size <= m_buffer.size());
+            MY_DEBUG_ASSERT(m_offset + m_size <= m_buffer.size());
         }
     }
 
@@ -553,7 +553,7 @@ namespace my
         m_offset(buffer.m_offset + offset_),
         m_size(size_ ? *size_ : buffer.m_size - offset_)
     {
-        MY_DEBUG_CHECK((m_offset + m_size) <= m_buffer.size());
+        MY_DEBUG_ASSERT((m_offset + m_size) <= m_buffer.size());
     }
 
     BufferView::BufferView(BufferView&& buffer, size_t offset_, std::optional<size_t> size_) :
@@ -561,7 +561,7 @@ namespace my
         m_offset(buffer.m_offset + offset_),
         m_size(size_ ? *size_ : buffer.m_size - offset_)
     {
-        MY_DEBUG_CHECK((m_offset + m_size) <= m_buffer.size());
+        MY_DEBUG_ASSERT((m_offset + m_size) <= m_buffer.size());
     }
 
     BufferView::BufferView(const BufferView&) = default;
@@ -684,8 +684,8 @@ namespace my
 
     Buffer BufferUtils::copy(const BufferBase& source, size_t offset, std::optional<size_t> size)
     {
-        MY_DEBUG_CHECK(offset <= source.size());
-        MY_DEBUG_CHECK(!size || offset + *size <= source.size());
+        MY_DEBUG_ASSERT(offset <= source.size());
+        MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
         if (!source)
         {
             return {};
@@ -701,8 +701,8 @@ namespace my
 
     // Buffer BufferUtils::copy(const BufferView& source, size_t offset, std::optional<size_t> size)
     // {
-    //     MY_DEBUG_CHECK(offset <= source.size());
-    //     MY_DEBUG_CHECK(!size || offset + *size <= source.size());
+    //     MY_DEBUG_ASSERT(offset <= source.size());
+    //     MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
 
     //     if (!source)
     //     {

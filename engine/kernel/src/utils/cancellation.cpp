@@ -47,7 +47,7 @@ namespace my::kernel_detail
 
         uintptr_t subscribe(CallbackFunc callback, void* data)
         {
-            MY_DEBUG_CHECK(callback, "Callback expected to be not null");
+            MY_DEBUG_ASSERT(callback, "Callback expected to be not null");
             if (!callback)
             {
                 return 0;
@@ -165,7 +165,7 @@ namespace my::kernel_detail
 
         uintptr_t Subscribe(CallbackFunc callback, void* data)
         {
-            MY_DEBUG_CHECK(callback, "Callback expected to be not null");
+            MY_DEBUG_ASSERT(callback, "Callback expected to be not null");
 
             if (!callback)
             {
@@ -257,7 +257,7 @@ namespace my::kernel_detail
                 if (timePass < *m_timeout)
                 {
                     const int64_t timeLeft = static_cast<int64_t>(m_timeout->count()) - static_cast<int64_t>(timePass.count());
-                    MY_DEBUG_CHECK(timeLeft > 0);
+                    MY_DEBUG_ASSERT(timeLeft > 0);
 
                     m_timerSubscription = async::invokeAfter(milliseconds{timeLeft}, [](void* ptr) noexcept
                     {
@@ -287,7 +287,7 @@ namespace my::kernel_detail
 
             if (m_cancellationSubscription)
             {
-                MY_DEBUG_CHECK(m_cancellation);
+                MY_DEBUG_ASSERT(m_cancellation);
                 m_cancellation->unsubscribe(*m_cancellationSubscription);
                 m_cancellationSubscription.reset();
             }
@@ -451,19 +451,19 @@ namespace my
 
     Cancellation CancellationSource::getCancellation()
     {
-        MY_DEBUG_CHECK(m_cancellation);
+        MY_DEBUG_ASSERT(m_cancellation);
         return m_cancellation ? Cancellation{m_cancellation} : Cancellation{};
     }
 
     bool CancellationSource::isCancelled() const
     {
-        MY_DEBUG_CHECK(m_cancellation);
+        MY_DEBUG_ASSERT(m_cancellation);
         return m_cancellation && m_cancellation->isCancelled();
     }
 
     void CancellationSource::cancel()
     {
-        MY_DEBUG_CHECK(m_cancellation);
+        MY_DEBUG_ASSERT(m_cancellation);
         if (m_cancellation)
         {
             m_cancellation->cancel();
@@ -472,7 +472,7 @@ namespace my
 
     void CancellationSource::SetTimeoutInternal(std::chrono::milliseconds timeout)
     {
-        MY_DEBUG_CHECK(m_cancellation);
+        MY_DEBUG_ASSERT(m_cancellation);
         if (m_cancellation)
         {
             m_cancellation->setTimeout(timeout);
@@ -507,7 +507,7 @@ namespace my
         m_subscriptionHandle = other.m_subscriptionHandle;
         other.m_subscriptionHandle = 0;
 
-        MY_DEBUG_CHECK(!other.m_expiration);
+        MY_DEBUG_ASSERT(!other.m_expiration);
 
         return *this;
     }

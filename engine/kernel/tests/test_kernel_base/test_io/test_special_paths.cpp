@@ -3,7 +3,7 @@
 #include "my/io/special_paths.h"
 
 namespace fs = std::filesystem;
-#if 0
+
 namespace my::test
 {
     TEST(TestSpecialPaths, NotEmptyWithPrefixFileName)
@@ -74,4 +74,3 @@ namespace my::test
     }
 
 }  // namespace my::test
-#endif

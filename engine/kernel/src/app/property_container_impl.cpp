@@ -253,14 +253,14 @@ namespace my
 
         lock_(m_mutex);
 
-        // const_cast<> is a temporary hack:. currently RuntimeValue::assign accepts nau::Ptr<> that require only non-const values.
+        // const_cast<> is a temporary hack:. currently RuntimeValue::assign accepts Ptr<> that require only non-const values.
         return RuntimeValue::assign(m_propsRoot, Ptr{&const_cast<RuntimeValue&>(value)}, ValueAssignOption::MergeCollection);
     }
 
     void PropertyContainerImpl::addVariableResolver(std::string_view kind, VariableResolverCallback resolver)
     {
-        MY_DEBUG_CHECK(!kind.empty());
-        MY_DEBUG_CHECK(resolver);
+        MY_DEBUG_ASSERT(!kind.empty());
+        MY_DEBUG_ASSERT(resolver);
 
         if (kind.empty() || !resolver)
         {
@@ -269,10 +269,15 @@ namespace my
 
         lock_(m_mutex);
         [[maybe_unused]] auto [iter, emplaceOk] = m_variableResolvers.emplace(kind, std::move(resolver));
-        MY_DEBUG_CHECK(emplaceOk, "Variable resolver ({}) already exists", kind);
+        MY_DEBUG_ASSERT(emplaceOk, "Variable resolver ({}) already exists", kind);
     }
 
-    Result<> merge_properties_from_stream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType)
+    std::unique_ptr<PropertyContainer> createPropertyContainer()
+    {
+        return std::make_unique<PropertyContainerImpl>();
+    }
+
+    Result<> mergePropertiesFromStream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType)
     {
         if (strings::icaseEqual(contentType, "application/json"))
         {
@@ -289,7 +294,7 @@ namespace my
         return ResultSuccess;
     }
 
-    Result<> merge_properties_from_file(PropertyContainer& properties, const std::filesystem::path& filePath, std::string_view contentType)
+    Result<> mergePropertiesFromFile(PropertyContainer& properties, const std::filesystem::path& filePath, std::string_view contentType)
     {
         namespace fs = std::filesystem;
         using namespace my::io;
@@ -317,10 +322,10 @@ namespace my
             return MakeError("Fail to open file:({})", filePath.string());
         }
 
-        return merge_properties_from_stream(properties, *fileStream, contentType);
+        return mergePropertiesFromStream(properties, *fileStream, contentType);
     }
 
-    void dump_properties_to_stream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType)
+    void dumpPropertiesToStream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType)
     {
         using namespace my::serialization;
 
@@ -339,11 +344,11 @@ namespace my
         }
     }
 
-    std::string dump_properties_to_string(PropertyContainer& properties, std::string_view contentType)
+    std::string dumpPropertiesToString(PropertyContainer& properties, std::string_view contentType)
     {
         std::string buffer;
         io::InplaceStringWriter writer{buffer};
-        dump_properties_to_stream(properties, writer, contentType);
+        dumpPropertiesToStream(properties, writer, contentType);
         return buffer;
     }
 }  // namespace my

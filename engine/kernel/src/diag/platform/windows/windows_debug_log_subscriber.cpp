@@ -3,9 +3,9 @@
 #if 0
 #include <nau/string/string.h>
 
-#include "nau/diag/log_subscribers.h"
-#include "nau/diag/logging.h"
-#include "nau/string/string_conv.h"
+#include "my/diag/log_subscribers.h"
+#include "my/diag/logging.h"
+#include "my/string/string_conv.h"
 
 namespace my::diag
 {

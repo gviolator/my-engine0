@@ -4,7 +4,7 @@
 #include "./buffer_test_utils.h"
 #include "my/test/helpers/runtime_guard.h"
 #include "my/async/task.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/buffer.h"
 #include "my/rtti/rtti_impl.h"
 #include "my/utils/functor.h"
@@ -23,7 +23,7 @@ namespace my::test
 
         const size_t fillSize = !size ? (buffer.size() - offset) : *size;
 
-        MY_CHECK(offset + fillSize <= buffer.size());
+        MY_ASSERT(offset + fillSize <= buffer.size());
 
         const uint8_t* const charPtr = reinterpret_cast<const uint8_t*>(buffer.data());
 

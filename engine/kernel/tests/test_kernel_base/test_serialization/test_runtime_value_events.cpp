@@ -5,8 +5,8 @@
 // test_runtime_value.cpp
 
 
-#include "nau/serialization/runtime_value_builder.h"
-#include "nau/serialization/runtime_value_events.h"
+#include "my/serialization/runtime_value_builder.h"
+#include "my/serialization/runtime_value_events.h"
 
 namespace my::test
 {
@@ -16,7 +16,7 @@ namespace my::test
         {
             int field1 = 1;
 
-            NAU_CLASS_FIELDS(
+            MY_REFCOUNED_CLASSFIELDS(
                 CLASS_FIELD(field1))
         };
     }  // namespace

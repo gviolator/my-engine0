@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <typeinfo>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/rtti/type_info.h"
 #include "my/utils/preprocessor.h"
 
@@ -60,7 +60,7 @@ namespace my
         {
             using Interface = std::remove_reference_t<T>;
             void* const ptr = this->as(rtti::getTypeInfo<std::remove_const_t<Interface>>());
-            MY_DEBUG_CHECK(ptr);
+            MY_DEBUG_ASSERT(ptr);
 
             return *reinterpret_cast<Interface*>(ptr);
         }
@@ -73,7 +73,7 @@ namespace my
             static_assert(std::is_const_v<Interface>, "Attempt to cast through constant instance. const T must be explicitly specified: use 'as<const T&>'");
 
             const void* const ptr = this->as(rtti::getTypeInfo<std::remove_const_t<Interface>>());
-            MY_DEBUG_CHECK(ptr);
+            MY_DEBUG_ASSERT(ptr);
 
             return *reinterpret_cast<Interface*>(ptr);
         }

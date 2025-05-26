@@ -8,7 +8,7 @@
 #include <typeinfo>
 #include <utility>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/error.h"
 #include "my/kernel/kernel_config.h"
 #include "my/memory/mem_allocator.h"
@@ -171,7 +171,7 @@ namespace my
         requires(IsError<U>)
         Result& operator=(Error::PtrType<U> error)
         {
-            MY_DEBUG_CHECK(error);
+            MY_DEBUG_ASSERT(error);
 
             m_value.reset();
             m_error = std::move(error);
@@ -182,7 +182,7 @@ namespace my
         requires(std::is_constructible_v<T, A...>)
         void emplace(A&&... args)
         {
-            MY_DEBUG_CHECK(!m_error);
+            MY_DEBUG_ASSERT(!m_error);
             m_value.emplace(std::forward<A>(args)...);
         }
 
@@ -193,42 +193,42 @@ namespace my
 
         my::Error::Ptr getError() const
         {
-            MY_DEBUG_CHECK(isError(), "Result<T> has no error");
+            MY_DEBUG_ASSERT(isError(), "Result<T> has no error");
             return m_error;
         }
 
         void ignore() const noexcept
         {
-            MY_DEBUG_CHECK(!m_error, "Ignoring Result<T> that holds an error:{}", m_error->getMessage());
+            MY_DEBUG_ASSERT(!m_error, "Ignoring Result<T> that holds an error:{}", m_error->getMessage());
         }
 
         const T& operator*() const&
         {
-            MY_DEBUG_CHECK(m_value, "Result<T> is valueless");
+            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
             return *m_value;
         }
 
         T& operator*() &
         {
-            MY_DEBUG_CHECK(m_value, "Result<T> is valueless");
+            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
             return *m_value;
         }
 
         T&& operator*() &&
         {
-            MY_DEBUG_CHECK(m_value, "Result<T> is valueless");
+            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
             return std::move(*m_value);
         }
 
         const T* operator->() const
         {
-            MY_DEBUG_CHECK(m_value, "Result<T> is valueless");
+            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
             return &(*m_value);
         }
 
         T* operator->()
         {
-            MY_DEBUG_CHECK(m_value, "Result<T> is valueless");
+            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
             return &(*m_value);
         }
 
@@ -275,7 +275,7 @@ namespace my
         Result(Error::PtrType<U> error) :
             m_error(std::move(error))
         {
-            MY_DEBUG_CHECK(m_error);
+            MY_DEBUG_ASSERT(m_error);
         }
 
         Result<>& operator=(const Result&) = default;
@@ -289,7 +289,7 @@ namespace my
         requires(IsError<U>)
         Result<>& operator=(Error::PtrType<U> error)
         {
-            MY_DEBUG_CHECK(error);
+            MY_DEBUG_ASSERT(error);
             m_error = std::move(error);
             return *this;
         }

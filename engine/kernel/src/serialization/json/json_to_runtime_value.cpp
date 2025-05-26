@@ -227,14 +227,14 @@ namespace my::json_detail
         size_t getSize() const override
         {
             const auto& jsonValue = getThisJsonValue();
-            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::arrayValue);
+            MY_DEBUG_ASSERT(jsonValue.type() == Json::ValueType::arrayValue);
             return static_cast<size_t>(jsonValue.size());
         }
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::arrayValue);
-            MY_DEBUG_CHECK(index < getSize(), "Invalid index [{}]", index);
+            MY_DEBUG_ASSERT(getThisJsonValue().type() == Json::ValueType::arrayValue);
+            MY_DEBUG_ASSERT(index < getSize(), "Invalid index [{}]", index);
             if (index >= getSize())
             {
                 return nullptr;
@@ -246,13 +246,13 @@ namespace my::json_detail
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
+            MY_DEBUG_ASSERT(value);
             if (!value)
             {
                 return MakeError("Value is null");
             }
 
-            MY_DEBUG_CHECK(index < getSize());
+            MY_DEBUG_ASSERT(index < getSize());
             if (index >= getSize())
             {
                 return MakeError("Invalid index ({})", index);
@@ -273,8 +273,8 @@ namespace my::json_detail
 
         Result<> append(const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::arrayValue);
-            MY_DEBUG_CHECK(value);
+            MY_DEBUG_ASSERT(getThisJsonValue().type() == Json::ValueType::arrayValue);
+            MY_DEBUG_ASSERT(value);
             if (!value)
             {
                 return MakeError("Value is null");
@@ -320,15 +320,15 @@ namespace my::json_detail
         size_t getSize() const override
         {
             const auto& jsonValue = getThisJsonValue();
-            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
             return static_cast<size_t>(jsonValue.size());
         }
 
         std::string_view getKey(size_t index) const override
         {
             const auto& jsonValue = getThisJsonValue();
-            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
-            MY_DEBUG_CHECK(index < jsonValue.size(), "Invalid index ({}) > size:({})", index, jsonValue.size());
+            MY_DEBUG_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_ASSERT(index < jsonValue.size(), "Invalid index ({}) > size:({})", index, jsonValue.size());
 
             auto iter = jsonValue.begin();
             std::advance(iter, index);
@@ -345,7 +345,7 @@ namespace my::json_detail
             }
 
             auto& jsonValue = getThisJsonValue();
-            MY_DEBUG_CHECK(jsonValue.type() == Json::ValueType::objectValue);
+            MY_DEBUG_ASSERT(jsonValue.type() == Json::ValueType::objectValue);
 
             if (jsonValue.find(key.data(), key.data() + key.size()) == nullptr)
             {
@@ -361,13 +361,13 @@ namespace my::json_detail
 
         Result<> setValue(std::string_view key, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
+            MY_DEBUG_ASSERT(value);
             if (!value)
             {
                 return MakeError("Value is null");
             }
 
-            MY_DEBUG_CHECK(!key.empty());
+            MY_DEBUG_ASSERT(!key.empty());
             if (key.empty())
             {
                 return MakeError("key is empty");
@@ -386,14 +386,14 @@ namespace my::json_detail
                 return false;
             }
 
-            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::objectValue);
+            MY_DEBUG_ASSERT(getThisJsonValue().type() == Json::ValueType::objectValue);
 
             return getThisJsonValue().find(key.data(), key.data() + key.size()) != nullptr;
         }
 
         void clear() override
         {
-            MY_DEBUG_CHECK(getThisJsonValue().type() == Json::ValueType::objectValue);
+            MY_DEBUG_ASSERT(getThisJsonValue().type() == Json::ValueType::objectValue);
             getThisJsonValue().clear();
         }
 

@@ -31,14 +31,14 @@ namespace my
 
         void* allocAligned(size_t size, size_t alignment) override
         {
-            MY_DEBUG_CHECK(is_power_of2(alignment));
+            MY_DEBUG_ASSERT(is_power_of2(alignment));
 
             return ::_aligned_malloc(size, alignment);
         }
 
         void* reallocAligned(void* oldPtr, size_t size, size_t alignment) override
         {
-            MY_DEBUG_CHECK(is_power_of2(alignment));
+            MY_DEBUG_ASSERT(is_power_of2(alignment));
 
 #ifdef _WIN32
             auto const ptr = ::_aligned_realloc(oldPtr, size, alignment);

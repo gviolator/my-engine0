@@ -5,7 +5,7 @@
 #include <concepts>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 #include "my/memory/mem_base.h"
 
@@ -138,7 +138,7 @@ namespace my
 
         MemAllocatorStdWrapper<T>& operator=([[maybe_unused]] const MemAllocatorStdWrapper<T>& other) noexcept
         {
-            MY_DEBUG_CHECK(&m_allocator == &other.getMemAllocator());
+            MY_DEBUG_ASSERT(&m_allocator == &other.getMemAllocator());
             return *this;
         }
 
@@ -146,14 +146,14 @@ namespace my
                   std::enable_if_t<!std::is_same_v<U, T>, int> = 0>
         MemAllocatorStdWrapper<T>& operator=([[maybe_unused]] const MemAllocatorStdWrapper<U>& other) noexcept
         {
-            MY_DEBUG_CHECK(&m_allocator == &other.getMemAllocator());
+            MY_DEBUG_ASSERT(&m_allocator == &other.getMemAllocator());
             return *this;
         }
 
         [[nodiscard]] constexpr T* allocate(size_t n)
         {
             void* const ptr = m_allocator.alloc(sizeof(T) * n);
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignof(T) == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % alignof(T) == 0);
 
             return reinterpret_cast<T*>(ptr);
         }

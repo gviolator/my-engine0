@@ -1,7 +1,7 @@
 // #my_engine_source_file
 
 #include "buffer_test_utils.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 using namespace testing;
 
@@ -12,7 +12,7 @@ namespace my::test
     {
         const size_t fillSize = !size ? (buffer.size() - offset) : *size;
 
-        MY_CHECK(offset + fillSize <= buffer.size());
+        MY_ASSERT(offset + fillSize <= buffer.size());
 
         uint8_t* const charPtr = reinterpret_cast<uint8_t*>(buffer.data());
 

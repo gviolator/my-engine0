@@ -7,12 +7,12 @@
 
 #include <iostream>
 
-// #include "nau/diag/assertion.h"
+// #include "my/diag/assertion.h"
 #include "file_helper.h"
-#include "nau/app/background_work_service.h"
-#include "nau/diag/log_subscribers.h"
-#include "nau/diag/logging.h"
-#include "nau/service/service_provider.h"
+#include "my/app/background_work_service.h"
+#include "my/diag/log_subscribers.h"
+#include "my/diag/logging.h"
+#include "my/service/service_provider.h"
 
 template <>
 struct fmt::formatter<my::diag::LogLevel, char> : fmt::formatter<const char*, char>

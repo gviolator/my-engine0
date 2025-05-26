@@ -50,7 +50,7 @@ namespace my
         //     @brief temporary method.
         //         MUST be removed after invoke will be refactored to returns Universal ptr
         //  */
-        // nau::Ptr<> invokeToPtr(IRttiObject* instance, DispatchArguments args) const
+        // Ptr<> invokeToPtr(IRttiObject* instance, DispatchArguments args) const
         // {
         //     Result<IRttiObject*> result = this->invoke(instance, std::move(args));
         //     IRttiObject* const obj = *result;
@@ -87,7 +87,7 @@ namespace my
     {
         MY_INTERFACE(my::IClassDescriptor, IRefCounted)
 
-        // using Ptr = nau::Ptr<IClassDescriptor>;
+        // using Ptr = Ptr<IClassDescriptor>;
 
         virtual rtti::TypeInfo getClassTypeInfo() const = 0;
 

@@ -3,8 +3,8 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
 #include "file_helper.h"
-#include "nau/io/special_paths.h"
-#include "nau/string/string_conv.h"
+#include "my/io/special_paths.h"
+#include "my/string/string_conv.h"
 
 namespace spdlog
 {

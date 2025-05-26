@@ -1,4 +1,3 @@
-#if 0
 // #my_engine_source_file
 
 #include "my/io/special_paths.h"
@@ -6,11 +5,12 @@
 #include <ShlObj.h>
 #include <tchar.h>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/logging.h"
 #include "my/memory/runtime_stack.h"
 #include "my/platform/windows/diag/win_error.h"
 #include "my/utils/string_conv.h"
+#include "my/threading/lock_guard.h"
 
 namespace fs = std::filesystem;
 
@@ -26,7 +26,7 @@ namespace my::io
             CoInitializeThreadGuard()
             {
                 const HRESULT coInitRes = ::CoInitialize(nullptr);
-                MY_CHECK(coInitRes == S_OK || coInitRes == S_FALSE);
+                MY_ASSERT(coInitRes == S_OK || coInitRes == S_FALSE);
             }
 
             ~CoInitializeThreadGuard()
@@ -102,13 +102,20 @@ namespace my::io
             return std::wstring_view{folderPathBuffer, len};
         }
 
+        
+
+
         std::filesystem::path getExecutableLocation()
         {
             [[maybe_unused]] constexpr size_t MaxModulePathLen = 2048;
 
             rtstack_scope;
 
-            StackVector<wchar_t> exeModulePath;
+            StackContainer<std::vector, wchar_t> exeModulePath;
+
+            //StackVector<wchar_t> exeModulePath;
+            //std::vector<wchar_t, RtStackStdAllocator<wchar_t>> exeModulePath;
+
             exeModulePath.resize(MAX_PATH);
 
             DWORD len = 0;
@@ -116,13 +123,13 @@ namespace my::io
 
             do
             {
-                len = GetModuleFileNameW(nullptr, exeModulePath.data(), static_cast<DWORD>(exeModulePath.size()));
-                err = GetLastError();
-                MY_DEBUG_CHECK(err == 0 || err == ERROR_INSUFFICIENT_BUFFER);
+                len = ::GetModuleFileNameW(nullptr, exeModulePath.data(), static_cast<DWORD>(exeModulePath.size()));
+                err = ::GetLastError();
+                MY_DEBUG_ASSERT(err == 0 || err == ERROR_INSUFFICIENT_BUFFER);
 
                 if (err == ERROR_INSUFFICIENT_BUFFER)
                 {
-                    NAU_FATAL(exeModulePath.size() < MaxModulePathLen);
+                    MY_FATAL(exeModulePath.size() < MaxModulePathLen);
                     exeModulePath.resize(exeModulePath.size() * 2);
                 }
             } while (err != 0);
@@ -130,7 +137,7 @@ namespace my::io
             std::wstring_view pathStr{exeModulePath.data(), static_cast<size_t>(len)};
 
             const auto sepPos = pathStr.rfind(std::filesystem::path::preferred_separator);
-            NAU_FATAL(sepPos != std::wstring_view::npos);
+            MY_FATAL(sepPos != std::wstring_view::npos);
 
             pathStr.remove_suffix(pathStr.size() - sepPos);
 
@@ -140,26 +147,28 @@ namespace my::io
 
     }  // namespace
 
-    std::u8string getNativeTempFilePath(std::u8string_view prefixFileName)
+    std::filesystem::path getNativeTempFilePath(std::string_view prefixFileName)
     {
-        wchar_t tempDirectoryPathBuffer[MAX_PATH];
-        wchar_t tempFilePathBuffer[MAX_PATH];
+        rtstack_scope;
 
-        DWORD tempDirectoryPathLength = GetTempPathW(MAX_PATH, tempDirectoryPathBuffer);
-        if (tempDirectoryPathLength > MAX_PATH || (tempDirectoryPathLength == 0))
+        StackContainer<std::vector, wchar_t> tempDirectoryPathBuffer(MAX_PATH);
+        StackContainer<std::vector, wchar_t> tempFilePathBuffer(MAX_PATH);
+
+        DWORD tempDirectoryPathLength = ::GetTempPathW(tempDirectoryPathBuffer.size(), tempDirectoryPathBuffer.data());
+        if (tempDirectoryPathLength > tempDirectoryPathBuffer.size() || (tempDirectoryPathLength == 0))
         {
-            MY_DEBUG_CHECK("GetTempPath failed");
+            MY_FAILURE("GetTempPath failed");
             return {};
         }
 
-        UINT result = GetTempFileNameW(tempDirectoryPathBuffer, TEXT(strings::utf8ToWString(prefixFileName).data()), 0, tempFilePathBuffer);
+        UINT result = ::GetTempFileNameW(tempDirectoryPathBuffer.data(), TEXT(strings::utf8ToWString(prefixFileName).c_str()), 0, tempFilePathBuffer.data());
         if (result == 0)
         {
-            MY_DEBUG_CHECK("GetTempFileName failed");
+            MY_FAILURE("GetTempFileName failed");
             return {};
         }
 
-        return strings::wstringToUtf8(tempFilePathBuffer);
+        return strings::wstringToUtf8(std::wstring_view{tempFilePathBuffer.data(), tempFilePathBuffer.size()});
     }
 
     std::filesystem::path getKnownFolderPath(KnownFolder folder)
@@ -189,7 +198,7 @@ namespace my::io
             const DWORD len = ::GetTempPathW(MAX_PATH, tempFolderPath);
             if (len == 0)
             {
-                NAU_LOG_ERROR("Fail to get temp path:{}", diag::getWinErrorMessageA(diag::getAndResetLastErrorCode()));
+                mylog_error("Fail to get temp path:{}", diag::getWinErrorMessageA(diag::getAndResetLastErrorCode()));
                 return {};
             }
 
@@ -220,4 +229,3 @@ namespace my::io
     }
 }  // namespace my::io
 
-#endif

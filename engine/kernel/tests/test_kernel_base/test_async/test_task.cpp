@@ -3,12 +3,12 @@
 
 #include "my/test/helpers/check_guard.h"
 #include "helpers/runtime_guard.h"
-#include "nau/test/helpers/stopwatch.h"
-#include "nau/async/task.h"
-#include "nau/math/transform.h"
-#include "nau/threading/barrier.h"
-#include "nau/threading/event.h"
-#include "nau/utils/scope_guard.h"
+#include "my/test/helpers/stopwatch.h"
+#include "my/async/task.h"
+#include "my/math/transform.h"
+#include "my/threading/barrier.h"
+#include "my/threading/event.h"
+#include "my/utils/scope_guard.h"
 
 namespace
 {
@@ -390,7 +390,7 @@ namespace my::test
                 {
                     leave = true;
                     const Executor* const finalExecutor = Executor::getInvoked().get();
-                    MY_DEBUG_CHECK(finalExecutor == initialExecutor);
+                    MY_DEBUG_ASSERT(finalExecutor == initialExecutor);
                 };
 
                 res = co_await getResult(doError, doAwait);

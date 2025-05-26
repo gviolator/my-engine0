@@ -1,14 +1,14 @@
 // #my_engine_source_file
 #include "my/threading/barrier.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my::threading
 {
     Barrier::Barrier(size_t total) :
         m_total(total)
     {
-        MY_DEBUG_CHECK(m_total > 0);
+        MY_DEBUG_ASSERT(m_total > 0);
     }
 
     bool Barrier::enter(std::optional<std::chrono::milliseconds> timeout)
@@ -16,7 +16,7 @@ namespace my::threading
         const size_t maxExpectedCounter = m_total - 1;
         const size_t counter = m_counter.fetch_add(1);
 
-        MY_DEBUG_CHECK(counter < m_total);
+        MY_DEBUG_ASSERT(counter < m_total);
 
         if (counter == maxExpectedCounter)
         {

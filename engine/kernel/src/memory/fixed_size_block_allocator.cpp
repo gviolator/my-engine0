@@ -79,7 +79,7 @@ namespace my
 
         void* allocateNewBlock()
         {
-            MY_DEBUG_CHECK(!m_pages.empty());
+            MY_DEBUG_ASSERT(!m_pages.empty());
 
             MemRegionEntry* region = &m_pages.back();
             if (const size_t availSize = region->pages.size() - region->offset; availSize < m_blockSize)
@@ -135,7 +135,7 @@ namespace my
             lock_(m_mutex);
 
             void* const ptr = m_pool.allocate();
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % Pool::MemBlockAlignment == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % Pool::MemBlockAlignment == 0);
 
             return ptr;
         }
@@ -155,7 +155,7 @@ namespace my
             lock_(m_mutex);
 
             void* const ptr = m_pool.allocate();
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % Pool::MemBlockAlignment == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % Pool::MemBlockAlignment == 0);
 
             return ptr;
         }

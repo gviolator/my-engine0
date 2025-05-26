@@ -40,7 +40,7 @@ namespace my
 
         void findAllInternal(const rtti::TypeInfo&, void (*)(void* instancePtr, void*), void*, ServiceAccessor::GetApiMode) override;
 
-        void addServiceAccessorInternal(ServiceAccessor::Ptr, ClassDescriptorPtr) override;
+        void addServiceAccessorInternal(ServiceAccessorPtr, ClassDescriptorPtr) override;
 
         void addClass(ClassDescriptorPtr&& descriptor) override;
 
@@ -63,7 +63,7 @@ namespace my
         template <typename T>
         T& getInitializationInstance(T* instance);
 
-        std::list<ServiceAccessor::Ptr> m_accessors;
+        std::list<ServiceAccessorPtr> m_accessors;
         std::unordered_map<rtti::TypeInfo, ServiceInstanceEntry> m_instances;
         std::vector<ClassDescriptorPtr> m_classDescriptors;
         std::unordered_map<const IServiceInitialization*, IServiceInitialization*> m_initializationProxy;

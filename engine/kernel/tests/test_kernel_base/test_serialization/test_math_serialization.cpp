@@ -3,8 +3,8 @@
 // Use of this source code is governed by a BSD-3 Clause license that can be found in the LICENSE file.
 
 
-#include "nau/math/math.h"
-#include "nau/serialization/json_utils.h"
+#include "my/math/math.h"
+#include "my/serialization/json_utils.h"
 
 using namespace ::testing;
 

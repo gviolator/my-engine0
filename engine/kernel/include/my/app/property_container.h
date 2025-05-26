@@ -3,6 +3,7 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -12,20 +13,22 @@
 
 #include "my/diag/logging.h"
 #include "my/io/stream.h"
+#include "my/kernel/kernel_config.h"
 #include "my/memory/mem_allocator.h"
 #include "my/memory/runtime_stack.h"
 #include "my/rtti/type_info.h"
 #include "my/serialization/runtime_value_builder.h"
 #include "my/utils/functor.h"
 
+
 namespace my
 {
     /**
         @brief Application global properties access
      */
-    struct MY_ABSTRACT_TYPE PropertyContainer
+    struct MY_ABSTRACT_TYPE PropertyContainer : IRttiObject
     {
-        MY_TYPEID(my::PropertyContainer)
+        MY_INTERFACE(my::PropertyContainer, IRttiObject)
 
         using ModificationLock = std::unique_lock<std::shared_mutex>;
         using ReadOnlyLock = std::shared_lock<std::shared_mutex>;
@@ -52,7 +55,6 @@ namespace my
             @param lock the synchronization mutex
         */
         virtual Result<RuntimeValuePtr> getModify(std::string_view path, ModificationLock& lock, IMemAllocator* allocator = nullptr) = 0;
-
 
         /**
             @brief setting property value at path
@@ -117,24 +119,31 @@ namespace my
         return set(path, makeValueRef(value));
     }
 
+    MY_KERNEL_EXPORT
+    std::unique_ptr<PropertyContainer> createPropertyContainer();
+
     /**
         @brief reads and parses a stream, then applies all the properties it retrieves to the properties dictionary.
     */
-    Result<> merge_properties_from_stream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType = "application/json");
+    MY_KERNEL_EXPORT
+    Result<> mergePropertiesFromStream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType = "application/json");
 
     /**
         @brief reads and parses a file, then applies all the properties it retrieves to the properties dictionary.
     */
-    Result<> merge_properties_from_file(PropertyContainer& properties, const std::filesystem::path& filePath, std::string_view contentType = {});
+    MY_KERNEL_EXPORT
+    Result<> mergePropertiesFromFile(PropertyContainer& properties, const std::filesystem::path& filePath, std::string_view contentType = {});
 
     /**
         @brief Serialize properties content into the specified stream.
      */
-    void dump_properties_to_stream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType = "application/json");
+    MY_KERNEL_EXPORT
+    void dumpPropertiesToStream(PropertyContainer& properties, io::IStream& stream, std::string_view contentType = "application/json");
 
     /**
         @brief Serialize properties content into the string.
      */
-    std::string dump_properties_to_string(PropertyContainer& properties, std::string_view contentType = "application/json");
+    MY_KERNEL_EXPORT
+    std::string dumpPropertiesToString(PropertyContainer& properties, std::string_view contentType = "application/json");
 
 }  // namespace my

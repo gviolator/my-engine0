@@ -7,7 +7,7 @@
 
 #include "my/async/core/core_task.h"
 #include "my/async/executor.h"
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/diag/logging.h"
 #include "my/kernel/kernel_config.h"
 #include "my/utils/result.h"
@@ -53,7 +53,7 @@ namespace my::async_detail
 
         TaskClientData()
         {
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(this) % alignof(TaskClientData<T>) == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(this) % alignof(TaskClientData<T>) == 0);
         }
     };
 
@@ -71,7 +71,7 @@ namespace my::async_detail
 
         bool isReady() const
         {
-            MY_DEBUG_CHECK(static_cast<bool>(*this), "Task is stateless");
+            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Task is stateless");
             return this->getCoreTask().isReady();
         }
 
@@ -136,7 +136,7 @@ namespace my::async
 
         Error::Ptr getError() const
         {
-            MY_DEBUG_CHECK(*this, "Task is stateless");
+            MY_DEBUG_ASSERT(*this, "Task is stateless");
             if (!*this)
             {
                 return nullptr;
@@ -166,7 +166,7 @@ namespace my::async
 
         Task<T>& detach() &
         {
-            MY_DEBUG_CHECK(!this->getClientData().taskDetached, "Task already detached");
+            MY_DEBUG_ASSERT(!this->getClientData().taskDetached, "Task already detached");
             this->getClientData().taskDetached = true;
 
             return static_cast<Task<T>&>(*this);
@@ -174,7 +174,7 @@ namespace my::async
 
         Task<T>&& detach() &&
         {
-            MY_DEBUG_CHECK(!this->getClientData().taskDetached, "Task already detached");
+            MY_DEBUG_ASSERT(!this->getClientData().taskDetached, "Task already detached");
             this->getClientData().taskDetached = true;
 
             return std::move(static_cast<Task<T>&>(*this));
@@ -182,8 +182,8 @@ namespace my::async
 
         Result<T> asResult() const&
         {
-            MY_DEBUG_CHECK(this);
-            MY_DEBUG_CHECK(this->isReady());
+            MY_DEBUG_ASSERT(this);
+            MY_DEBUG_ASSERT(this->isReady());
 
             if (auto error = this->getCoreTask().getError())
             {
@@ -215,8 +215,8 @@ namespace my::async
                 *this = TaskBase<T>{};
             };
 
-            MY_DEBUG_CHECK(this);
-            MY_DEBUG_CHECK(this->isReady());
+            MY_DEBUG_ASSERT(this);
+            MY_DEBUG_ASSERT(this->isReady());
 
             if (auto error = this->getCoreTask().getError())
             {
@@ -254,11 +254,11 @@ namespace my::async
                 return;
             }
 
-#if MY_DEBUG_CHECK_ENABLED
+#if MY_DEBUG_ASSERT_ENABLED
             [[maybe_unused]]
             const bool taskReadyOrDetached = this->isReady() || this->getClientData().taskDetached || this->getCoreTask().hasContinuation();
-            MY_DEBUG_CHECK(taskReadyOrDetached, "Not finished Async::Task<> is leaving its scope. Use co_await or set continuation.");
-#endif  // MY_DEBUG_CHECK_ENABLED
+            MY_DEBUG_ASSERT(taskReadyOrDetached, "Not finished Async::Task<> is leaving its scope. Use co_await or set continuation.");
+#endif  // MY_DEBUG_ASSERT_ENABLED
         }
     };
 
@@ -289,10 +289,10 @@ namespace my::async
         {
             // static_assert(std::is_copy_assignable_v<T>);
 
-            MY_DEBUG_CHECK(this->isReady(), "Task<T> is not ready");
+            MY_DEBUG_ASSERT(this->isReady(), "Task<T> is not ready");
             this->rethrow();
 
-            MY_DEBUG_CHECK(this->getClientData().result);
+            MY_DEBUG_ASSERT(this->getClientData().result);
             return *this->getClientData().result;
         }
 
@@ -301,16 +301,16 @@ namespace my::async
         {
             // static_assert(std::is_copy_assignable_v<T>);
 
-            MY_DEBUG_CHECK(this->isReady(), "Task<T> is not ready");
+            MY_DEBUG_ASSERT(this->isReady(), "Task<T> is not ready");
             this->rethrow();
 
-            MY_DEBUG_CHECK(this->getClientData().result);
+            MY_DEBUG_ASSERT(this->getClientData().result);
             return *this->getClientData().result;
         }
 
         T result() &&
         {
-            MY_DEBUG_CHECK(this->isReady(), "Task<T> is not ready");
+            MY_DEBUG_ASSERT(this->isReady(), "Task<T> is not ready");
 
             scope_on_leave
             {
@@ -318,7 +318,7 @@ namespace my::async
             };
 
             this->rethrow();
-            MY_DEBUG_CHECK(this->getClientData().result);
+            MY_DEBUG_ASSERT(this->getClientData().result);
             return std::move(*this->getClientData().result);
         }
 
@@ -398,7 +398,7 @@ namespace my::async
         TaskTryWrapper(CoreTask::Ptr coreTask) :
             m_coreTask(std::move(coreTask))
         {
-            MY_DEBUG_CHECK(m_coreTask);
+            MY_DEBUG_ASSERT(m_coreTask);
         }
 
         explicit operator bool()
@@ -453,7 +453,7 @@ namespace my::async
 
         Task<T> getTask()
         {
-            MY_DEBUG_CHECK(!this->getClientData().taskGivenOut, "Task<T> already takeout from source");
+            MY_DEBUG_ASSERT(!this->getClientData().taskGivenOut, "Task<T> already takeout from source");
 
             this->getClientData().taskGivenOut = true;
             CoreTaskPtr coreTask = static_cast<CoreTaskPtr&>(*this);
@@ -526,7 +526,7 @@ namespace my::async
     template <typename T>
     Task<T> TaskBase<T>::makeRejected(Error::Ptr error) noexcept
     {
-        MY_DEBUG_CHECK(error);
+        MY_DEBUG_ASSERT(error);
         if (!error)
         {
             return {};
@@ -540,7 +540,7 @@ namespace my::async
     template <typename T>
     Task<T> TaskBase<T>::fromCoreTask(CoreTask::Ptr coreTask)
     {
-        MY_DEBUG_CHECK(coreTask);
+        MY_DEBUG_ASSERT(coreTask);
         return Task<T>{std::move(coreTask)};
     }
 

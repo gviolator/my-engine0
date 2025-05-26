@@ -1,5 +1,5 @@
 // #my_engine_source_file
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/host_memory.h"
 #include "my/threading/lock_guard.h"
 #include "my/threading/mutex_no_lock.h"
@@ -46,7 +46,7 @@ namespace my
                 if (currentCommitedSize < requiredCommitedSize)
                 {
                     const size_t commitSize = requiredCommitedSize - currentCommitedSize;
-                    MY_DEBUG_CHECK(commitSize % mem::PageSize == 0);
+                    MY_DEBUG_ASSERT(commitSize % mem::PageSize == 0);
 
                     const size_t newCommitedSize = currentCommitedSize + commitSize;
                     if (newCommitedSize > m_size)

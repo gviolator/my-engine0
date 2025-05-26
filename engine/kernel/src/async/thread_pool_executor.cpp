@@ -65,7 +65,7 @@ namespace my::async
     private:
         void scheduleInvocation(Invocation invocation) noexcept override
         {
-            MY_DEBUG_CHECK(invocation);
+            MY_DEBUG_ASSERT(invocation);
             if (!invocation)
             {
                 return;
@@ -131,7 +131,7 @@ namespace my::async
 
                 scope_on_leave
                 {
-                    MY_DEBUG_CHECK(m_taskCounter > 0);
+                    MY_DEBUG_ASSERT(m_taskCounter > 0);
                     m_taskCounter.fetch_sub(1);
                 };
 

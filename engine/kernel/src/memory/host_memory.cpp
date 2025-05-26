@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 
 namespace my
@@ -16,7 +16,7 @@ namespace my
         m_basePtr(ptr),
         m_size(size)
     {
-        MY_DEBUG_CHECK(m_basePtr == nullptr || m_size > 0);
+        MY_DEBUG_ASSERT(m_basePtr == nullptr || m_size > 0);
     }
 
     IHostMemory::MemRegion::MemRegion(MemRegion&& other) :
@@ -35,22 +35,22 @@ namespace my
 
     std::strong_ordering IHostMemory::MemRegion::operator<=>(const MemRegion& other) const noexcept
     {
-        MY_DEBUG_CHECK(m_basePtr != other.m_basePtr || m_size == other.m_size);
+        MY_DEBUG_ASSERT(m_basePtr != other.m_basePtr || m_size == other.m_size);
         return reinterpret_cast<uintptr_t>(m_basePtr) <=> reinterpret_cast<uintptr_t>(other.m_basePtr);
     }
 
     bool IHostMemory::MemRegion::operator==(const MemRegion& other) const noexcept
     {
-        MY_DEBUG_CHECK(m_basePtr != other.m_basePtr || m_size == other.m_size);
+        MY_DEBUG_ASSERT(m_basePtr != other.m_basePtr || m_size == other.m_size);
         return m_basePtr == other.m_basePtr;
     }
 
     IHostMemory::MemRegion& IHostMemory::MemRegion::operator+=(MemRegion&& right) noexcept
     {
         // TODO: check that regions concatenation is supported pn host memory.
-        MY_DEBUG_CHECK(right);
-        MY_DEBUG_CHECK(is_adjacent(*this, right));
-        MY_DEBUG_CHECK(m_basePtr < right.m_basePtr);
+        MY_DEBUG_ASSERT(right);
+        MY_DEBUG_ASSERT(is_adjacent(*this, right));
+        MY_DEBUG_ASSERT(m_basePtr < right.m_basePtr);
 
         m_size += right.m_size;
         right.m_size = 0;
@@ -97,7 +97,7 @@ namespace my
             size = aligned_size(size, mem::PageSize);
 
             void* const ptr = ::_aligned_malloc(size, GuaranteedBlockAlignment);
-            MY_DEBUG_CHECK(reinterpret_cast<uintptr_t>(ptr) % GuaranteedBlockAlignment == 0);
+            MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % GuaranteedBlockAlignment == 0);
 
             return MemRegion{ptr, size};
         }

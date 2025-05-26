@@ -3,10 +3,10 @@
 
 #include <concepts>
 
-#include "nau/math/math.h"
-#include "nau/serialization/json_utils.h"
-#include "nau/serialization/runtime_value_builder.h"
-#include "nau/utils/type_utility.h"
+#include "my/math/math.h"
+#include "my/serialization/json_utils.h"
+#include "my/serialization/runtime_value_builder.h"
+#include "my/utils/type_utility.h"
 
 namespace my::math
 {
@@ -29,7 +29,7 @@ namespace nau
     {
         int field1 = 1;
 
-        NAU_CLASS_FIELDS(
+        MY_REFCOUNED_CLASSFIELDS(
             CLASS_FIELD(field1))
     };
     /*
@@ -57,15 +57,15 @@ namespace nau
 
             RuntimeValuePtr getAt(size_t index) const override
             {
-                MY_DEBUG_CHECK(index < this->getSize());
+                MY_DEBUG_ASSERT(index < this->getSize());
 
                 return makeValueRef(m_collection[index]);  // this->makeChildValue(makeValueRef(el));
             }
 
             Result<> setAt(size_t index, RuntimeValuePtr value) override
             {
-                MY_DEBUG_CHECK(value);
-                MY_DEBUG_CHECK(index < this->getSize());
+                MY_DEBUG_ASSERT(value);
+                MY_DEBUG_ASSERT(index < this->getSize());
 
                 decltype(auto) el = m_collection.emplace_back();
                 return RuntimeValue::assign(makeValueRef(el), std::move(value));
@@ -119,13 +119,13 @@ namespace my::math
 
         RuntimeValuePtr getAt(size_t index) override
         {
-            MY_DEBUG_CHECK(index < getSize());
+            MY_DEBUG_ASSERT(index < getSize());
             return makeValueCopy(m_vec.getElem(index));
         }
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(index < getSize());
+            MY_DEBUG_ASSERT(index < getSize());
             auto castResult = runtimeValueCast<float>(value);
             CheckResult(castResult)
 
@@ -135,7 +135,7 @@ namespace my::math
 
         std::string_view getKey(size_t index) const override
         {
-            MY_DEBUG_CHECK(index < getSize());
+            MY_DEBUG_ASSERT(index < getSize());
 
             return getKeysArray()[index];
         }
@@ -214,7 +214,7 @@ namespace my::test
         std::optional<unsigned> z;
         std::vector<unsigned> m_values;
 
-        NAU_CLASS_FIELDS(
+        MY_REFCOUNED_CLASSFIELDS(
             CLASS_FIELD(x),
             CLASS_FIELD(y),
             CLASS_NAMED_FIELD(m_values, "values"),

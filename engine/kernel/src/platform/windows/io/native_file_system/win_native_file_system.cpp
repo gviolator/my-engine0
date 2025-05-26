@@ -225,15 +225,15 @@ namespace my::io
     {
         using namespace my::strings;
 
-        MY_DEBUG_CHECK(!basePath.empty());
+        MY_DEBUG_ASSERT(!basePath.empty());
         if (basePath.empty())
         {
             return nullptr;
         }
 
         const DWORD attributes = GetFileAttributesW(basePath.c_str());
-        MY_DEBUG_CHECK(attributes != INVALID_FILE_ATTRIBUTES, "Path ({}) does not exists", basePath.string());
-        MY_DEBUG_CHECK((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0, "Path ({}) expected to be directory", basePath.string());
+        MY_DEBUG_ASSERT(attributes != INVALID_FILE_ATTRIBUTES, "Path ({}) does not exists", basePath.string());
+        MY_DEBUG_ASSERT((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0, "Path ({}) expected to be directory", basePath.string());
 
         if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
         {

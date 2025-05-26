@@ -30,7 +30,7 @@ namespace my::io
                 m_basePath(std::move(basePath)),
                 m_dir(dir)
             {
-                MY_DEBUG_CHECK(m_basePath.isAbsolute());
+                MY_DEBUG_ASSERT(m_basePath.isAbsolute());
                 m_current = m_dir.getNextChild();
             }
 
@@ -77,7 +77,7 @@ namespace my::io
                 m_relativePath(std::move(relativePath)),
                 m_dir(dir)
             {
-                MY_DEBUG_CHECK(m_basePath.isAbsolute());
+                MY_DEBUG_ASSERT(m_basePath.isAbsolute());
 
                 m_iter = getNextFsIterator();
             }
@@ -155,7 +155,7 @@ namespace my::io
                     return Iterator{nullptr, nullptr, FsEntry{}};
                 }
 
-                MY_DEBUG_CHECK(fsIter);
+                MY_DEBUG_ASSERT(fsIter);
 
                 fsEntry.path = m_basePath / fsEntry.path;
 
@@ -184,7 +184,7 @@ namespace my::io
             return &(*iter);
         }
 
-        MY_DEBUG_CHECK(m_mountedFs.empty());
+        MY_DEBUG_ASSERT(m_mountedFs.empty());
         if(!m_mountedFs.empty())
         {
             return MakeError("Already has mounted fs");
@@ -251,7 +251,7 @@ namespace my::io
     Result<> VirtualFileSystemImpl::FsNode::mount(FileSystemPtr&& fileSystem, unsigned priority)
     {
         lock_(m_mutex);
-        MY_DEBUG_CHECK(m_children.empty());
+        MY_DEBUG_ASSERT(m_children.empty());
         if(!m_children.empty())
         {
             return MakeError("Already child directories");
@@ -263,7 +263,7 @@ namespace my::io
             {
                 return !entry.fs->isReadOnly();
             });
-            MY_DEBUG_CHECK(!hasMutableFs, "Can not use multiple mutable file system at single mount point");
+            MY_DEBUG_ASSERT(!hasMutableFs, "Can not use multiple mutable file system at single mount point");
 
             if(hasMutableFs)
             {
@@ -330,7 +330,7 @@ namespace my::io
 
     IFile::Ptr VirtualFileSystemImpl::openFile(const FsPath& path, AccessModeFlag accessMode, OpenFileMode openMode)
     {
-        MY_DEBUG_CHECK((openMode == OpenFileMode::OpenExisting || accessMode && AccessMode::Write), "Specified openMode requires write access also");
+        MY_DEBUG_ASSERT((openMode == OpenFileMode::OpenExisting || accessMode && AccessMode::Write), "Specified openMode requires write access also");
 
         auto [basePath, fsNode] = findFsNodeForPath(path);
 
@@ -355,7 +355,7 @@ namespace my::io
             if(auto file = mountedFs.fs->openFile(relativePath, accessMode, openMode))
             {
                 auto* const fileInternal = file->as<io_detail::IFileInternal*>();
-                MY_DEBUG_CHECK(fileInternal, "io_detail::IFileInternal must be implemented");
+                MY_DEBUG_ASSERT(fileInternal, "io_detail::IFileInternal must be implemented");
                 if(fileInternal)
                 {
                     fileInternal->setVfsPath(path);
@@ -380,7 +380,7 @@ namespace my::io
 
         if(!fsNode->hasMounts())
         {
-            MY_DEBUG_CHECK(basePath == path);
+            MY_DEBUG_ASSERT(basePath == path);
             dirIteratorImpl = new InnerDirIteratorImpl(std::move(basePath), *fsNode);
         }
         else
@@ -415,7 +415,7 @@ namespace my::io
 
     FsEntry VirtualFileSystemImpl::incrementDirIterator(void* state)
     {
-        MY_DEBUG_CHECK(state);
+        MY_DEBUG_ASSERT(state);
         if(!state)
         {
             return {};
@@ -451,7 +451,7 @@ namespace my::io
             auto res = fsNode->getChild(name);
             CheckResult(res);
             fsNode = *res;
-            MY_DEBUG_CHECK(fsNode);
+            MY_DEBUG_ASSERT(fsNode);
         }
 
         return fsNode->mount(std::move(fileSystem), priority);

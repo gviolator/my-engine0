@@ -1,7 +1,7 @@
 // #my_engine_source_file
 #include "my/memory/runtime_stack.h"
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/host_memory.h"
 #include "my/rtti/rtti_impl.h"
 
@@ -83,9 +83,9 @@ namespace my
 
     void* RuntimeStackAllocator::reallocAligned([[maybe_unused]] void* oldPtr, const size_t size, const size_t alignment)
     {
-        MY_DEBUG_CHECK(oldPtr == nullptr, "Reallocation for stack allocator is not implemented");
-        MY_DEBUG_CHECK(is_power_of2(alignment), "Alignment must be power of two");
-        MY_DEBUG_CHECK(alignment <= MaxAlignment, "Requested alignment ({}) exceed max alignment ({})", alignment, MaxAlignment);
+        MY_DEBUG_ASSERT(oldPtr == nullptr, "Reallocation for stack allocator is not implemented");
+        MY_DEBUG_ASSERT(is_power_of2(alignment), "Alignment must be power of two");
+        MY_DEBUG_ASSERT(alignment <= MaxAlignment, "Requested alignment ({}) exceed max alignment ({})", alignment, MaxAlignment);
 
         const size_t d = m_allocOffset % alignment;
         const size_t padding = d == 0 ? 0 : (alignment - d);
@@ -114,8 +114,8 @@ namespace my
 
     void RuntimeStackAllocator::freeAligned(void* ptr, [[maybe_unused]] size_t alignment)
     {  // TODO: need to check that ptr belongs to the current runtime stack allocation range.
-        MY_DEBUG_CHECK(is_power_of2(alignment), "Invalid alignment");
-        MY_DEBUG_CHECK(alignment <= MaxAlignment, "Invalid alignment");
+        MY_DEBUG_ASSERT(is_power_of2(alignment), "Invalid alignment");
+        MY_DEBUG_ASSERT(alignment <= MaxAlignment, "Invalid alignment");
         if (!ptr)
         {
             return;
@@ -124,7 +124,7 @@ namespace my
         [[maybe_unused]] const auto offset = reinterpret_cast<uintptr_t>(ptr);
         [[maybe_unused]] const auto base = reinterpret_cast<uintptr_t>(m_allocatedRegion.basePtr());
 
-        MY_DEBUG_CHECK(base <= offset && offset < base + m_allocatedRegion.size());
+        MY_DEBUG_ASSERT(base <= offset && offset < base + m_allocatedRegion.size());
     }
 
     RuntimeStackGuard::RuntimeStackGuard() :
@@ -150,7 +150,7 @@ namespace my
             m_allocator->as<RuntimeStackAllocator&>().restore(m_top);
         }
 
-        MY_CHECK(std::exchange(s_currentStackGuard, m_prev) == this);
+        MY_ASSERT(std::exchange(s_currentStackGuard, m_prev) == this);
     }
 
     IAlignedMemAllocator& RuntimeStackGuard::get_allocator()

@@ -6,7 +6,7 @@
 #include <memory>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/meta/function_info.h"
 #include "my/rtti/type_info.h"
 #include "my/utils/type_utility.h"
@@ -94,7 +94,7 @@ namespace my
 
         R operator()(P... args) const noexcept(NoExcept)
         {
-            MY_DEBUG_CHECK(m_invocable);
+            MY_DEBUG_ASSERT(m_invocable);
             return (*m_invocable)(std::forward<P>(args)...);
         }
 

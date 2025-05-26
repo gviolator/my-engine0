@@ -13,7 +13,7 @@ namespace my::io
             return 0;
         }
 
-        MY_DEBUG_CHECK(dst);
+        MY_DEBUG_ASSERT(dst);
         if(!dst)
         {
             return MakeError("Invalid dst");
@@ -33,7 +33,7 @@ namespace my::io
             }
 
             readOffset += *readResult;
-            MY_DEBUG_CHECK(readOffset <= size);
+            MY_DEBUG_ASSERT(readOffset <= size);
         }
 
         return readOffset;
@@ -41,8 +41,8 @@ namespace my::io
     
     Result<size_t> copyFromStream(IStream& dst, size_t size, IStream& src)
     {
-        MY_DEBUG_CHECK(dst.canWrite());
-        MY_DEBUG_CHECK(src.canRead());
+        MY_DEBUG_ASSERT(dst.canWrite());
+        MY_DEBUG_ASSERT(src.canRead());
 
         if(size == 0)
         {
@@ -63,7 +63,7 @@ namespace my::io
             }
 
             readOffset += *readResult;
-            MY_DEBUG_CHECK(readOffset <= size);
+            MY_DEBUG_ASSERT(readOffset <= size);
         }
 
         return *dst.write(buffer.data(), size);
@@ -71,8 +71,8 @@ namespace my::io
 
     Result<size_t> copyStream(IStream& dst, IStream& src)
     {
-        MY_DEBUG_CHECK(dst.canWrite());
-        MY_DEBUG_CHECK(src.canRead());
+        MY_DEBUG_ASSERT(dst.canWrite());
+        MY_DEBUG_ASSERT(src.canRead());
 
         constexpr size_t BlockSize = 4096;
 

@@ -6,14 +6,14 @@
 #include <thread>
 #include <type_traits>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/memory/mem_allocator.h"
 #include "my/rtti/ptr.h"
 #include "my/rtti/rtti_object.h"
 #include "my/rtti/rtti_utils.h"
 #include "my/utils/tuple_utility.h"
 
-#if MY_DEBUG && defined(MY_DEBUG_CHECK_ENABLED)
+#if MY_DEBUG && defined(MY_DEBUG_ASSERT_ENABLED)
     #define MY_RTTI_VALIDATE_SHARED_STATE
 #endif
 
@@ -149,13 +149,13 @@ namespace my::rtti_detail
         {
             static_assert(RefCountedClassWithImplTag<T>, "Class expected to be implemented with MY_CLASS/MY_REFCOUNTED_CLASS/MY_IMPLEMENT_REFCOUNTED. Please, check Class declaration");
             static_assert((alignof(T) <= alignof(SharedState)) || (alignof(T) % alignof(SharedState) == 0), "Unsupported type alignment.");
-            MY_DEBUG_CHECK(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
+            MY_DEBUG_ASSERT(static_cast<bool>(inplaceMemBlock) != static_cast<bool>(allocator));
 
             const auto acquire = [](void* instancePtr) -> IRefCounted*
             {
                 T* const instance = reinterpret_cast<T*>(instancePtr);
                 auto const refCounted = rtti::staticCast<IRefCounted*>(instance);
-                MY_DEBUG_CHECK(refCounted, "Runtime cast ({}) -> IRefCounted failed", rtti::getTypeInfo<T>().getTypeName());
+                MY_DEBUG_ASSERT(refCounted, "Runtime cast ({}) -> IRefCounted failed", rtti::getTypeInfo<T>().getTypeName());
 
                 return refCounted;
             };
@@ -263,7 +263,7 @@ namespace my::rtti
 
         ClassImpl* const instance = RttiClassStorage::template createInstanceInplace<ClassImpl>(memBlock, std::forward<Args>(args)...);
         auto const itf = rtti::staticCast<Itf*>(instance);
-        MY_DEBUG_CHECK(itf);
+        MY_DEBUG_ASSERT(itf);
         return rtti::TakeOwnership(itf);
     }
 
@@ -282,7 +282,7 @@ namespace my::rtti
 
         ClassImpl* const instance = RttiClassStorage::template createInstanceWithAllocator<ClassImpl>(allocator, std::forward<Args>(args)...);
         auto const itf = rtti::staticCast<Interface_*>(instance);
-        MY_DEBUG_CHECK(itf);
+        MY_DEBUG_ASSERT(itf);
         return rtti::TakeOwnership(itf);
     }
 
@@ -294,7 +294,7 @@ namespace my::rtti
 
         ClassImpl* const instance = RttiClassStorage::template createInstance<ClassImpl>(std::forward<Args>(args)...);
         Interface_* const itf = rtti::staticCast<Interface_*>(instance);
-        MY_DEBUG_CHECK(itf);
+        MY_DEBUG_ASSERT(itf);
         return rtti::TakeOwnership(itf);
     }
 

@@ -1,11 +1,9 @@
 // #my_engine_source_file
 
-#if 0
 #include "service_provider_impl.h"
 
 #include "my/runtime/async_disposable.h"
 #include "my/runtime/disposable.h"
-#include "nmy/memory/eastl_aliases.h"
 
 namespace my
 {
@@ -101,9 +99,9 @@ namespace my
         private:
             static bool isDependencyFor(const IServiceInitialization& service, const std::vector<rtti::TypeInfo>& types)
             {
-                return std::any_of(types.begin(), types.end(), [&service](const rtti::TypeInfo* t)
+                return std::any_of(types.begin(), types.end(), [&service](const rtti::TypeInfo& t)
                 {
-                    return service.is(*t);
+                    return service.is(t);
                 });
             }
 
@@ -210,7 +208,7 @@ namespace my
                 }
             }
 
-            MY_DEBUG_CHECK(orderedIndependentServices.size() + orderedDependentServices.size() == unorderedShutdownSequence.size());
+            MY_DEBUG_ASSERT(orderedIndependentServices.size() + orderedDependentServices.size() == unorderedShutdownSequence.size());
 
             return {std::move(orderedIndependentServices), std::move(orderedDependentServices)};
         }
@@ -241,7 +239,7 @@ namespace my
                 return iter->second;
             }
 
-            auto accessorIter = std::find_if(m_accessors.begin(), m_accessors.end(), [&type](const ServiceAccessor::Ptr& accessor)
+            auto accessorIter = std::find_if(m_accessors.begin(), m_accessors.end(), [&type](const ServiceAccessorPtr& accessor)
             {
                 return accessor->hasApi(type);
             });
@@ -261,7 +259,7 @@ namespace my
 
     void ServiceProviderImpl::findAllInternal(const rtti::TypeInfo& type, void (*callback)(void* instancePtr, void*), void* callbackData, ServiceAccessor::GetApiMode getApiMode)
     {
-        MY_DEBUG_CHECK(callback);
+        MY_DEBUG_ASSERT(callback);
         if (!callback)
         {
             return;
@@ -271,7 +269,7 @@ namespace my
         std::vector<ServiceAccessor*> accessors;
         {
             shared_lock_(m_mutex);
-            for (const ServiceAccessor::Ptr& accessor : m_accessors)
+            for (const ServiceAccessorPtr& accessor : m_accessors)
             {
                 if (accessor->hasApi(type))
                 {
@@ -292,24 +290,24 @@ namespace my
         }
     }
 
-    void ServiceProviderImpl::addServiceAccessorInternal(ServiceAccessor::Ptr accessor, ClassDescriptorPtr classDescriptor)
+    void ServiceProviderImpl::addServiceAccessorInternal(ServiceAccessorPtr accessor, ClassDescriptorPtr classDescriptor)
     {
-        MY_DEBUG_CHECK(accessor);
+        MY_DEBUG_ASSERT(accessor);
         if (!accessor)
         {
             return;
         }
 
         lock_(m_mutex);
-        MY_DEBUG_CHECK(!m_isDisposed);
+        MY_DEBUG_ASSERT(!m_isDisposed);
 
         m_accessors.emplace_back(std::move(accessor));
     }
 
     void ServiceProviderImpl::addClass(ClassDescriptorPtr&& descriptor)
     {
-        MY_DEBUG_CHECK(descriptor);
-        MY_DEBUG_CHECK(descriptor->getInterfaceCount() > 0);
+        MY_DEBUG_ASSERT(descriptor);
+        MY_DEBUG_ASSERT(descriptor->getInterfaceCount() > 0);
 
         lock_(m_mutex);
         m_classDescriptors.push_back(std::move(descriptor));
@@ -379,7 +377,7 @@ namespace my
     {
         shared_lock_(m_mutex);
 
-        return std::any_of(m_accessors.begin(), m_accessors.end(), [&type](ServiceAccessor::Ptr& accessor)
+        return std::any_of(m_accessors.begin(), m_accessors.end(), [&type](ServiceAccessorPtr& accessor)
         {
             return accessor->hasApi(type);
         });
@@ -435,7 +433,7 @@ namespace my
 
             co_await whenAll(independentInitializationTasks);
 
-#ifdef MY_DEBUG_CHECK_ENABLED
+#ifdef MY_DEBUG_ASSERT_ENABLED
             for (auto& task : independentInitializationTasks)
             {
                 if (task.isRejected())
@@ -453,7 +451,7 @@ namespace my
             {
                 co_await task;
 
-#ifdef MY_DEBUG_CHECK_ENABLED
+#ifdef MY_DEBUG_ASSERT_ENABLED
                 if (task.isRejected())
                 {
                     MY_FAILURE(task.getError()->getDiagMessage().c_str());
@@ -469,7 +467,7 @@ namespace my
 
         if (proxy)
         {
-            MY_DEBUG_CHECK(!m_initializationProxy.contains(&source), "Proxy for source already set");
+            MY_DEBUG_ASSERT(!m_initializationProxy.contains(&source), "Proxy for source already set");
             m_initializationProxy[&source] = proxy;
         }
         else
@@ -517,7 +515,7 @@ namespace my
         {
             std::vector<IServiceShutdown*> unorderedShutdownSequence;
 
-            for (const ServiceAccessor::Ptr& accessor : m_accessors)
+            for (const ServiceAccessorPtr& accessor : m_accessors)
             {
                 if (void* const serviceShutdown = accessor->getApi(rtti::getTypeInfo<IServiceShutdown>(), NoLazyCreation))
                 {
@@ -551,7 +549,7 @@ namespace my
             std::vector<Task<>> disposeTasks;
 
             {
-                for (const ServiceAccessor::Ptr& accessor : m_accessors)
+                for (const ServiceAccessorPtr& accessor : m_accessors)
                 {
                     // invoke disposeAsync first.
                     // same class can provide both IAsyncDisposable and IDisposable api,
@@ -578,19 +576,19 @@ namespace my
 
     namespace
     {
-        ServiceProvider::Ptr& getServiceProviderInstanceRef()
+        ServiceProviderPtr& getServiceProviderInstanceRef()
         {
-            static ServiceProvider::Ptr s_serviceProvider;
+            static ServiceProviderPtr s_serviceProvider;
             return (s_serviceProvider);
         }
     }  // namespace
 
-    ServiceProvider::Ptr createServiceProvider()
+    ServiceProviderPtr createServiceProvider()
     {
         return std::make_unique<ServiceProviderImpl>();
     }
 
-    void setDefaultServiceProvider(ServiceProvider::Ptr&& provider)
+    void setDefaultServiceProvider(ServiceProviderPtr&& provider)
     {
         MY_FATAL(!provider || !getServiceProviderInstanceRef(), "Service provider already set");
         getServiceProviderInstanceRef() = std::move(provider);
@@ -609,5 +607,3 @@ namespace my
     }
 
 }  // namespace my
-
-#endif

@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
 
 namespace my::kernel_detail
@@ -120,13 +120,13 @@ namespace my::strings
 
             StringView operator*() const
             {
-                MY_DEBUG_CHECK(!m_current.empty(), "Iterator is not dereferenceable");
+                MY_DEBUG_ASSERT(!m_current.empty(), "Iterator is not dereferenceable");
                 return m_current;
             }
 
             StringView* operator->() const
             {
-                MY_DEBUG_CHECK(!m_current.empty(), "Iterator is not dereferenceable");
+                MY_DEBUG_ASSERT(!m_current.empty(), "Iterator is not dereferenceable");
                 return &m_current;
             }
 

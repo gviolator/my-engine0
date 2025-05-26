@@ -113,7 +113,7 @@ namespace my::diag_detail
 
 }  // namespace my::diag_detail
 
-#define MY_CHECK_IMPL(kind, condition, ...)                                                                                                                        \
+#define MY_ASSERT_IMPL(kind, condition, ...)                                                                                                                        \
     do                                                                                                                                                             \
     {                                                                                                                                                              \
         if (!(condition)) [[unlikely]]                                                                                                                             \
@@ -144,20 +144,20 @@ namespace my::diag_detail
         }                                                                                                                                                     \
     } while (0)
 
-#if MY_DEBUG_CHECK_ENABLED
-    #define MY_DEBUG_CHECK(condition, ...) MY_CHECK_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
-    #define MY_DEBUG_FATAL(condition, ...) MY_CHECK_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
+#if MY_DEBUG_ASSERT_ENABLED
+    #define MY_DEBUG_ASSERT(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
+    #define MY_DEBUG_FATAL(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
     #define MY_DEBUG_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Default, ##__VA_ARGS__)
     #define MY_DEBUG_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal, ##__VA_ARGS__)
 #else
-    #define MY_DEBUG_CHECK(condition, ...)
+    #define MY_DEBUG_ASSERT(condition, ...)
     #define MY_DEBUG_FATAL(condition, ...)
     #define MY_DEBUG_FAILURE(...)
     #define MY_DEBUG_FATAL_FAILURE(...)
 #endif
 
-#define MY_CHECK(condition, ...) MY_CHECK_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
-#define MY_FATAL(condition, ...) MY_CHECK_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
+#define MY_ASSERT(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
+#define MY_FATAL(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
 
 #define MY_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Default, ##__VA_ARGS__)
 #define MY_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal, ##__VA_ARGS__)

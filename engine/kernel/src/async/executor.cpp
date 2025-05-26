@@ -28,8 +28,8 @@ namespace my::async
 
     Executor::InvokeGuard::~InvokeGuard()
     {
-        MY_DEBUG_CHECK(threadId == std::this_thread::get_id());
-        MY_DEBUG_CHECK(s_thisThreadInvokeGuard == this);
+        MY_DEBUG_ASSERT(threadId == std::this_thread::get_id());
+        MY_DEBUG_ASSERT(s_thisThreadInvokeGuard == this);
 
         s_thisThreadInvokeGuard = s_thisThreadInvokeGuard->prev;
     }
@@ -68,7 +68,7 @@ namespace my::async
 
     void Executor::Invocation::operator()()
     {
-        MY_DEBUG_CHECK(m_callback);
+        MY_DEBUG_ASSERT(m_callback);
         scope_on_leave
         {
             reset();
@@ -91,7 +91,7 @@ namespace my::async
 
     Executor::Invocation Executor::Invocation::fromCoroutine(std::coroutine_handle<> coroutine)
     {
-        MY_DEBUG_CHECK(coroutine);
+        MY_DEBUG_ASSERT(coroutine);
         if (!coroutine)
         {
             return {};
@@ -99,7 +99,7 @@ namespace my::async
 
         return Invocation{[](void* coroAddress, void*) noexcept
         {
-            MY_DEBUG_CHECK(coroAddress);
+            MY_DEBUG_ASSERT(coroAddress);
             std::coroutine_handle<> coroutine = std::coroutine_handle<>::from_address(coroAddress);
             coroutine();
         },
@@ -150,7 +150,7 @@ namespace my::async
     {
         using namespace std::chrono;
 
-        MY_DEBUG_CHECK(executor);
+        MY_DEBUG_ASSERT(executor);
         if (!executor)
         {
             return;
@@ -186,7 +186,7 @@ namespace my::async
 
     void Executor::execute(std::coroutine_handle<> coroutine) noexcept
     {
-        MY_DEBUG_CHECK(coroutine);
+        MY_DEBUG_ASSERT(coroutine);
         scheduleInvocation(Invocation::fromCoroutine(std::move(coroutine)));
     }
 
@@ -197,17 +197,17 @@ namespace my::async
 
     void Executor::invoke([[maybe_unused]] Executor& executor, Invocation invocation) noexcept
     {
-        MY_DEBUG_CHECK(getThisThreadInvokedExecutor() != nullptr, "Executor must be set prior invoke. Use Executor::InvokeGuard.");
-        MY_DEBUG_CHECK(getThisThreadInvokedExecutor() == &executor, "Invalid executor.");
-        MY_DEBUG_CHECK(invocation);
+        MY_DEBUG_ASSERT(getThisThreadInvokedExecutor() != nullptr, "Executor must be set prior invoke. Use Executor::InvokeGuard.");
+        MY_DEBUG_ASSERT(getThisThreadInvokedExecutor() == &executor, "Invalid executor.");
+        MY_DEBUG_ASSERT(invocation);
 
         invocation();
     }
 
     void Executor::invoke([[maybe_unused]] Executor& executor, std::span<Invocation> invocations) noexcept
     {
-        MY_DEBUG_CHECK(getThisThreadInvokedExecutor() != nullptr, "Executor must be set prior invoke. Use Executor::InvokeGuard.");
-        MY_DEBUG_CHECK(getThisThreadInvokedExecutor() == &executor, "Invalid executor.");
+        MY_DEBUG_ASSERT(getThisThreadInvokedExecutor() != nullptr, "Executor must be set prior invoke. Use Executor::InvokeGuard.");
+        MY_DEBUG_ASSERT(getThisThreadInvokedExecutor() == &executor, "Invalid executor.");
 
         for (auto& invocation : invocations)
         {

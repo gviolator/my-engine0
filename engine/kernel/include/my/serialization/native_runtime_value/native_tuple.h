@@ -58,7 +58,7 @@ namespace my::ser_detail
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
+            MY_DEBUG_ASSERT(value);
             return RuntimeValue::assign(getAt(index), value);
         }
 
@@ -66,7 +66,7 @@ namespace my::ser_detail
         template <size_t... I>
         RuntimeValuePtr getElementInternal(size_t index, std::index_sequence<I...>) const
         {
-            MY_DEBUG_CHECK(index < TupleSize, "Bad element index ({})", index);
+            MY_DEBUG_ASSERT(index < TupleSize, "Bad element index ({})", index);
 
             using ElementAccessorFunc = RuntimeValuePtr (*)(const NativeTuple<T>& self, std::add_lvalue_reference_t<T>);
 
@@ -134,8 +134,8 @@ namespace my::ser_detail
 
         Result<> setAt(size_t index, const RuntimeValuePtr& value) override
         {
-            MY_DEBUG_CHECK(value);
-            MY_DEBUG_CHECK(index < TupleSize);
+            MY_DEBUG_ASSERT(value);
+            MY_DEBUG_ASSERT(index < TupleSize);
 
             decltype(auto) el = UniformTupleValueOperations<TupleType>::element(m_tuple, index);
 

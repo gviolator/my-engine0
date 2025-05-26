@@ -20,11 +20,11 @@ namespace my::diag
     // {
     // }
 
-    MY_KERNEL_EXPORT LoggerPtr create_logger();
+    MY_KERNEL_EXPORT LoggerPtr createLogger();
 
-    MY_KERNEL_EXPORT void set_default_logger(LoggerPtr logger, LoggerPtr* oldLogger = nullptr);
+    MY_KERNEL_EXPORT void setDefaultLogger(LoggerPtr logger, LoggerPtr* oldLogger = nullptr);
 
-    MY_KERNEL_EXPORT Logger& get_default_logger();
+    MY_KERNEL_EXPORT Logger& getDefaultLogger();
 }  // namespace my::diag
 
 namespace my::diag_detail
@@ -80,7 +80,7 @@ namespace my::diag_detail
     private:
         diag::Logger& getLogger() const
         {
-            return logger ? *logger : diag::get_default_logger();
+            return logger ? *logger : diag::getDefaultLogger();
         }
     };
 }  // namespace my::diag_detail
@@ -326,7 +326,7 @@ namespace my::diag
 #define mylog_debug ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Debug, MY_INLINED_SOURCE_INFO }
 #define mylog_info ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Info, MY_INLINED_SOURCE_INFO }
 #define mylog_warn ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Warning, MY_INLINED_SOURCE_INFO }
-#define mylog_err ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Error, MY_INLINED_SOURCE_INFO }
+#define mylog_error ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Error, MY_INLINED_SOURCE_INFO }
 #define mylog_crit ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Critical, MY_INLINED_SOURCE_INFO }
 
 #define mylog mylog_verbose

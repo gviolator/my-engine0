@@ -34,7 +34,7 @@ namespace my::json_detail
             }
             else
             {
-                MY_DEBUG_CHECK(!m_getStringCallback);
+                MY_DEBUG_ASSERT(!m_getStringCallback);
                 m_getStringCallback = std::move(callback);
             }
         }

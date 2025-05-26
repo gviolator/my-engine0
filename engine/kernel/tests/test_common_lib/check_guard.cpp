@@ -7,7 +7,7 @@ namespace my::test
 {
   namespace
   {
-    class CheckGuardHandler : public diag::ICheckHandler
+    class CheckGuardHandler : public diag::IAssertHandler
     {
     public:
       CheckGuardHandler(CheckGuardBase& guard) :
@@ -15,7 +15,7 @@ namespace my::test
       {
       }
 
-      diag::FailureActionFlag handleCheckFailure(const diag::FailureData& data) override
+      diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
       {
         ++m_guard.failureCounter;
         ++m_guard.fatalFailureCounter;
@@ -32,9 +32,9 @@ namespace my::test
     public:
       using CheckGuardHandler::CheckGuardHandler;
 
-      diag::FailureActionFlag handleCheckFailure(const diag::FailureData& data) override
+      diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
       {
-        [[maybe_unused]] const auto res = CheckGuardHandler::handleCheckFailure(data);
+        [[maybe_unused]] const auto res = CheckGuardHandler::handleAssertFailure(data);
 
         throw std::runtime_error(std::string{data.condition}.c_str());
         return diag::FailureAction::None;
@@ -45,19 +45,19 @@ namespace my::test
 
   CheckGuardBase::~CheckGuardBase()
   {
-    diag::setCheckHandler(std::move(prevHandler));
+    diag::setAssertHandler(std::move(prevHandler));
   }
 
   CheckGuard::CheckGuard()
   {
-    diag::setCheckHandler(std::make_unique<CheckGuardHandler>(*this), &prevHandler);
+    diag::setAssertHandler(std::make_unique<CheckGuardHandler>(*this), &prevHandler);
   }
 
   CheckGuard::~CheckGuard() = default;
 
   CheckGuardThrowOnFailure::CheckGuardThrowOnFailure()
   {
-    diag::setCheckHandler(std::make_unique<ThrowCheckGuardHandler>(*this), &prevHandler);
+    diag::setAssertHandler(std::make_unique<ThrowCheckGuardHandler>(*this), &prevHandler);
   }
 
   CheckGuardThrowOnFailure::~CheckGuardThrowOnFailure() = default;

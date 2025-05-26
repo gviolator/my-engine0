@@ -1,7 +1,7 @@
 // #my_engine_source_file
 
 #pragma once
-#include "my/diag/check.h"
+#include "my/diag/assert.h"
 
 namespace my
 {
@@ -12,7 +12,7 @@ namespace my
 
     constexpr inline size_t aligned_size(size_t size, size_t alignment)
     {
-        MY_DEBUG_CHECK(is_power_of2(alignment), "alignment expected to be a power of two. Actual value: ({})", alignment);
+        MY_DEBUG_ASSERT(is_power_of2(alignment), "alignment expected to be a power of two. Actual value: ({})", alignment);
         return (size + alignment - 1) & ~(alignment - 1);
     }
 

@@ -58,7 +58,7 @@ namespace my::io
 
     //     inline HANDLE getFileHandle() const
     //     {
-    //         MY_DEBUG_CHECK(isOpened());
+    //         MY_DEBUG_ASSERT(isOpened());
     //         return m_fileHandle;
     //     }
 
@@ -97,7 +97,7 @@ namespace my::io
 
         HANDLE getFileHandle() const
         {
-            MY_DEBUG_CHECK(isOpened());
+            MY_DEBUG_ASSERT(isOpened());
             return m_fileHandle;
         }
 
