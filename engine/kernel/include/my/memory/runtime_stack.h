@@ -8,7 +8,7 @@
 
 namespace my
 {
-    class RuntimeStackGuard
+    class MY_KERNEL_EXPORT RuntimeStackGuard
     {
     public:
         static IAlignedMemAllocator& get_allocator();

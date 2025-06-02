@@ -151,7 +151,7 @@ namespace my::async
             return resolved;
         }
 
-        bool reject(Error::Ptr error)
+        bool reject(ErrorPtr error)
         {
             MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
             if(!static_cast<bool>(*this))

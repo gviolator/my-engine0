@@ -154,7 +154,7 @@ namespace my::kernel_detail
     {
         static_assert(sizeof...(A) == 0 || !(std::is_reference_v<A> || ...));
 
-        Error::Ptr error;
+        ErrorPtr error;
         size_t argIndex = 0;
 
         if (!(assignNativeValue(inArgs[argIndex++], outValues).isSuccess(&error) && ...))

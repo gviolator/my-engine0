@@ -170,7 +170,7 @@ namespace my::async
         std::atomic_size_t m_taskCounter = 0;
     };
 
-    Executor::Ptr createThreadPoolExecutor(std::optional<size_t> threadsCount)
+    ExecutorPtr createThreadPoolExecutor(std::optional<size_t> threadsCount)
     {
         return rtti::createInstance<ThreadPoolExecutor, Executor>(threadsCount);
     }

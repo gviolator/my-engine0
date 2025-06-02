@@ -20,10 +20,6 @@ namespace my
     {
         MY_INTERFACE(my::Error, IRttiObject, std::exception)
 
-        template <typename E>
-        using PtrType = std::shared_ptr<E>;
-
-        using Ptr = PtrType<Error>;
 
         virtual ~Error() = default;
 
@@ -33,6 +29,12 @@ namespace my
 
         [[nodiscard]] std::string getDiagMessage() const;
     };
+
+    template <typename E>
+    using ErrorPtrType = std::shared_ptr<E>;
+
+    using ErrorPtr = ErrorPtrType<Error>;
+
 
     /**
      */
@@ -82,7 +84,7 @@ namespace my
         };
 
         template <typename T>
-        struct IsErrorPtrHelper<Error::template PtrType<T>> : std::bool_constant<IsError<T>>
+        struct IsErrorPtrHelper<ErrorPtrType<T>> : std::bool_constant<IsError<T>>
         {
         };
 
@@ -138,7 +140,7 @@ namespace my
 
         template <typename StringView, typename... Args>
         requires(std::is_constructible_v<std::string_view, StringView>)
-        Error::Ptr operator()(StringView message, Args&&... args)
+        ErrorPtr operator()(StringView message, Args&&... args)
         {
             std::string_view sview{message};
 

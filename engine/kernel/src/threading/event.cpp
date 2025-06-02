@@ -48,6 +48,12 @@ namespace my::threading
         }
     }
 
+    void Event::reset()
+    {
+        lock_(m_mutex);
+        m_state = false;
+    }
+
     bool Event::wait(std::optional<std::chrono::milliseconds> timeout)
     {
         std::unique_lock lock{m_mutex};

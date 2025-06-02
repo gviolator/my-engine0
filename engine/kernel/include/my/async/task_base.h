@@ -117,7 +117,7 @@ namespace my::async
     public:
         using ValueType = T;
 
-        static Task<T> makeRejected(Error::Ptr) noexcept;
+        static Task<T> makeRejected(ErrorPtr) noexcept;
 
         static Task<T> fromCoreTask(CoreTask::Ptr);
 
@@ -134,7 +134,7 @@ namespace my::async
             this->getCoreTask().rethrow();
         }
 
-        Error::Ptr getError() const
+        ErrorPtr getError() const
         {
             MY_DEBUG_ASSERT(*this, "Task is stateless");
             if (!*this)
@@ -446,7 +446,7 @@ namespace my::async
         TaskSourceBase& operator=(const TaskSourceBase<T>&) = delete;
         TaskSourceBase& operator=(TaskSourceBase<T>&&) = default;
 
-        bool reject(Error::Ptr error) noexcept
+        bool reject(ErrorPtr error) noexcept
         {
             return this->getCoreTask().tryRejectWithError(std::move(error));
         }
@@ -524,7 +524,7 @@ namespace my::async
 #pragma endregion
 
     template <typename T>
-    Task<T> TaskBase<T>::makeRejected(Error::Ptr error) noexcept
+    Task<T> TaskBase<T>::makeRejected(ErrorPtr error) noexcept
     {
         MY_DEBUG_ASSERT(error);
         if (!error)

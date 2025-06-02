@@ -126,18 +126,18 @@ namespace my::async
         class TaskRejectorNoException final : public CoreTask::Rejector
         {
         public:
-            void rejectWithError(Error::Ptr err) noexcept override
+            void rejectWithError(ErrorPtr err) noexcept override
             {
                 m_error = std::move(err);
             }
 
-            Error::Ptr getError() const
+            ErrorPtr getError() const
             {
                 return m_error;
             }
 
         private:
-            Error::Ptr m_error;
+            ErrorPtr m_error;
         };
 
         using TaskRejector = TaskRejectorNoException;
@@ -228,7 +228,7 @@ namespace my::async
         return true;
     }
 
-    Error::Ptr CoreTaskImpl::getError() const
+    ErrorPtr CoreTaskImpl::getError() const
     {
         MY_DEBUG_ASSERT(isReady(), "Can request state/error only after task is ready");
 
@@ -350,7 +350,7 @@ namespace my::async
         MY_DEBUG_ASSERT(continuation);
         MY_DEBUG_ASSERT(!m_continuation);
 
-        Executor::Ptr executor = continuation.executor ? std::move(continuation.executor) : Executor::getCurrent();
+        ExecutorPtr executor = continuation.executor ? std::move(continuation.executor) : Executor::getCurrent();
         if (executor && m_isContinueOnCapturedExecutor.load(std::memory_order_acquire))
         {
             // !!! BE AWARE !!!

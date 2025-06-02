@@ -7,7 +7,7 @@ namespace my::test
     using namespace testing;
     using namespace std::chrono_literals;
 
-    using ExecutorFactory = async::Executor::Ptr (*)();
+    using ExecutorFactory = async::ExecutorPtr (*)();
 
     /**
      */
@@ -23,7 +23,7 @@ namespace my::test
             return factory();
         }
 
-        static void waitWorks(async::Executor::Ptr executor)
+        static void waitWorks(async::ExecutorPtr executor)
         {
             executor->waitAnyActivity();
         }

@@ -1,11 +1,10 @@
 // #my_engine_source_file
 
-
 #pragma once
 
-#include <EASTL/functional.h>
 #include <guiddef.h>
 
+#include <functional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -16,7 +15,6 @@
 
 namespace my
 {
-
     /**
 
     */
@@ -59,15 +57,6 @@ namespace my
 }  // namespace my
 
 MY_DECLARE_TYPEID(my::Uid)
-
-template <>
-struct std::hash<my::Uid>
-{
-    [[nodiscard]] size_t operator()(const my::Uid& val) const
-    {
-        return val.getHashCode();
-    }
-};
 
 template <>
 struct std::hash<my::Uid>

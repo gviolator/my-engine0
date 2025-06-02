@@ -440,7 +440,7 @@ namespace my::test
         bool called4 = false;
         bool called5 = false;
 
-        Error::Ptr error;
+        ErrorPtr error;
 
         const bool expectedFalse =
             GetResult(0, &called0).isSuccess(&error) &&

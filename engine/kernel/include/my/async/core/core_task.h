@@ -60,7 +60,7 @@ namespace my::async
         {
             virtual ~Rejector() = default;
 
-            virtual void rejectWithError(Error::Ptr) noexcept = 0;
+            virtual void rejectWithError(ErrorPtr) noexcept = 0;
         };
 
         virtual ~CoreTask();
@@ -75,7 +75,7 @@ namespace my::async
             {
             }
         }
-        virtual Error::Ptr getError() const = 0;
+        virtual ErrorPtr getError() const = 0;
         virtual const void* getData() const = 0;
         virtual void* getData() = 0;
         virtual size_t getDataSize() const = 0;
@@ -92,11 +92,11 @@ namespace my::async
 
         virtual void setReadyCallback(ReadyCallback callback, void*, void* = nullptr) = 0;
 
-        bool tryRejectWithError(Error::Ptr error)
+        bool tryRejectWithError(ErrorPtr error)
         {
             return tryResolveInternal([](Rejector& rejector, void* ptr) noexcept
                                       {
-                                          Error::Ptr* const err = reinterpret_cast<Error::Ptr*>(ptr);
+                                          ErrorPtr* const err = reinterpret_cast<ErrorPtr*>(ptr);
                                           rejector.rejectWithError(*err);
                                       },
                                       &error);
@@ -202,7 +202,7 @@ namespace my::async
     struct TaskContinuation
     {
         Executor::Invocation invocation;
-        Executor::Ptr executor;
+        ExecutorPtr executor;
 
         TaskContinuation() = default;
 
@@ -210,7 +210,7 @@ namespace my::async
             invocation
             executor
         */
-        TaskContinuation(Executor::Invocation invocationIn, Executor::Ptr executorIn) :
+        TaskContinuation(Executor::Invocation invocationIn, ExecutorPtr executorIn) :
             invocation(std::move(invocationIn)),
             executor(std::move(executorIn))
         {

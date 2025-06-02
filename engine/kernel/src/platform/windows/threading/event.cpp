@@ -1,6 +1,10 @@
 // #my_engine_source_file
-#include "my/platform/windows/threading/event.h"
 
+#include "my/threading/event.h"
+
+#ifndef MY_THREADING_EVENT_NON_OS_IMPL
+
+#include "my/platform/windows/threading/event.h"
 #include "my/diag/assert.h"
 
 namespace my::threading
@@ -47,3 +51,5 @@ namespace my::threading
         return false;
     }
 }  // namespace my::threading
+
+#endif // #include "my/platform/windows/threading/event.h"

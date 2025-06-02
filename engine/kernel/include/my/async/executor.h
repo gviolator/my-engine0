@@ -24,9 +24,6 @@ namespace my::async
         MY_INTERFACE(my::async::Executor, IRefCounted)
 
     public:
-        using Ptr = my::Ptr<Executor>;
-        using WeakPtr = my::WeakPtr<Executor>;
-
         using Callback = void (*)(void* data1, void* data2) noexcept;
 
         struct MY_KERNEL_EXPORT InvokeGuard
@@ -41,6 +38,8 @@ namespace my::async
             const std::thread::id threadId;
             InvokeGuard* const prev = nullptr;
         };
+
+
 
         class MY_KERNEL_EXPORT Invocation
         {
@@ -75,35 +74,35 @@ namespace my::async
 
         /**
          */
-        MY_KERNEL_EXPORT static Executor::Ptr getDefault();
+        MY_KERNEL_EXPORT static Ptr<Executor> getDefault();
 
         /**
          */
-        MY_KERNEL_EXPORT static Executor::Ptr getInvoked();
+        MY_KERNEL_EXPORT static Ptr<Executor> getInvoked();
 
         /**
         */
-        MY_KERNEL_EXPORT static Executor::Ptr getThisThreadExecutor();
+        MY_KERNEL_EXPORT static Ptr<Executor> getThisThreadExecutor();
 
         /**
          */
-        MY_KERNEL_EXPORT static Executor::Ptr getCurrent();
+        MY_KERNEL_EXPORT static Ptr<Executor> getCurrent();
 
         /**
          */
-        MY_KERNEL_EXPORT static void setDefault(Executor::Ptr);
+        MY_KERNEL_EXPORT static void setDefault(Ptr<Executor>);
 
         /**
          */
-        MY_KERNEL_EXPORT static void setThisThreadExecutor(Executor::Ptr executor);
+        MY_KERNEL_EXPORT static void setThisThreadExecutor(Ptr<Executor> executor);
 
-        MY_KERNEL_EXPORT static void setExecutorName(Executor::Ptr executor, std::string_view name);
+        MY_KERNEL_EXPORT static void setExecutorName(Ptr<Executor> executor, std::string_view name);
 
         /**
          */
-        MY_KERNEL_EXPORT static Executor::Ptr findByName(std::string_view name);
+        MY_KERNEL_EXPORT static Ptr<Executor> findByName(std::string_view name);
 
-        MY_KERNEL_EXPORT static void finalize(Executor::Ptr&& executor);
+        MY_KERNEL_EXPORT static void finalize(Ptr<Executor>&& executor);
 
         /**
          */
@@ -123,14 +122,18 @@ namespace my::async
         virtual void scheduleInvocation(Invocation) noexcept = 0;
     };
 
+
+    using ExecutorPtr = Ptr<Executor>;
+    using ExecutorWeakPtr = WeakPtr<Executor>;
+
     /*
      *
      */
     struct ExecutorAwaiter
     {
-        Executor::Ptr executor;
+        ExecutorPtr executor;
 
-        ExecutorAwaiter(Executor::Ptr exec) :
+        ExecutorAwaiter(ExecutorPtr exec) :
             executor(std::move(exec))
         {
             MY_DEBUG_ASSERT(executor, "Executor must be specified");
@@ -154,12 +157,12 @@ namespace my::async
         }
     };
 
-    inline ExecutorAwaiter operator co_await(Executor::Ptr executor)
+    inline ExecutorAwaiter operator co_await(ExecutorPtr executor)
     {
         return {std::move(executor)};
     }
 
-    inline ExecutorAwaiter operator co_await(Executor::WeakPtr executorWeakRef)
+    inline ExecutorAwaiter operator co_await(ExecutorWeakPtr executorWeakRef)
     {
         auto executor = executorWeakRef.acquire();
         MY_DEBUG_ASSERT(executor, "Executor instance expired");
@@ -171,7 +174,7 @@ namespace my::async
 
 #define ASYNC_SWITCH_EXECUTOR(executorExpression)                         \
     {                                                                     \
-        ::my::async::Executor::Ptr executorVar = executorExpression;     \
+        ::my::async::ExecutorPtr executorVar = executorExpression;     \
         MY_DEBUG_ASSERT(executorVar);                                            \
                                                                           \
         if(my::async::Executor::getCurrent().get() != executorVar.get()) \

@@ -7,8 +7,8 @@ namespace my::async
 {
     namespace
     {
-        static Executor::WeakPtr s_defaultExecutor;
-        static thread_local Executor::WeakPtr s_thisThreadExecutor;
+        static ExecutorWeakPtr s_defaultExecutor;
+        static thread_local ExecutorWeakPtr s_thisThreadExecutor;
         static thread_local Executor::InvokeGuard* s_thisThreadInvokeGuard = nullptr;
 
         inline Executor* getThisThreadInvokedExecutor()
@@ -106,22 +106,22 @@ namespace my::async
                           coroutine.address(), nullptr};
     }
 
-    Executor::Ptr Executor::getDefault()
+    ExecutorPtr Executor::getDefault()
     {
         return s_defaultExecutor.acquire();
     }
 
-    Executor::Ptr Executor::getInvoked()
+    ExecutorPtr Executor::getInvoked()
     {
         return getThisThreadInvokedExecutor();
     }
 
-    Executor::Ptr Executor::getThisThreadExecutor()
+    ExecutorPtr Executor::getThisThreadExecutor()
     {
         return s_thisThreadExecutor.acquire();
     }
 
-    Executor::Ptr Executor::getCurrent()
+    ExecutorPtr Executor::getCurrent()
     {
         if (auto* const invokedExecutor = getThisThreadInvokedExecutor())
         {
@@ -132,21 +132,21 @@ namespace my::async
         return threadExecutor ? threadExecutor : s_defaultExecutor.acquire();
     }
 
-    void Executor::setDefault(Executor::Ptr executor)
+    void Executor::setDefault(ExecutorPtr executor)
     {
         s_defaultExecutor = std::move(executor);
     }
 
-    void Executor::setThisThreadExecutor(Executor::Ptr executor)
+    void Executor::setThisThreadExecutor(ExecutorPtr executor)
     {
         s_thisThreadExecutor = std::move(executor);
     }
 
-    // void Executor::setExecutorName(Executor::Ptr executor, std::string_view name);
+    // void Executor::setExecutorName(ExecutorPtr executor, std::string_view name);
 
-    // Executor::Ptr Executor::findByName(std::string_view name);
+    // ExecutorPtr Executor::findByName(std::string_view name);
 
-    void Executor::finalize(Executor::Ptr&& executor)
+    void Executor::finalize(ExecutorPtr&& executor)
     {
         using namespace std::chrono;
 

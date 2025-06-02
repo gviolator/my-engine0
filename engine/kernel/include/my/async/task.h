@@ -152,7 +152,7 @@ namespace my::async_detail
     struct ExpirationAwaiter
     {
         Expiration expiration;
-        async::Executor::Ptr executor;
+        async::ExecutorPtr executor;
         std::coroutine_handle<> continuation = nullptr;
         ExpirationSubscription subscription;
 
@@ -262,7 +262,7 @@ namespace my::async_detail
         async::TaskSource<T> taskSource;
 
         // There is need to reject task ONLY when coroutine will be actually destroyed.
-        Error::Ptr errorOnDestroy;
+        ErrorPtr errorOnDestroy;
 
         ~TaskPromise()
         {
@@ -302,7 +302,7 @@ namespace my::async_detail
         }
         template <typename E,
                   std::enable_if_t<IsError<E>, int> = 0>
-        CoroutineBreaker yield_value(Error::PtrType<E> err) noexcept
+        CoroutineBreaker yield_value(ErrorPtrType<E> err) noexcept
         {
             static_assert(std::is_assignable_v<Error&, E&>, "Can not assign error type: private inheritance used ?");
             MY_DEBUG_ASSERT(err);
@@ -354,7 +354,7 @@ namespace my::async_detail
         /**
             Scheduler awaiter:
         */
-        static async::ExecutorAwaiter await_transform(async::Executor::Ptr scheduler) noexcept
+        static async::ExecutorAwaiter await_transform(async::ExecutorPtr scheduler) noexcept
         {
             return std::move(scheduler);
         }
@@ -362,7 +362,7 @@ namespace my::async_detail
         /**
             Scheduler awaiter:
         */
-        static async::ExecutorAwaiter await_transform(async::Executor::WeakPtr scheduler) noexcept
+        static async::ExecutorAwaiter await_transform(async::ExecutorWeakPtr scheduler) noexcept
         {
             return scheduler.acquire();
         }
@@ -460,7 +460,7 @@ namespace my::async_detail
         {
             CoreTask* const cTask = reinterpret_cast<CoreTask*>(taskPtr);
 
-            auto error = cTask ? cTask->getError() : Error::Ptr{};
+            auto error = cTask ? cTask->getError() : ErrorPtr{};
             if (cTask)
             {
                 cTask->releaseRef();
@@ -538,7 +538,7 @@ namespace my::async_detail
     template <typename Promise>
     void DelayAwaiter::await_suspend(std::coroutine_handle<Promise> continuation) const noexcept
     {
-        async::executeAfter(delay, async::Executor::getCurrent(), [](Error::Ptr error, void* addr) noexcept
+        async::executeAfter(delay, async::Executor::getCurrent(), [](ErrorPtr error, void* addr) noexcept
         {
             auto coroutine = std::coroutine_handle<Promise>::from_address(addr);
 
@@ -646,7 +646,7 @@ namespace my::async
 
     template <typename F, typename... Args>
     requires(IsTask<std::invoke_result_t<F, Args...>>)
-    std::invoke_result_t<F, Args...> run(F operation, Executor::Ptr executor, Args... args)
+    std::invoke_result_t<F, Args...> run(F operation, ExecutorPtr executor, Args... args)
     {
         static_assert(IsTask<std::invoke_result_t<F, Args...>>);
         static_assert(std::is_invocable_v<F, Args...>, "Invalid functor. Arguments does not match expected parameters.");
@@ -669,7 +669,7 @@ namespace my::async
 
     template <typename F, typename... Args>
     requires(!IsTask<std::invoke_result_t<F, Args...>>)
-    Task<std::invoke_result_t<F, Args...>> run(F operation, Executor::Ptr scheduler, Args... args)
+    Task<std::invoke_result_t<F, Args...>> run(F operation, ExecutorPtr scheduler, Args... args)
     {
         using Result = std::invoke_result_t<F, Args...>;
 
@@ -715,7 +715,7 @@ namespace std
 
             template <typename E,
                       enable_if_t<::my::IsError<E>, int> = 0>
-            void return_value(::my::Error::PtrType<E> error)
+            void return_value(::my::ErrorPtrType<E> error)
             {
                 static_assert(is_assignable_v<my::Error&, E&>, "Can not assign error type: private inheritance used ?");
                 MY_DEBUG_ASSERT(error);

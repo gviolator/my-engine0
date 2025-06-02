@@ -3,7 +3,7 @@
 #include "my/threading/internal/event_base.h"
 #include "my/utils/preprocessor.h"
 
-//#define MY_THREADING_EVENT_NON_OS
+#define MY_THREADING_EVENT_NON_OS
 
 #if defined(MY_PLATFORM_WINDOWS) && !defined(MY_THREADING_EVENT_NON_OS)
     #include MY_PLATFORM_HEADER(threading/event.h)

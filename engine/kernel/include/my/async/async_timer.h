@@ -20,7 +20,7 @@ namespace my::async
 
         using InvokeAfterHandle = uint64_t;
         using InvokeAfterCallback = void (*)(void*) noexcept;
-        using ExecuteAfterCallback = void (*)(Error::Ptr, void*) noexcept;
+        using ExecuteAfterCallback = void (*)(ErrorPtr, void*) noexcept;
 
 
         MY_KERNEL_EXPORT
@@ -46,7 +46,7 @@ namespace my::async
             setInstance(nullptr);
         }
 
-        virtual void executeAfter(std::chrono::milliseconds timeout, async::Executor::Ptr, ExecuteAfterCallback callback, void* callbackData) = 0;
+        virtual void executeAfter(std::chrono::milliseconds timeout, async::ExecutorPtr, ExecuteAfterCallback callback, void* callbackData) = 0;
 
         virtual InvokeAfterHandle invokeAfter(std::chrono::milliseconds timeout, InvokeAfterCallback, void*) = 0;
 
@@ -58,7 +58,7 @@ namespace my::async
         Implement await with explicit timeout:
         co_await 100ms;
     */
-    inline void executeAfter(std::chrono::milliseconds timeout, async::Executor::Ptr executor, ITimerManager::ExecuteAfterCallback callback, void* callbackData)
+    inline void executeAfter(std::chrono::milliseconds timeout, async::ExecutorPtr executor, ITimerManager::ExecuteAfterCallback callback, void* callbackData)
     {
         ITimerManager::getInstance().executeAfter(timeout, std::move(executor), callback, callbackData);
     }

@@ -36,12 +36,12 @@ namespace my::async
             ::DeleteTimerQueue(m_hTimerQueue);
         }
 
-        void executeAfter(std::chrono::milliseconds timeout, async::Executor::Ptr executor, ExecuteAfterCallback callback, void* callbackData) override
+        void executeAfter(std::chrono::milliseconds timeout, async::ExecutorPtr executor, ExecuteAfterCallback callback, void* callbackData) override
         {
             executeAfterAsync(timeout, std::move(executor), callback, callbackData).detach();
         }
 
-        Task<> executeAfterAsync(std::chrono::milliseconds timeout, async::Executor::Ptr executor, ExecuteAfterCallback callback, void* callbackData)
+        Task<> executeAfterAsync(std::chrono::milliseconds timeout, async::ExecutorPtr executor, ExecuteAfterCallback callback, void* callbackData)
         {
             MY_DEBUG_ASSERT(callback);
             if (!callback)
@@ -53,7 +53,7 @@ namespace my::async
             TimerState state{*this, stateId, static_cast<DWORD>(timeout.count())};
 
             auto opResult = co_await state.getTask();
-            Error::Ptr error;
+            ErrorPtr error;
 
             if (opResult == TimerOperationResult::Cancelled)
             {

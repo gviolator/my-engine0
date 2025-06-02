@@ -154,7 +154,7 @@ namespace my::io
         StackContainer<std::vector, wchar_t> tempDirectoryPathBuffer(MAX_PATH);
         StackContainer<std::vector, wchar_t> tempFilePathBuffer(MAX_PATH);
 
-        DWORD tempDirectoryPathLength = ::GetTempPathW(tempDirectoryPathBuffer.size(), tempDirectoryPathBuffer.data());
+        DWORD tempDirectoryPathLength = ::GetTempPathW(static_cast<DWORD>(tempDirectoryPathBuffer.size()), tempDirectoryPathBuffer.data());
         if (tempDirectoryPathLength > tempDirectoryPathBuffer.size() || (tempDirectoryPathLength == 0))
         {
             MY_FAILURE("GetTempPath failed");

@@ -18,14 +18,14 @@ namespace my
         return static_cast<bool>(m_error);
     }
 
-    Error::Ptr Result<void>::getError() const
+    ErrorPtr Result<void>::getError() const
     {
         MY_DEBUG_ASSERT(isError(), "Result<void> has no error");
 
         return m_error;
     }
 
-    bool Result<>::isSuccess(Error::Ptr* error) const
+    bool Result<>::isSuccess(ErrorPtr* error) const
     {
         if (m_error && error)
         {

@@ -760,7 +760,7 @@ namespace my::test
                 }
                 else
                 {
-                    Error::Ptr error = MakeError(makeExceptionMessage(index));
+                    ErrorPtr error = MakeError(makeExceptionMessage(index));
                     typedTaskSources[index].reject(error);
                 }
 
@@ -770,7 +770,7 @@ namespace my::test
                 }
                 else
                 {
-                    Error::Ptr error = MakeError(makeExceptionMessage(index));
+                    ErrorPtr error = MakeError(makeExceptionMessage(index));
                     voidTaskSources[index].reject(error);
                 }
             }

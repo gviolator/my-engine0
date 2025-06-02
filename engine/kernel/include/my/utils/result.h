@@ -103,7 +103,7 @@ namespace my
             construct error
         */
         template <ErrorConcept U>
-        Result(Error::PtrType<U> error) :
+        Result(ErrorPtrType<U> error) :
             m_error(std::move(error))
         {
         }
@@ -169,7 +169,7 @@ namespace my
 
         template <typename U>
         requires(IsError<U>)
-        Result& operator=(Error::PtrType<U> error)
+        Result& operator=(ErrorPtrType<U> error)
         {
             MY_DEBUG_ASSERT(error);
 
@@ -191,7 +191,7 @@ namespace my
             return static_cast<bool>(m_error);
         }
 
-        my::Error::Ptr getError() const
+        my::ErrorPtr getError() const
         {
             MY_DEBUG_ASSERT(isError(), "Result<T> has no error");
             return m_error;
@@ -254,7 +254,7 @@ namespace my
             }
         }
 
-        Error::Ptr m_error = nullptr;
+        ErrorPtr m_error = nullptr;
         std::optional<T> m_value;
     };
 
@@ -272,7 +272,7 @@ namespace my
 
         template <typename U>
         requires(IsError<U>)
-        Result(Error::PtrType<U> error) :
+        Result(ErrorPtrType<U> error) :
             m_error(std::move(error))
         {
             MY_DEBUG_ASSERT(m_error);
@@ -287,7 +287,7 @@ namespace my
 
         template <typename U>
         requires(IsError<U>)
-        Result<>& operator=(Error::PtrType<U> error)
+        Result<>& operator=(ErrorPtrType<U> error)
         {
             MY_DEBUG_ASSERT(error);
             m_error = std::move(error);
@@ -298,14 +298,14 @@ namespace my
 
         bool isError() const;
 
-        bool isSuccess(Error::Ptr* = nullptr) const;
+        bool isSuccess(ErrorPtr* = nullptr) const;
 
-        my::Error::Ptr getError() const;
+        my::ErrorPtr getError() const;
 
         void ignore() const noexcept;
 
     private:
-        Error::Ptr m_error;
+        ErrorPtr m_error;
     };
 
     template <typename T>

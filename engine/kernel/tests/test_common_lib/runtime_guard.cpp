@@ -89,7 +89,7 @@ namespace my::test
       }
     }
 
-    async::Executor::Ptr m_defaultExecutor;
+    async::ExecutorPtr m_defaultExecutor;
   };
 
   RuntimeGuard::Ptr RuntimeGuard::create()

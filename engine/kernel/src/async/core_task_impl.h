@@ -25,7 +25,7 @@ namespace my::async
         void releaseRef() override;
         bool isReady() const override;
 
-        Error::Ptr getError() const override;
+        ErrorPtr getError() const override;
         const void* getData() const override;
         void* getData() override;
         size_t getDataSize() const override;
@@ -60,7 +60,7 @@ namespace my::async
         const StateDestructorCallback m_destructor;
         std::atomic<uint32_t> m_refsCount{1};
         mutable std::atomic<uint32_t> m_flags{0};
-        Error::Ptr m_error;
+        ErrorPtr m_error;
         TaskContinuation m_continuation;
         Executor::Invocation m_readyCallback;
         std::atomic<bool> m_isContinueOnCapturedExecutor = true;

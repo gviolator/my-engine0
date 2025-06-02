@@ -10,8 +10,8 @@
 
 namespace my::async
 {
-    MY_KERNEL_EXPORT Executor::Ptr createThreadPoolExecutor(std::optional<size_t> threadsCount = std::nullopt);
+    MY_KERNEL_EXPORT ExecutorPtr createThreadPoolExecutor(std::optional<size_t> threadsCount = std::nullopt);
 
-    // MY_KERNEL_EXPORT Executor::Ptr createDagThreadPoolExecutor(bool initCpuJobs, std::optional<size_t> threadsCount = std::nullopt);
+    // MY_KERNEL_EXPORT ExecutorPtr createDagThreadPoolExecutor(bool initCpuJobs, std::optional<size_t> threadsCount = std::nullopt);
 
 }  // namespace my::async
