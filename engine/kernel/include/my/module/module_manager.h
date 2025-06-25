@@ -2,14 +2,12 @@
 
 #pragma once
 
-#include <EASTL/shared_ptr.h>
-#include <EASTL/string.h>
-#include <EASTL/string_view.h>
-#include <EASTL/unique_ptr.h>
+#include <memory>
+#include <string_view>
 
 #include "my/kernel/kernel_config.h"
-#include "my/rtti/rtti_object.h"
-#include "my/string/hash_string.h"
+// #include "my/rtti/rtti_object.h"
+#include "my/module/module.h"
 #include "my/utils/result.h"
 
 namespace my
@@ -24,35 +22,34 @@ namespace my
         {
             Init,
             PostInit,
-            Cleanup
+            Shutdown
         };
 
-        using Ptr = std::unique_ptr<IModuleManager>;
+        // using Ptr = std::unique_ptr<IModuleManager>;
 
         virtual ~IModuleManager() = default;
 
         virtual void doModulesPhase(ModulesPhase phase) = 0;
 
-        virtual void registerModule(const char* moduleName, std::shared_ptr<::my::IModule> inModule) = 0;
+        virtual void registerModule(const char* moduleName, ModulePtr module) = 0;
 
-        virtual bool isModuleLoaded(const char* moduleName) = 0;
-        virtual bool isModuleLoaded(const my::hash_string& moduleName) = 0;
+        virtual bool isModuleLoaded(std::string_view moduleName) = 0;
 
-        virtual std::shared_ptr<IModule> getModule(my::hash_string moduleName) = 0;
+        virtual IModule* findModule(std::string_view moduleName) = 0;
 
-        template <typename T>
-        std::shared_ptr<T> getModule(my::hash_string moduleName)
-        {
-            return getModule(moduleName);
-        }
+        // template <typename T>
+        // std::shared_ptr<T> getModule(my::hash_string moduleName)
+        //{
+        //     return getModule(moduleName);
+        // }
 
-        virtual std::shared_ptr<IModule> getModuleInitialized(my::hash_string moduleName) = 0;
+        // virtual std::shared_ptr<IModule> getModuleInitialized(my::hash_string moduleName) = 0;
 
-        template <typename T>
-        std::shared_ptr<T> getModuleInitialized(my::hash_string moduleName)
-        {
-            return getModuleInitialized(moduleName);
-        }
+        // template <typename T>
+        // std::shared_ptr<T> getModuleInitialized(my::hash_string moduleName)
+        //{
+        //     return getModuleInitialized(moduleName);
+        // }
 
 #if !MY_STATIC_RUNTIME
         // For runtime module loading
@@ -60,7 +57,9 @@ namespace my
 #endif
     };
 
-    MY_KERNEL_EXPORT IModuleManager::Ptr createModuleManager();
+    using ModuleManagerPtr = std::unique_ptr<IModuleManager>;
+
+    MY_KERNEL_EXPORT ModuleManagerPtr createModuleManager();
 
     MY_KERNEL_EXPORT IModuleManager& getModuleManager();
 

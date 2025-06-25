@@ -33,7 +33,7 @@
 #include "internal.hpp"
 namespace Vectormath
 {
-namespace SSE
+inline namespace SSE
 {
 
 class BoolInVec;

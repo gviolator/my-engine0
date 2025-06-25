@@ -5,13 +5,25 @@ set (JSONCPP_WITH_TESTS OFF)
 
 if (NOT BUILD_SHARED_LIBS)
   set(JSONCPP_STATIC_WINDOWS_RUNTIME ON)
+  set(LIBUV_BUILD_SHARED OFF)
+
 else()
   set(JSONCPP_STATIC_WINDOWS_RUNTIME OFF)
+  set(LIBUV_BUILD_SHARED ON)
 endif()
 
 add_subdirectory(jsoncpp)
 add_subdirectory(ModifiedSonyMath)
 add_subdirectory(lua)
+add_subdirectory(libuv)
+
+
+if (BUILD_SHARED_LIBS)
+  add_library(libuv ALIAS uv)
+else()
+  add_library(libuv ALIAS uv_a)
+endif()
+
 
 # set (3rdPartyLibDirs
 #   jsoncpp
@@ -34,7 +46,7 @@ add_subdirectory(lua)
 
 
 ## test targets
-if (MYENGINE_TESTS)
+if (MY_ENGINE_TESTS)
   set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
   set(BUILD_GTEST ON CACHE BOOL "" FORCE)
   set(BUILD_GMOCK ON CACHE BOOL "" FORCE)

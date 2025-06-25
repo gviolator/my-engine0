@@ -23,8 +23,8 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake
 )
 
-option(MYENGINE_SAMPLES "Build engine samples projects" ON)
-option(MYENGINE_TESTS "Build engine tests projects" ON)
+option(MY_ENGINE_SAMPLES "Build engine samples projects" ON)
+option(MY_ENGINE_TESTS "Build engine tests projects" ON)
 # option(NAU_RTTI "Enable rtti support" OFF)
 # option(NAU_EXCEPTIONS "Enable exception support" OFF)
 # option(NAU_VERBOSE_LOG "Enable verbose messages for logger" OFF)
@@ -67,7 +67,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(engine)
 #add_subdirectory(tools)
-#add_subdirectory(samples)
+add_subdirectory(workshop)
+
+if (MY_ENGINE_SAMPLES)
+  my_collect_cmake_subdirectories(sampleProjects ${CMAKE_CURRENT_SOURCE_DIR}/samples)
+  foreach(sample ${sampleProjects})
+      message(STATUS "Sample application: (${sample})")
+      add_subdirectory(samples/${sample})
+  endforeach()
+endif()
 
 #nau_generate_es_targets()
 

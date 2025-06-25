@@ -52,12 +52,14 @@ target_precompile_headers(${TargetName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pch.
 
 set(ThirdPartyPublicLibs
   vectormath
+  libuv
 )
 
 if (NOT BUILD_SHARED_LIBS)
   target_compile_definitions(${TargetName} PUBLIC MY_STATIC_RUNTIME)
   list(APPEND ThirdPartyPublicLibs
     jsoncpp_static
+    uv_a
   )
 else()
   list(APPEND ThirdPartyPublicLibs

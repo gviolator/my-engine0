@@ -1,8 +1,51 @@
 // #my_engine_source_file
 #include "logger_impl.h"
 
+#include "my/memory/runtime_stack.h"
 #include "my/threading/lock_guard.h"
 #include "my/utils/scope_guard.h"
+
+
+template <>
+struct std::formatter<my::diag::LogLevel, char>
+{
+    constexpr auto parse(std::format_parse_context& context)
+    {
+        return context.begin();
+    }
+
+    auto format(my::diag::LogLevel level, format_context& context) const
+    {
+        using Level = my::diag::LogLevel;
+        std::string_view str = "unknown";
+        if (level == Level::Verbose)
+        {
+            str = "Verbose";
+        }
+        else if (level == Level::Debug)
+        {
+            str = "Debug";
+        }
+        else if (level == Level::Info)
+        {
+            str = "Info";
+        }
+        else if (level == Level::Warning)
+        {
+            str = "Warning";
+        }
+        else if (level == Level::Error)
+        {
+            str = "Error";
+        }
+        else if (level == Level::Critical)
+        {
+            str = "Critical";
+        }
+
+        return std::vformat_to(context.out(), "{}", std::make_format_args(str));
+    };
+};
 
 namespace my::diag
 {
@@ -10,18 +53,42 @@ namespace my::diag
     {
         LoggerPtr s_internalLogger = rtti::createInstance<LoggerImpl>();
         LoggerPtr s_defaultLogger = s_internalLogger;
-    }
 
+        class DefaultFormatter final : public LogMessageFormatter
+        {
+            MY_REFCOUNTED_CLASS(my::diag::DefaultFormatter, LogMessageFormatter)
+
+            std::string formatMessage(const LogMessage& message) const override
+            {
+                constexpr size_t TimeStrLen = 128;
+                char timeStr[TimeStrLen];
+                strftime(timeStr, TimeStrLen, "%F %H:%M:%S", std::localtime(&message.timeStamp));
+
+                std::string formattedMessage = std::format("[{}][{}]{}", std::string_view{timeStr}, message.level, message.text);
+                if (const SourceInfo& src = message.source)
+                {
+                    formattedMessage.append(std::format(":{}({})", src.filePath, src.line.value_or(0)));
+                }
+
+                return formattedMessage;
+            }
+        };
+    }  // namespace
+
+    LoggerImpl::LoggerImpl()
+    {
+        m_defaultFormatter = rtti::createInstanceSingleton<DefaultFormatter>();
+    }
 
     LoggerImpl::~LoggerImpl()
     {
         lock_(m_mutex);
-        for (auto& subscription : m_subscriptions)
+        for (auto& subscription : m_sinks)
         {
             subscription.resetLogger();
         }
 
-        m_subscriptions.clear();
+        m_sinks.clear();
     }
 
     void LoggerImpl::setName(std::string name)
@@ -40,6 +107,8 @@ namespace my::diag
         static thread_local std::vector<LogMessage> s_pendingMessages;
 
         // preventing logMessage from recursive call (ever subscriber can subsequently invoke logging):
+        rtstack_scope;
+
         ++s_recursionCounter;
         scope_on_leave
         {
@@ -61,27 +130,41 @@ namespace my::diag
             return;
         }
 
+        //std::string defaultMessage;
+
         const std::shared_lock lock{m_mutex};
-        for (auto& subscription : m_subscriptions)
+
+        for (LogSinkEntryImpl& sink : m_sinks)
         {
-            subscription.log(logMessage);
+            std::string formattedMessage;
+            const LogMessageFormatter* formatter = sink.getFormatter();
+            if (!formatter)
+            {
+                formattedMessage = m_defaultFormatter->formatMessage(logMessage);
+            }
+            else
+            {
+                formattedMessage = formatter->formatMessage(logMessage);
+            }
+
+            sink.log(logMessage, formattedMessage);
         }
     }
 
-    LogSubscription LoggerImpl::subscribe(LogSubscriberPtr subscriber)
+    LogSinkEntry LoggerImpl::addSink(LogSinkPtr sink, LogMessageFormatterPtr customFormatter)
     {
-        auto subscription = std::make_unique<LogSubscriptionImpl>(*this, std::move(subscriber));
-        m_subscriptions.push_back(*subscription);
+        auto entry = std::make_unique<LogSinkEntryImpl>(*this, std::move(sink), std::move(customFormatter));
+        m_sinks.push_back(*entry);
 
-        return subscription;
+        return entry;
     }
 
-    void LoggerImpl::releaseSubscription(LogSubscriptionImpl& subscription)
+    void LoggerImpl::releaseLogSink(LogSinkEntryImpl& sink)
     {
         lock_(m_mutex);
 
-        MY_DEBUG_ASSERT(m_subscriptions.contains(subscription));
-        m_subscriptions.removeElement(subscription);
+        MY_DEBUG_ASSERT(m_sinks.contains(sink));
+        m_sinks.removeElement(sink);
     }
 
     void LoggerImpl::addFilter([[maybe_unused]] LogFilterPtr filter)
@@ -94,6 +177,15 @@ namespace my::diag
         MY_FATAL_FAILURE("removeFilter not implemented");
     }
 
+    void LoggerImpl::setDefaultFormatter(LogMessageFormatterPtr formatter)
+    {
+        m_defaultFormatter = std::move(formatter);
+
+        if (!m_defaultFormatter)
+        {
+            m_defaultFormatter = rtti::createInstanceSingleton<DefaultFormatter>();
+        }
+    }
 
     LoggerPtr createLogger()
     {
@@ -117,8 +209,14 @@ namespace my::diag
         }
     }
 
+    bool hasDefaultLogger()
+    {
+        return s_defaultLogger != nullptr;
+    }
+
     Logger& getDefaultLogger()
     {
+        MY_FATAL(s_defaultLogger);
         return *s_defaultLogger;
     }
 

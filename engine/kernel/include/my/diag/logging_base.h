@@ -49,16 +49,27 @@ namespace my::diag
         LogContextPtr context;
     };
 
-    /**
-     */
-    struct MY_ABSTRACT_TYPE LogSubscriber : IRefCounted
-    {
-        MY_INTERFACE(my::diag::LogSubscriber, IRefCounted)
 
-        virtual void log(const LogMessage& message) = 0;
+
+    struct MY_ABSTRACT_TYPE LogMessageFormatter : IRefCounted
+    {
+        MY_INTERFACE(my::diag::LogMessageFormatter, IRefCounted);
+
+        virtual std::string formatMessage(const LogMessage&) const = 0;
     };
 
-    using LogSubscriberPtr = my::Ptr<LogSubscriber>;
+    using LogMessageFormatterPtr = Ptr<LogMessageFormatter>;
+
+    /**
+     */
+    struct MY_ABSTRACT_TYPE LogSink : IRefCounted
+    {
+        MY_INTERFACE(my::diag::LogSink, IRefCounted)
+
+        virtual void log(const LogMessage& sourceMessage, std::string_view formattedMessage) = 0;
+    };
+
+    using LogSinkPtr = my::Ptr<LogSink>;
 
     /**
      */
@@ -69,58 +80,22 @@ namespace my::diag
         virtual bool shouldLog(const LogMessage& message) = 0;
     };
 
-    struct MY_ABSTRACT_TYPE LogLevelFilter : LogFilter
-    {
-        MY_INTERFACE(LogLevelFilter, LogFilter)
-
-        virtual void setLevel(LogLevel level) = 0;
-    };
-
     using LogFilterPtr = my::Ptr<LogFilter>;
+
+
 
     /**
      */
-    struct ILogSubscription
+    struct ILogSinkEntry
     {
-        virtual ~ILogSubscription() = default;
+        virtual ~ILogSinkEntry() = default;
 
         virtual void addFilter(LogFilterPtr) = 0;
 
         virtual void removeFilter(const LogFilter&) = 0;
     };
 
-    using LogSubscription = std::unique_ptr<ILogSubscription>;
-
-    // class MY_KERNEL_EXPORT [[nodiscard]] LogSubscription
-    // {
-    // public:
-    //     LogSubscription();
-    //     LogSubscription(LogSubscription&&);
-    //     LogSubscription(const LogSubscription&) = delete;
-    //     ~LogSubscription();
-
-    //     LogSubscription& operator=(LogSubscription&&);
-    //     LogSubscription& operator=(const LogSubscription&) = delete;
-    //     inline LogSubscription& operator=(std::nullptr_t)
-    //     {
-    //         release();
-    //         return *this;
-    //     }
-
-    //     explicit operator bool() const;
-
-    //     void release();
-    //     void addFilter(LogFilterPtr);
-    //     void removeFilter(const LogFilter&);
-
-    // private:
-    //     // LogSubscription(Logger::Ptr&&, uint32_t);
-
-    //     // std::weak_ptr<Logger> m_logger;
-    //     uint32_t m_id = 0;
-
-    //     friend struct Logger;
-    // };
+    using LogSinkEntry = std::unique_ptr<ILogSinkEntry>;
 
     /**
      */
@@ -134,11 +109,13 @@ namespace my::diag
 
         virtual void log(LogLevel level, SourceInfo sourceInfo, LogContextPtr context, std::string message) = 0;
 
-        virtual LogSubscription subscribe(LogSubscriberPtr) = 0;
+        virtual LogSinkEntry addSink(LogSinkPtr, LogMessageFormatterPtr = nullptr) = 0;
 
         virtual void addFilter(LogFilterPtr) = 0;
 
         virtual void removeFilter(const LogFilter&) = 0;
+
+        virtual void setDefaultFormatter(LogMessageFormatterPtr formatter) = 0;
     };
 
     using LoggerPtr = my::Ptr<Logger>;

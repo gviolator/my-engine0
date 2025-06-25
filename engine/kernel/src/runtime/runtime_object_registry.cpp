@@ -1,12 +1,29 @@
 // #my_engine_source_file
 #include "my/runtime/internal/runtime_object_registry.h"
 
+#include "my/memory/runtime_stack.h"
 #include "my/memory/singleton_memop.h"
 #include "my/threading/lock_guard.h"
 #include "my/utils/scope_guard.h"
 
+
 namespace my
 {
+    namespace
+    {
+        template<typename T, typename ... U>
+        void fastRemoveObjectAt(std::vector<T, U...>& container, size_t index)
+        {
+            MY_DEBUG_FATAL(index < container.size());
+            const size_t lastIndex = container.size() - 1;
+            if (index != lastIndex)
+            {
+                container[index] = std::move(container[lastIndex]);
+            }
+
+            container.resize(lastIndex);
+        }
+    }
 
     class RuntimeObjectRegistryImpl final : public RuntimeObjectRegistry
     {
@@ -96,6 +113,12 @@ namespace my
                 return !m_ptr || (m_isWeak && reinterpret_cast<const IWeakRef*>(m_ptr)->isDead());
             }
 
+            /**
+                Return actual instance.
+                For weak refs first lock is performed (to check that object actually live).
+                For non weak refs will return instance as is.
+                Always add ref for ref for refcounted object
+            */
             IRttiObject* lock() const
             {
                 if (!m_ptr)
@@ -148,7 +171,7 @@ namespace my
 
         void removeExpiredEntries();
 
-        void visitObjects(void (*callback)(std::span<IRttiObject*>, void*), const rtti::TypeInfo*, void*) override;
+        void visitObjects(void (*callback)(std::span<IRttiObject*>, void*), const rtti::TypeInfo, void*) override;
 
         std::recursive_mutex m_mutex;
         ObjectId m_objectId = 0;
@@ -161,7 +184,7 @@ namespace my
         MY_DEBUG_ASSERT(m_objects.empty(), "Still alive ({}) objects", m_objects.size());
     }
 
-    void RuntimeObjectRegistryImpl::visitObjects(VisitObjectsCallback callback, const rtti::TypeInfo* type, void* callbackData)
+    void RuntimeObjectRegistryImpl::visitObjects(VisitObjectsCallback callback, const rtti::TypeInfo type, void* callbackData)
     {
         lock_(m_mutex);
 
@@ -170,7 +193,10 @@ namespace my
             return;
         }
 
-        std::vector<IRttiObject*> instances;
+        rtstack_scope;
+
+        StackContainer<std::vector, IRttiObject*> instances;
+        instances.reserve(m_objects.size());
 
         scope_on_leave
         {
@@ -186,20 +212,15 @@ namespace my
         // collect required objects, remove expired entries
         for (size_t i = 0; i < m_objects.size();)
         {
+            // lock will return nullptr only for expired weak referenced objects
             IRttiObject* const instance = m_objects[i].lock();
             if (!instance)
             {
-                const size_t lastIndex = m_objects.size() - 1;
-                if (i != lastIndex)
-                {
-                    m_objects[i] = std::move(m_objects[lastIndex]);
-                }
-
-                m_objects.resize(lastIndex);
+                fastRemoveObjectAt(m_objects, i);
                 continue;
             }
 
-            if (!type || instance->is(*type))
+            if (!type || instance->is(type))
             {
                 instances.push_back(std::move(instance));
             }
@@ -255,12 +276,7 @@ namespace my
         {
             if (m_objects[i].getObjectId() == id)
             {
-                const auto lastIndex = size - 1;
-                if (i != lastIndex)
-                {
-                    m_objects[i] = std::move(m_objects[lastIndex]);
-                }
-                m_objects.resize(lastIndex);
+                fastRemoveObjectAt(m_objects, i);
                 break;
             }
         }
@@ -280,37 +296,12 @@ namespace my
 
     namespace
     {
-        auto& getRuntimeObjectRegistryRef()
+        auto& getCurrentRuntimeObjectRegistryRef()
         {
             static std::unique_ptr<RuntimeObjectRegistryImpl> s_runtimeObjectRegistry;
-
             return (s_runtimeObjectRegistry);
         }
     }  // namespace
-
-    RuntimeObjectRegistry& RuntimeObjectRegistry::getInstance()
-    {
-        MY_DEBUG_FATAL(getRuntimeObjectRegistryRef());
-
-        return *getRuntimeObjectRegistryRef();
-    }
-
-    bool RuntimeObjectRegistry::hasInstance()
-    {
-        return static_cast<bool>(getRuntimeObjectRegistryRef());
-    }
-
-    void RuntimeObjectRegistry::setDefaultInstance()
-    {
-        MY_DEBUG_ASSERT(!getRuntimeObjectRegistryRef());
-
-        getRuntimeObjectRegistryRef() = std::make_unique<RuntimeObjectRegistryImpl>();
-    }
-
-    void RuntimeObjectRegistry::releaseInstance()
-    {
-        getRuntimeObjectRegistryRef().reset();
-    }
 
     RuntimeObjectRegistration::RuntimeObjectRegistration() :
         m_objectId(0)
@@ -320,18 +311,18 @@ namespace my
     RuntimeObjectRegistration::RuntimeObjectRegistration(Ptr<> object) :
         RuntimeObjectRegistration()
     {
-        if (RuntimeObjectRegistry::hasInstance())
+        if (auto& registry = getCurrentRuntimeObjectRegistryRef())
         {
-            m_objectId = getRuntimeObjectRegistryRef()->addObject(std::move(object));
+            m_objectId = registry->addObject(std::move(object));
         }
     }
 
     RuntimeObjectRegistration::RuntimeObjectRegistration(IRttiObject& object) :
         RuntimeObjectRegistration()
     {
-        if (RuntimeObjectRegistry::hasInstance())
+        if (auto& registry = getCurrentRuntimeObjectRegistryRef())
         {
-            m_objectId = getRuntimeObjectRegistryRef()->addObject(object);
+            m_objectId = registry->addObject(object);
         }
     }
 
@@ -365,11 +356,18 @@ namespace my
 
     void RuntimeObjectRegistration::setAutoRemove()
     {
-        if (m_objectId == 0 || !RuntimeObjectRegistry::hasInstance())
+        if (m_objectId == 0)
         {
             return;
         }
-        const bool isAutoRemovable = getRuntimeObjectRegistryRef()->isAutoRemovable(m_objectId);
+
+        auto& registry = getCurrentRuntimeObjectRegistryRef();
+        if (!registry)
+        {
+            return;
+        }
+
+        const bool isAutoRemovable = registry->isAutoRemovable(m_objectId);
         MY_DEBUG_FATAL(isAutoRemovable, "Object can not be used as autoremovable");
 
         if (isAutoRemovable)
@@ -384,11 +382,38 @@ namespace my
         {
             const auto objectId = std::exchange(m_objectId, 0);
 
-            MY_DEBUG_ASSERT(RuntimeObjectRegistry::hasInstance());
-            if (RuntimeObjectRegistry::hasInstance())
+            auto& registry = getCurrentRuntimeObjectRegistryRef();
+            MY_DEBUG_ASSERT(registry);
+            if (registry)
             {
-                getRuntimeObjectRegistryRef()->removeObject(objectId);
+                registry->removeObject(objectId);
             }
         }
     }
+
+    RuntimeObjectRegistry& getRuntimeObjectRegistry()
+    {
+        auto& registry = getCurrentRuntimeObjectRegistryRef();
+        MY_DEBUG_FATAL(registry);
+
+        return *registry;
+    }
+
+    bool hasRuntimeObjectRegistry()
+    {
+        return static_cast<bool>(getCurrentRuntimeObjectRegistryRef());
+    }
+
+    void setDefaultRuntimeObjectRegistryInstance()
+    {
+        auto& registry = getCurrentRuntimeObjectRegistryRef();
+        MY_DEBUG_ASSERT(!registry, "Default instance already set");
+        registry = std::make_unique<RuntimeObjectRegistryImpl>();
+    }
+
+    void resetRuntimeObjectRegistryInstance()
+    {
+        getCurrentRuntimeObjectRegistryRef().reset();
+    }
+
 }  // namespace my

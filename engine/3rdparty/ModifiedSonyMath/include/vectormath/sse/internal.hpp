@@ -32,7 +32,7 @@
 
 namespace Vectormath
 {
-namespace SSE
+inline namespace SSE
 {
 
 // ========================================================

@@ -4,3 +4,6 @@
 [submodule "engine/3rdparty/jsoncpp"]
 	path = engine/3rdparty/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "engine/3rdparty/libuv"]
+	path = engine/3rdparty/libuv
+	url = https://github.com/libuv/libuv.git

@@ -6,9 +6,7 @@
 // Created on: April 1st, 2021
 // Brief: This header exposes the Sony Vectormath library settings.
 // ================================================================================================
-
-#ifndef VECTORMATH_SETTINGS_HPP
-#define VECTORMATH_SETTINGS_HPP
+#pragma once
 
 #if (!defined(VECTORMATH_DEBUG) && (defined(DEBUG) || defined(_DEBUG)))
 #define VECTORMATH_DEBUG 1
@@ -73,6 +71,11 @@
 #define VECTORMATH_MIN_ALIGN   0
 #endif // Vectormath mode selection
 
+#if VECTORMATH_MODE_SSE
+#define VECTORMATH_INLINE_SSE_NAMESPACE inline
+#define 
+#define VECTORMATH_INLINE_SSE_NAMESPACE
+#else
 
+#endif
 
-#endif // VECTORMATH_SETTINGS_HPP

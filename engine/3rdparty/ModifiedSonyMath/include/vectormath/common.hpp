@@ -9,7 +9,7 @@
 #pragma once
 
 #include <float.h>
-#include <EASTL/vector.h>
+#include <vector>
 
 #define IMEMORY_FROM_HEADER
 //#include "../../../Interfaces/IMemory.h"

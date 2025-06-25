@@ -2,11 +2,10 @@
 #pragma once
 #include <shared_mutex>
 
-#include "log_subscription_impl.h"
+#include "log_sink_entry.h"
 #include "my/diag/logging.h"
 #include "my/memory/singleton_memop.h"
 #include "my/rtti/rtti_impl.h"
-
 
 namespace my::diag
 {
@@ -16,9 +15,10 @@ namespace my::diag
     public:
         MY_REFCOUNTED_CLASS(LoggerImpl, Logger)
 
+        LoggerImpl();
         ~LoggerImpl();
 
-        void releaseSubscription(LogSubscriptionImpl&);
+        void releaseLogSink(LogSinkEntryImpl&);
 
     private:
         void setName(std::string name) override;
@@ -27,11 +27,13 @@ namespace my::diag
 
         void log(LogLevel level, SourceInfo sourceInfo, LogContextPtr context, std::string message) override;
 
-        LogSubscription subscribe(LogSubscriberPtr) override;
+        LogSinkEntry addSink(LogSinkPtr sink, LogMessageFormatterPtr customFormatter) override;
 
         void addFilter(LogFilterPtr) override;
 
         void removeFilter(const LogFilter&) override;
+
+        void setDefaultFormatter(LogMessageFormatterPtr formatter) override;
 
 #if 0
         struct SubscriberEntry
@@ -63,8 +65,9 @@ namespace my::diag
         std::list<SubscriberEntry> m_subscribers;
 #endif
         std::string m_name;
-        IntrusiveList<LogSubscriptionImpl> m_subscriptions;
+        IntrusiveList<LogSinkEntryImpl> m_sinks;
         std::shared_mutex m_mutex;
+        LogMessageFormatterPtr m_defaultFormatter;
     };
 
 }  // namespace my::diag

@@ -34,7 +34,8 @@
 
   "search.exclude": {
     "**/build": true,
-    "**/.git": true
+    "**/.git": true,
+    "**/node_modules": true
   },
 
   "git.ignoredRepositories": [

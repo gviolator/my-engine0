@@ -26,13 +26,13 @@
    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
    POSSIBILITY OF SUCH DAMAGE.
 */
+#pragma once
+#include "vectormath/vectormath_settings.hpp"
 
-#ifndef VECTORMATH_SSE_BOOLINVEC_HPP
-#define VECTORMATH_SSE_BOOLINVEC_HPP
 
 namespace Vectormath
 {
-namespace SSE
+VECTORMATH_INLINE_SSE_NAMESPACE namespace SSE
 {
 
 class FloatInVec;
@@ -278,4 +278,4 @@ inline const BoolInVec select(const BoolInVec & vec0, const BoolInVec & vec1, co
 } // namespace SSE
 } // namespace Vectormath
 
-#endif // VECTORMATH_SSE_BOOLINVEC_HPP
+

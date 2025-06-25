@@ -34,7 +34,7 @@
 
 namespace Vectormath
 {
-namespace SSE
+inline namespace SSE
 {
 
 class BoolInVec;

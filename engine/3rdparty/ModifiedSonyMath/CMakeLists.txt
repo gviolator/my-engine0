@@ -24,7 +24,7 @@ target_include_directories(${TargetName} INTERFACE
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/3rdparty/ModifiedSonyMath/include>
 )
 
-if (NAU_MATH_USE_DOUBLE_PRECISION)
+if (MY_MATH_USE_DOUBLE_PRECISION)
   target_compile_definitions(${TargetName} INTERFACE MATH_USE_DOUBLE_PRECISION)
 endif()
 

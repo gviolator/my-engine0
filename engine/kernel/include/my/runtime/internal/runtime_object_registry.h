@@ -9,7 +9,6 @@
 #include "my/rtti/rtti_object.h"
 #include "my/rtti/weak_ptr.h"
 
-
 namespace my
 {
     /**
@@ -17,16 +16,6 @@ namespace my
     class MY_ABSTRACT_TYPE RuntimeObjectRegistry
     {
     public:
-        MY_KERNEL_EXPORT
-        static RuntimeObjectRegistry& getInstance();
-
-        MY_KERNEL_EXPORT
-        static bool hasInstance();
-
-        MY_KERNEL_EXPORT static void setDefaultInstance();
-
-        MY_KERNEL_EXPORT static void releaseInstance();
-
         virtual ~RuntimeObjectRegistry() = default;
 
         template <typename Callback>
@@ -38,7 +27,7 @@ namespace my
                 (*reinterpret_cast<Callback*>(callbackData))(objects);
             };
 
-            visitObjects(callbackHelper, nullptr, &callback);
+            visitObjects(callbackHelper, rtti::TypeInfo{}, &callback);
         }
 
         template <typename T, typename Callback>
@@ -50,14 +39,14 @@ namespace my
                 (*reinterpret_cast<Callback*>(callbackData))(objects);
             };
 
-            visitObjects(callbackHelper, &rtti::getTypeInfo<T>(), &callback);
+            visitObjects(callbackHelper, rtti::getTypeInfo<T>(), &callback);
         }
 
     protected:
         using ObjectId = uint64_t;
         using VisitObjectsCallback = void (*)(std::span<IRttiObject*>, void*);
 
-        virtual void visitObjects(VisitObjectsCallback callback, const rtti::TypeInfo*, void*) = 0;
+        virtual void visitObjects(VisitObjectsCallback callback, rtti::TypeInfo, void*) = 0;
 
         friend class RuntimeObjectRegistration;
     };
@@ -80,6 +69,11 @@ namespace my
 
         explicit operator bool() const;
 
+        /**
+            @brief Allow to not keep RuntimeObjectRegistration.
+
+            Registered object MUST provide weak reference mechanism (currently only for IRefCounted).
+        */
         void setAutoRemove();
 
     private:
@@ -90,4 +84,11 @@ namespace my
         friend class RuntimeObjectRegistryImpl;
     };
 
+    MY_KERNEL_EXPORT RuntimeObjectRegistry& getRuntimeObjectRegistry();
+
+    MY_KERNEL_EXPORT bool hasRuntimeObjectRegistry();
+
+    MY_KERNEL_EXPORT void setDefaultRuntimeObjectRegistryInstance();
+
+    MY_KERNEL_EXPORT void resetRuntimeObjectRegistryInstance();
 }  // namespace my

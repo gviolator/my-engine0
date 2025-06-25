@@ -25,10 +25,24 @@ target_include_directories(${TargetName} INTERFACE
 )
 
 
+
+
 if (BUILD_SHARED_LIBS)
   target_compile_definitions(${TargetName} PUBLIC
     LUA_BUILD_AS_DLL
   )
+
+  if (Compiler_LikeCl)
+    target_compile_options(${TargetName} PRIVATE 
+      /MD$<$<CONFIG:Debug>:d>
+    )
+  endif()
+else()
+if (Compiler_LikeCl)
+    target_compile_options(${TargetName} PRIVATE 
+      /MT$<$<CONFIG:Debug>:d>
+    )
+  endif()
 endif()
 
 

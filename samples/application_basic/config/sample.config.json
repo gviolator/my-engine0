@@ -1,0 +1,19 @@
+{
+    "app": {
+        "name": "AppBasicSample",
+
+        "log": [
+            {
+                "kind": "file",
+                "path": "c:/log.txt",
+                "filter": [
+                ],
+
+                "formatter": ""
+
+
+            }
+        ]
+
+    }
+}

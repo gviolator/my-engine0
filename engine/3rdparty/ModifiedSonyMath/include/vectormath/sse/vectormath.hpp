@@ -1,4 +1,4 @@
-/*
+4/*
    Copyright (C) 2006, 2007 Sony Computer Entertainment Inc.
    All rights reserved.
 
@@ -62,7 +62,7 @@
 
 namespace Vectormath
 {
-namespace SSE
+inline namespace SSE
 {
 
 // ========================================================

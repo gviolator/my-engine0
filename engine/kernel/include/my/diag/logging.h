@@ -24,6 +24,8 @@ namespace my::diag
 
     MY_KERNEL_EXPORT void setDefaultLogger(LoggerPtr logger, LoggerPtr* oldLogger = nullptr);
 
+    MY_KERNEL_EXPORT bool hasDefaultLogger();
+
     MY_KERNEL_EXPORT Logger& getDefaultLogger();
 }  // namespace my::diag
 
@@ -329,7 +331,7 @@ namespace my::diag
 #define mylog_error ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Error, MY_INLINED_SOURCE_INFO }
 #define mylog_crit ::my::diag_detail::InplaceLogData{ nullptr, nullptr, ::my::diag::LogLevel::Critical, MY_INLINED_SOURCE_INFO }
 
-#define mylog mylog_verbose
+#define mylog mylog_info
 
 
 // #define MY_LOG_INFO \
