@@ -80,7 +80,7 @@ namespace my::test
 
         std::string dumpToString() const
         {
-            std::string str = my::dump_properties_to_string(*m_props);
+            std::string str = my::dumpPropertiesToString(*m_props);
             return str;
         }
 

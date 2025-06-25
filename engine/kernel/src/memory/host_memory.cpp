@@ -95,8 +95,11 @@ namespace my
         MemRegion allocPages(size_t size) override
         {
             size = aligned_size(size, mem::PageSize);
-
+#ifdef _WIN32
             void* const ptr = ::_aligned_malloc(size, GuaranteedBlockAlignment);
+#else
+            void* const ptr = std::aligned_alloc(GuaranteedBlockAlignment, size);
+#endif
             MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % GuaranteedBlockAlignment == 0);
 
             return MemRegion{ptr, size};
@@ -104,7 +107,11 @@ namespace my
 
         void freePages(MemRegion&& pages) override
         {
+#ifdef _WIN32
             ::_aligned_free(pages.basePtr());
+#else
+            std::free(pages.basePtr());
+#endif
         }
 
         Byte getPageSize() const override

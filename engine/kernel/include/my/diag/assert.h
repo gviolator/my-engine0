@@ -102,7 +102,8 @@ namespace my::diag_detail
         else
         {
             const std::wstring formattedMessage = std::vformat(std::wstring_view{message}, std::make_format_args(formatArgs...));
-            return makeFailureMessage(strings::wstringToUtf8(formattedMessage));
+            //return makeFailureMessage(strings::wstringToUtf8(formattedMessage));
+            return "FIXME";
         }
     }
 

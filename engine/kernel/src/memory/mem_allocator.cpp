@@ -32,8 +32,11 @@ namespace my
         void* allocAligned(size_t size, size_t alignment) override
         {
             MY_DEBUG_ASSERT(is_power_of2(alignment));
-
+#ifdef _WIN32
             return ::_aligned_malloc(size, alignment);
+#else
+            return std::aligned_alloc(alignment, aligned_size(size, alignment));
+#endif
         }
 
         void* reallocAligned(void* oldPtr, size_t size, size_t alignment) override
@@ -43,28 +46,32 @@ namespace my
 #ifdef _WIN32
             auto const ptr = ::_aligned_realloc(oldPtr, size, alignment);
             return ptr;
-#elif defined(_LIBCPP_HAS_ALIGNED_ALLOC)
-
-            void* newPtr = nullptr;
-
-            if (!alignment)
-            {
-                newPtr = ::realloc(ptr, size);
-            }
-            else
-            {
-                G_ASSERT((!ptr, "Can not realoc with alignment");
-                newPtr = aligned_alloc(*alignment, size);
-            }
-
-            G_ASSERT(!alignment || reinterpret_cast<ptrdiff_t>(newPtr) % *alignment == 0);
-            return newPtr;
 #else
-            auto const newPtr = ::malloc(size);
-            G_ASSERT(reinterpret_cast<ptrdiff_t>(newPtr) % *alignment == 0);
-            return newPtr;
-
+            //std::aligned_
+            return ::realloc(oldPtr, size);
 #endif
+// #elif defined(_LIBCPP_HAS_ALIGNED_ALLOC)
+
+//             void* newPtr = nullptr;
+
+//             if (!alignment)
+//             {
+//                 newPtr = ::realloc(ptr, size);
+//             }
+//             else
+//             {
+//                 G_ASSERT((!ptr, "Can not realoc with alignment");
+//                 newPtr = aligned_alloc(*alignment, size);
+//             }
+
+//             G_ASSERT(!alignment || reinterpret_cast<ptrdiff_t>(newPtr) % *alignment == 0);
+//             return newPtr;
+// #else
+//             auto const newPtr = ::malloc(size);
+//             G_ASSERT(reinterpret_cast<ptrdiff_t>(newPtr) % *alignment == 0);
+//             return newPtr;
+
+// #endif
         }
 
         /**
@@ -76,7 +83,11 @@ namespace my
 
         void freeAligned(void* ptr, [[maybe_unused]] size_t) override
         {
+#ifdef _WIN32
             ::_aligned_free(ptr);
+#else
+            std::free(ptr);
+#endif
         }
     };
 

@@ -86,8 +86,8 @@ namespace my::rtti_detail
         AcquireFunc m_acquireFunc;
         DestructorFunc m_destructorFunc;
         std::byte* const m_allocatedPtr;
-        std::atomic<uint32_t> m_stateCounter{1ui32};
-        std::atomic<uint32_t> m_instanceCounter{1ui32};
+        std::atomic<uint32_t> m_stateCounter{1u};
+        std::atomic<uint32_t> m_instanceCounter{1u};
     };
     /**
 

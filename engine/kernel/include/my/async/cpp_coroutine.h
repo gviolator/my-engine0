@@ -1,22 +1,17 @@
 // #my_engine_source_file
 
-
 #pragma once
 
 #if defined(_MSC_VER)
-#if !__cpp_impl_coroutine
-#error "Require coroutine implementation"
-#endif
+    #if !__cpp_impl_coroutine
+        #error "Require coroutine implementation"
+    #endif
 
-#include <coroutine>
+    #include <coroutine>
 
-//namespace CoroNs = std;
-
+#elif __linux__
+    #include <coroutine>
 #else
-
-#error Setup coroutine
+    #error Setup coroutine
 
 #endif
-
-
-

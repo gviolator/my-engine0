@@ -17,13 +17,13 @@ my_collect_files(PublicHeaders
   PREPEND "../"
 )
 
-if (${Platform_Windows})
+#if (${Platform_Windows})
 
   my_collect_files(Sources
     DIRECTORIES ${moduleRoot}/src
     RELATIVE ${moduleRoot}/src
     INCLUDE
-      "platform/windows/.*"
+      "platform/${Platform_Name}/.*"
     MASK "*.cpp" "*.h" "*.hpp"
   )
 
@@ -31,11 +31,11 @@ if (${Platform_Windows})
     DIRECTORIES ${moduleRoot}/include/
     RELATIVE ${moduleRoot}
     INCLUDE
-    "platform/windows/.*"
+    "platform/${Platform_Name}/.*"
     MASK "*.h" "*.hpp"
     PREPEND "../"
   )
-endif()
+#endif()
 
 add_library(${TargetName} ${Sources} ${PublicHeaders})
 

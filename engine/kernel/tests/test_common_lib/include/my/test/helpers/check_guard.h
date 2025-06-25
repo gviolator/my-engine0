@@ -1,6 +1,6 @@
 // #my_engine_source_file
 #pragma once
-#include "my/diag/check_handler.h"
+#include "my/diag/assert_handler.h"
 
 namespace my::test
 {

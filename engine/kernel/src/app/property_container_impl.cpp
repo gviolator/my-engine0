@@ -306,7 +306,11 @@ namespace my
 
         if (contentType.empty())
         {
+#ifdef _WIN32
             if (strings::icaseEqual(std::wstring_view{filePath.extension().c_str()}, std::wstring_view{L".json"}))
+#else
+            if (strings::icaseEqual(std::string_view{filePath.extension().c_str()}, std::string_view{".json"}))
+#endif
             {
                 contentType = "application/json";
             }

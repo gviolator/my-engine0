@@ -38,8 +38,12 @@
 #endif
 */
 
-
+#ifdef _WIN32
 #define MY_PLATFORM_HEADER_DIR_NAME windows
+#elif defined(__linux__)
+#define MY_PLATFORM_HEADER_DIR_NAME linux_os
+#endif
+
 #define MY_PLATFORM_PATH_IMPL(Platform, FileName) my/platform/Platform/FileName
 #define MY_PLATFORM_PATH(FileName) MY_PLATFORM_PATH_IMPL(MY_PLATFORM_HEADER_DIR_NAME, FileName)
 

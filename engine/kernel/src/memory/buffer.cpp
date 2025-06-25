@@ -15,9 +15,9 @@ namespace my
      */
     struct BufferBase::Header
     {
-        inline static constexpr uint32_t BufferToken = 0x11AA22BBui32;
+        inline static constexpr uint32_t BufferToken = 0x11AA22BBu;
 
-        std::atomic<uint32_t> refs{1ui32};
+        std::atomic<uint32_t> refs{1u};
         uint32_t capacity;
         uint32_t size;
         uint32_t token = BufferToken;

@@ -132,7 +132,7 @@ namespace my::test
     TEST(TestSerializationJson, JsonIntToRuntimeValue)
     {
         const Ptr<RuntimeIntegerValue> value = serialization::jsonToRuntimeValue(Json::Value{77});
-        ASSERT_EQ(value->getInt64(), 77i64);
+        ASSERT_EQ(value->getInt64(), 77ll);
     }
 
     /**

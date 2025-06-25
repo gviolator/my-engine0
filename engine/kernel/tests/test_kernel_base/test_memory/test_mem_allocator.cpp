@@ -1,4 +1,5 @@
 // #my_engine_source_file
+#if !defined(__linux__)
 #include <intrin.h>
 
 #include "my/memory/fixed_size_block_allocator.h"
@@ -35,3 +36,4 @@ namespace my::test
         [[maybe_unused]] auto obj = new(ptr) CustomAlignedObject;
     }
 }  // namespace my::test
+#endif

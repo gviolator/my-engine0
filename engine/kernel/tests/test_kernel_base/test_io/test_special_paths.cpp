@@ -1,5 +1,5 @@
 // #my_engine_source_file
-
+#ifdef _WIN32
 #include "my/io/special_paths.h"
 
 namespace fs = std::filesystem;
@@ -74,3 +74,4 @@ namespace my::test
     }
 
 }  // namespace my::test
+#endif

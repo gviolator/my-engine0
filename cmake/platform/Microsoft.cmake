@@ -5,6 +5,7 @@
 # Compiler_Clang:   currently not supported
 
 set(Platform_Windows ON)
+set(Platform_Name windows)
 
 if(${Host_Arch} STREQUAL x64)
     set(Platform_Win64 ON)
@@ -120,7 +121,6 @@ if(Compiler_LikeCl)
 endif()
 
 if(Compiler_MSVC)
-
 
     list(APPEND _DEF_C_CPP_OPTIONS
         # /std:c++20

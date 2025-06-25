@@ -1,6 +1,4 @@
 // #my_engine_source_file
-
-
 #include "my/threading/set_thread_name.h"
 // TODO Tracy #include "tracy/Tracy.hpp"
 
