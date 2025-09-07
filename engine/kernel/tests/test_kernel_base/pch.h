@@ -36,7 +36,7 @@
 
 #ifdef __clang__
   #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wdeprecated-copy"
+  #pragma clang diagnostic ignored "-Wdeprecated-copy" "-Wcharacter-conversion"
 #endif
 
 #include <gmock/gmock.h>

@@ -1,8 +1,6 @@
 // #my_engine_source_file
-
 #pragma once
 
-#include "my/async/task.h"
 #include "my/io/io_constants.h"
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/ptr.h"
@@ -21,11 +19,11 @@ namespace my::io
      *
      * `IStreamBase` defines the basic operations for interacting with a stream, including querying and setting the current position.
      */
-    struct MY_ABSTRACT_TYPE IStreamBase : virtual IRefCounted
+    struct MY_ABSTRACT_TYPE IStreamBase : IRefCounted
     {
         MY_INTERFACE(my::io::IStreamBase, IRefCounted)
 
-        //using Ptr = my::Ptr<IStreamBase>; /**< A smart pointer type for `IStreamBase`. */
+        // using Ptr = my::Ptr<IStreamBase>; /**< A smart pointer type for `IStreamBase`. */
 
         /**
          * @brief Returns the current stream position if supported.
@@ -41,18 +39,26 @@ namespace my::io
          */
         virtual size_t setPosition(OffsetOrigin origin, int64_t offset) = 0;
 
+        /**
+         * @brief Flushes the stream, ensuring all buffered data is written.
+         */
+        virtual void flush() = 0;
+
         virtual bool canSeek() const = 0;
+
+        virtual bool canRead() const = 0;
+
+        virtual bool canWrite() const = 0;
     };
 
     using StreamBasePtr = my::Ptr<IStreamBase>;
 
     /**
-     * @struct IStreamReader
      * @brief Interface for reading operations on a stream.
      *
      * `IStreamReader` extends `IStreamBase` and provides methods for reading data from the stream.
      */
-    struct MY_ABSTRACT_TYPE IStream : virtual IStreamBase
+    struct MY_ABSTRACT_TYPE IStream : IStreamBase
     {
         MY_INTERFACE(my::io::IStream, IStreamBase)
 
@@ -74,34 +80,14 @@ namespace my::io
          * @param count The number of bytes to write.
          * @return A `Result` containing the number of bytes written.
          */
-         virtual Result<size_t> write([[maybe_unused]] const std::byte* buffer, [[maybe_unused]] size_t count)
-         {
+        virtual Result<size_t> write([[maybe_unused]] const std::byte* buffer, [[maybe_unused]] size_t count)
+        {
             MY_FAILURE("Method not implemented");
             return MakeError("Not implemented");
-         }
-
-         /**
-          * @brief Flushes the stream, ensuring all buffered data is written.
-          */
-         virtual void flush() = 0;
-
-         virtual bool canRead() const = 0;
-
-         virtual bool canWrite() const = 0;
-
+        }
     };
 
     using StreamPtr = my::Ptr<IStream>;
-
-    // struct MY_ABSTRACT_TYPE IAsyncStreamReader : virtual IStreamBase
-    // {
-    //     MY_INTERFACE(my::io::IAsyncStreamReader, IStreamBase)
-
-    //     using Ptr = my::Ptr<IAsyncStreamReader>;
-
-    //     virtual Result<size_t> read(std::byte*, size_t count) = 0;
-    // };
-
 
     /**
      * @brief Copies data from a reader to a buffer.

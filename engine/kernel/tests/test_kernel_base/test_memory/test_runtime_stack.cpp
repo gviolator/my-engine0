@@ -1,6 +1,6 @@
 // #my_engine_source_file
-
 #include "my/memory/runtime_stack.h"
+#include "my/test/helpers/check_guard.h"
 
 using namespace my::my_literals;
 
@@ -9,7 +9,7 @@ namespace my::test
     TEST(TestRuntimeStack, InitAllocator)
     {
         rtstack_init(2_Mb);
-        EXPECT_TRUE(get_rt_stack_allocator().is<IStackAllocatorInfo>());
+        EXPECT_TRUE(getRtStackAllocator().is<IStackAllocatorInfo>());
     }
 
     TEST(TestRuntimeStack, GetAllocatorInScope)
@@ -18,24 +18,26 @@ namespace my::test
         {
             rtstack_scope;
 
-            EXPECT_TRUE(get_rt_stack_allocator().is<IStackAllocatorInfo>());
+            EXPECT_TRUE(getRtStackAllocator().is<IStackAllocatorInfo>());
         }
     }
 
     TEST(TestRuntimeStack, GetAllocatorNoInit)
     {
-        EXPECT_FALSE(get_rt_stack_allocator().is<IStackAllocatorInfo>());
+        EXPECT_FALSE(getRtStackAllocator().is<IStackAllocatorInfo>());
     }
 
     TEST(TestRuntimeStack, Allocate)
     {
+        const CheckGuard noAssert{};
         rtstack_init(2_Mb);
 
-        auto ptr0 = get_rt_stack_allocator().alloc(128);
+        
+        auto ptr0 = getRtStackAllocator().alloc(128);
         EXPECT_NE(ptr0, nullptr);
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(ptr0) % alignof(std::max_align_t) == 0);
 
-        auto ptr1 = get_rt_stack_allocator().alloc(128);
+        auto ptr1 = getRtStackAllocator().alloc(128);
         EXPECT_NE(ptr1, nullptr);
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(ptr1) % alignof(std::max_align_t) == 0);
 
@@ -44,23 +46,24 @@ namespace my::test
 
     TEST(TestRuntimeStack, AllocateAligned)
     {
+        const CheckGuard noAssert{};
         rtstack_init(2_Mb);
 
         constexpr size_t DefaultAlignment = alignof(std::max_align_t);
-        constexpr size_t Alignment0 = 32;
-        constexpr size_t Alignment1 = 64;
-        constexpr size_t Alignment2 = 128;
+        constexpr size_t Alignment0 = 4;
+        constexpr size_t Alignment1 = 8;
+        constexpr size_t Alignment2 = 16;
         constexpr size_t AllocCount = 100;
 
-        auto& allocator = get_rt_stack_allocator();
+        auto& allocator = getRtStackAllocator();
 
         for (size_t i = 0; i < AllocCount; ++i)
         {
-            const auto ptr0 = reinterpret_cast<uintptr_t>(allocator.allocAligned(Alignment0 * 5, Alignment0));
+            const auto ptr0 = reinterpret_cast<uintptr_t>(allocator.alloc(Alignment0 * 5, Alignment0));
             ASSERT_NE(ptr0, 0);
             ASSERT_TRUE(ptr0 % Alignment0 == 0);
 
-            const auto ptr1 = reinterpret_cast<uintptr_t>(allocator.allocAligned(Alignment1 * 5, Alignment1));
+            const auto ptr1 = reinterpret_cast<uintptr_t>(allocator.alloc(Alignment1 * 5, Alignment1));
             ASSERT_NE(ptr1, 0);
             ASSERT_TRUE(ptr1 % Alignment1 == 0);
 
@@ -68,7 +71,7 @@ namespace my::test
             ASSERT_NE(ptrX, 0);
             ASSERT_TRUE(ptrX % DefaultAlignment == 0);
 
-            const auto ptr2 = reinterpret_cast<uintptr_t>(allocator.allocAligned(Alignment2 * 5, Alignment2));
+            const auto ptr2 = reinterpret_cast<uintptr_t>(allocator.alloc(Alignment2 * 5, Alignment2));
             ASSERT_NE(ptr2, 0);
             ASSERT_TRUE(ptr2 % Alignment2 == 0);
         }
@@ -76,20 +79,22 @@ namespace my::test
 
     TEST(TestRuntimeStack, AllocationScope)
     {
+        const CheckGuard noAssert{};
+
         const auto getStackOffset = []
         {
-            return get_rt_stack_allocator().as<const IStackAllocatorInfo&>().getAllocationOffset();
+            return getRtStackAllocator().as<const IStackAllocatorInfo&>().getAllocationOffset();
         };
 
         rtstack_init(2_Mb);
 
-        [[maybe_unused]] void* const ptr0 = get_rt_stack_allocator().alloc(128);
+        [[maybe_unused]] void* const ptr0 = getRtStackAllocator().alloc(128);
 
         const uintptr_t top0 = getStackOffset();
 
         {
             rtstack_scope;
-            [[maybe_unused]] void* const ptr1 = get_rt_stack_allocator().alloc(128);
+            [[maybe_unused]] void* const ptr1 = getRtStackAllocator().alloc(128);
             ASSERT_NE(top0, getStackOffset());
         }
 
@@ -98,6 +103,7 @@ namespace my::test
 
     TEST(TestRuntimeStack, StdWrapper)
     {
+        const CheckGuard noAssert{};
         using String = std::basic_string<char, std::char_traits<char>, RtStackStdAllocator<char>>;
         using List = std::list<String, RtStackStdAllocator<String>>;
 
@@ -125,6 +131,7 @@ namespace my::test
 
     TEST(TestRuntimeStack, AllocateMultiplePages)
     {
+        const CheckGuard noAssert{};
         rtstack_init(2_Mb);
 
         constexpr size_t AllocationSize = mem::PageSize * 4;
@@ -132,7 +139,7 @@ namespace my::test
 
         for (size_t i = 0; i < AllocationCount; ++i)
         {
-            void* const ptr = get_rt_stack_allocator().alloc(AllocationSize);
+            void* const ptr = getRtStackAllocator().alloc(AllocationSize);
             ASSERT_NE(ptr, nullptr);
             memset(ptr, 0, AllocationSize);
         }

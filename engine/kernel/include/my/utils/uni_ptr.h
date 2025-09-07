@@ -5,9 +5,8 @@
 #include <utility>
 
 #include "my/diag/assert.h"
-#include "my/rtti/ptr.h"
+#include "my/rtti/rtti_object.h"
 #include "my/utils/scope_guard.h"
-
 
 namespace my
 {

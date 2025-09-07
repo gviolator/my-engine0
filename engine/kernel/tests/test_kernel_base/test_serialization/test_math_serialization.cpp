@@ -22,8 +22,8 @@ namespace my::test
             VecType vec1 = {1.0F, 1.0F};
             auto runtimeVec1 = makeValueRef(vec1);
             ASSERT_TRUE(runtimeVec1->isMutable());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyDictionary>());
             ASSERT_TRUE(runtimeVec1->is<IRuntimeValueEvents>());
         }
 
@@ -31,16 +31,16 @@ namespace my::test
             const VecType vec2 = {1.0F, 1.0F};
             auto runtimeVec2 = makeValueRef(vec2);
             ASSERT_FALSE(runtimeVec2->isMutable());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec3 = {1.0F, 1.0F};
             auto runtimeVec3 = makeValueCopy(vec3);
             ASSERT_TRUE(runtimeVec3->isMutable());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyDictionary>());
         }
 
         static_assert(HasRuntimeValueRepresentation<math::vec2>);
@@ -58,8 +58,8 @@ namespace my::test
             VecType vec1 = VecType::one();
             auto runtimeVec1 = makeValueRef(vec1);
             ASSERT_TRUE(runtimeVec1->isMutable());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyDictionary>());
             ASSERT_TRUE(runtimeVec1->is<IRuntimeValueEvents>());
         }
 
@@ -67,16 +67,16 @@ namespace my::test
             const VecType vec2 = VecType::one();
             auto runtimeVec2 = makeValueRef(vec2);
             ASSERT_FALSE(runtimeVec2->isMutable());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec3 = VecType::one();
             auto runtimeVec3 = makeValueCopy(vec3);
             ASSERT_TRUE(runtimeVec3->isMutable());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyDictionary>());
         }
 
         static_assert(HasRuntimeValueRepresentation<math::vec3>);
@@ -94,24 +94,24 @@ namespace my::test
             VecType vec1 = VecType::one();
             auto runtimeVec1 = makeValueRef(vec1);
             ASSERT_TRUE(runtimeVec1->isMutable());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec2 = VecType::one();
             auto runtimeVec2 = makeValueRef(vec2);
             ASSERT_FALSE(runtimeVec2->isMutable());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec3 = VecType::one();
             auto runtimeVec3 = makeValueCopy(vec3);
             ASSERT_TRUE(runtimeVec3->isMutable());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyDictionary>());
         }
     }
 
@@ -127,24 +127,24 @@ namespace my::test
             VecType vec1 = VecType::identity();
             auto runtimeVec1 = makeValueRef(vec1);
             ASSERT_TRUE(runtimeVec1->isMutable());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec1->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec2 = VecType::identity();
             auto runtimeVec2 = makeValueRef(vec2);
             ASSERT_FALSE(runtimeVec2->isMutable());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec2->is<ReadonlyDictionary>());
         }
 
         {
             const VecType vec3 = VecType::identity();
             auto runtimeVec3 = makeValueCopy(vec3);
             ASSERT_TRUE(runtimeVec3->isMutable());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeVec3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeVec3->is<ReadonlyDictionary>());
         }
     }
 
@@ -160,8 +160,8 @@ namespace my::test
             MatType mat1 = MatType::identity();
             auto runtimeMat1 = makeValueRef(mat1);
             ASSERT_TRUE(runtimeMat1->isMutable());
-            ASSERT_TRUE(runtimeMat1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat1->is<ReadonlyDictionary>());
             ASSERT_TRUE(runtimeMat1->is<IRuntimeValueEvents>());
         }
 
@@ -169,16 +169,16 @@ namespace my::test
             const MatType mat2 = MatType::identity();
             auto runtimeMat2 = makeValueRef(mat2);
             ASSERT_FALSE(runtimeMat2->isMutable());
-            ASSERT_TRUE(runtimeMat2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat2->is<ReadonlyDictionary>());
         }
 
         {
             const MatType mat3 = MatType::identity();
             auto runtimeMat3 = makeValueCopy(mat3);
             ASSERT_TRUE(runtimeMat3->isMutable());
-            ASSERT_TRUE(runtimeMat3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat3->is<ReadonlyDictionary>());
         }
     }
 
@@ -194,8 +194,8 @@ namespace my::test
             MatType mat1 = MatType::identity();
             auto runtimeMat1 = makeValueRef(mat1);
             ASSERT_TRUE(runtimeMat1->isMutable());
-            ASSERT_TRUE(runtimeMat1->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat1->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat1->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat1->is<ReadonlyDictionary>());
             ASSERT_TRUE(runtimeMat1->is<IRuntimeValueEvents>());
         }
 
@@ -203,16 +203,16 @@ namespace my::test
             const MatType mat2 = MatType::identity();
             auto runtimeMat2 = makeValueRef(mat2);
             ASSERT_FALSE(runtimeMat2->isMutable());
-            ASSERT_TRUE(runtimeMat2->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat2->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat2->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat2->is<ReadonlyDictionary>());
         }
 
         {
             const MatType mat3 = MatType::identity();
             auto runtimeMat3 = makeValueCopy(mat3);
             ASSERT_TRUE(runtimeMat3->isMutable());
-            ASSERT_TRUE(runtimeMat3->is<RuntimeReadonlyCollection>());
-            ASSERT_TRUE(runtimeMat3->is<RuntimeReadonlyDictionary>());
+            ASSERT_TRUE(runtimeMat3->is<ReadonlyCollection>());
+            ASSERT_TRUE(runtimeMat3->is<ReadonlyDictionary>());
         }
     }
 
@@ -275,7 +275,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_TRUE(vecValue->isMutable());
 
-        RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
+        ReadonlyCollection& collectionValue = vecValue->as<ReadonlyCollection&>();
 
         ASSERT_THAT(collectionValue.getSize(), Ge(4));
         ASSERT_THAT(*runtimeValueCast<float>(collectionValue[0]), Eq(11.f));
@@ -304,7 +304,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_FALSE(vecValue->isMutable());
 
-        RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
+        ReadonlyCollection& collectionValue = vecValue->as<ReadonlyCollection&>();
 
         ASSERT_THAT(collectionValue.getSize(), Ge(4));
         ASSERT_THAT(*runtimeValueCast<float>(collectionValue[0]), Eq(11.f));
@@ -320,7 +320,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
         ASSERT_TRUE(vecValue->isMutable());
 
-        RuntimeReadonlyCollection& collectionValue = vecValue->as<RuntimeReadonlyCollection&>();
+        ReadonlyCollection& collectionValue = vecValue->as<ReadonlyCollection&>();
 
         ASSERT_THAT(collectionValue.getSize(), Ge(4));
         ASSERT_THAT(*runtimeValueCast<float>(collectionValue[0]), Eq(11.f));
@@ -337,7 +337,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_TRUE(vecValue->isMutable());
 
-        RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
+        ReadonlyDictionary& dictValue = vecValue->as<ReadonlyDictionary&>();
 
         ASSERT_THAT(dictValue.getSize(), Ge(4));
 
@@ -372,7 +372,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueRef(vec1);
         ASSERT_FALSE(vecValue->isMutable());
 
-        RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
+        ReadonlyDictionary& dictValue = vecValue->as<ReadonlyDictionary&>();
 
         ASSERT_THAT(dictValue.getSize(), Ge(4));
 
@@ -394,7 +394,7 @@ namespace my::test
         const RuntimeValuePtr vecValue = makeValueCopy(math::vec4{11.f, 22.f, 33.f, 44.f});
         ASSERT_TRUE(vecValue->isMutable());
 
-        RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
+        ReadonlyDictionary& dictValue = vecValue->as<ReadonlyDictionary&>();
 
         ASSERT_THAT(dictValue.getSize(), Ge(4));
 
@@ -424,13 +424,13 @@ namespace my::test
         });
 
         {
-            RuntimeReadonlyDictionary& dictValue = vecValue->as<RuntimeReadonlyDictionary&>();
+            ReadonlyDictionary& dictValue = vecValue->as<ReadonlyDictionary&>();
             dictValue.setValue("x", makeValueCopy(111.f)).ignore();
             ASSERT_EQ(changesCounter, 1);
         }
 
         {
-            RuntimeReadonlyCollection& collValue = vecValue->as<RuntimeReadonlyCollection&>();
+            ReadonlyCollection& collValue = vecValue->as<ReadonlyCollection&>();
             collValue.setAt(1, makeValueCopy(222.f)).ignore();
             ASSERT_EQ(changesCounter, 2);
         }

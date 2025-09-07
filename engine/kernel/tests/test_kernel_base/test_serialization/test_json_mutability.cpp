@@ -9,7 +9,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetPrimitive)
     {
-        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
+        Ptr<Dictionary> dict = serialization::jsonCreateDictionary();
         dict->setValue("fieldInt", makeValueCopy(111)).ignore();
         dict->setValue("fieldSingle", makeValueCopy(222.2f)).ignore();
         dict->setValue("fieldDouble", makeValueCopy(333.3)).ignore();
@@ -44,7 +44,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetOptional)
     {
-        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
+        Ptr<Dictionary> dict = serialization::jsonCreateDictionary();
 
         dict->setValue("notNull", makeValueCopy(std::optional<unsigned>(77))).ignore();
         dict->setValue("null", makeValueCopy(std::optional<unsigned>(std::nullopt))).ignore();
@@ -59,7 +59,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetCollection)
     {
-        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
+        Ptr<Dictionary> dict = serialization::jsonCreateDictionary();
 
         std::vector<int> values{11, 22, 33};
 
@@ -78,7 +78,7 @@ namespace my::test
      */
     TEST(TestSerializationJsonMutability, SetDictionary)
     {
-        Ptr<RuntimeDictionary> dict = serialization::jsonCreateDictionary();
+        Ptr<Dictionary> dict = serialization::jsonCreateDictionary();
 
         std::map<std::string, int> values{
             { "first", 11},

@@ -14,7 +14,7 @@
 #include "my/diag/logging.h"
 #include "my/io/stream.h"
 #include "my/kernel/kernel_config.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/memory/runtime_stack.h"
 #include "my/rtti/type_info.h"
 #include "my/serialization/runtime_value_builder.h"
@@ -47,14 +47,14 @@ namespace my
             @param path Property path. Can be compound: with sections separated by '/': "app/section_0/prop_1"
             @return value as RuntimeValue or null if property does not exists
         */
-        virtual RuntimeValuePtr getRead(std::string_view path, ReadOnlyLock& lock, IMemAllocator* allocator = nullptr) const = 0;
+        virtual RuntimeValuePtr getRead(std::string_view path, ReadOnlyLock& lock, IAllocator* allocator = nullptr) const = 0;
 
         /**
             @brief get property as modifiable runtime value
             @param path Property path.
             @param lock the synchronization mutex
         */
-        virtual Result<RuntimeValuePtr> getModify(std::string_view path, ModificationLock& lock, IMemAllocator* allocator = nullptr) = 0;
+        virtual Result<RuntimeValuePtr> getModify(std::string_view path, ModificationLock& lock, IAllocator* allocator = nullptr) = 0;
 
         /**
             @brief setting property value at path
@@ -95,7 +95,7 @@ namespace my
         rtstack_scope;
 
         ReadOnlyLock lock;
-        RuntimeValuePtr value = getRead(path, lock, get_rt_stack_allocator_ptr());
+        RuntimeValuePtr value = getRead(path, lock, getRtStackAllocatorPtr());
         if (!value)
         {
             return std::nullopt;

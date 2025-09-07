@@ -13,9 +13,9 @@ namespace my::ser_detail
     /**
      */
     template <typename T>
-    class VectorLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<RuntimeCollection>
+    class VectorLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<Collection>
     {
-        using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
+        using Base = ser_detail::NativeRuntimeValueBase<Collection>;
         using ContainerType = std::decay_t<T>;
 
         MY_REFCOUNTED_CLASS(VectorLikeNativeCollection<T>, Base)
@@ -125,9 +125,9 @@ namespace my::ser_detail
     /**
      */
     template <typename T>
-    class ListLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<RuntimeCollection>
+    class ListLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<Collection>
     {
-        using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
+        using Base = ser_detail::NativeRuntimeValueBase<Collection>;
         using ContainerType = std::decay_t<T>;
 
         MY_REFCOUNTED_CLASS(ListLikeNativeCollection<T>, Base)
@@ -237,9 +237,9 @@ namespace my::ser_detail
 
 
     template <typename T>
-    class SetLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<RuntimeCollection>
+    class SetLikeNativeCollection final : public ser_detail::NativeRuntimeValueBase<Collection>
     {
-        using Base = ser_detail::NativeRuntimeValueBase<RuntimeCollection>;
+        using Base = ser_detail::NativeRuntimeValueBase<Collection>;
         using ContainerType = std::decay_t<T>;
 
         MY_REFCOUNTED_CLASS(SetLikeNativeCollection<T>, Base)
@@ -354,7 +354,7 @@ namespace my
 {
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueRef(T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T&>;
 
@@ -362,7 +362,7 @@ namespace my
     }
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueRef(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<const T&>;
 
@@ -370,7 +370,7 @@ namespace my
     }
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueCopy(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T>;
 
@@ -378,7 +378,7 @@ namespace my
     }
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueCopy(T&& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(T&& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::VectorLikeNativeCollection<T>;
 
@@ -386,7 +386,7 @@ namespace my
     }
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueRef(T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T&>;
 
@@ -394,7 +394,7 @@ namespace my
     }
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueRef(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<const T&>;
 
@@ -402,7 +402,7 @@ namespace my
     }
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueCopy(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T>;
 
@@ -410,7 +410,7 @@ namespace my
     }
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueCopy(T&& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(T&& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::ListLikeNativeCollection<T>;
 
@@ -418,7 +418,7 @@ namespace my
     }
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueRef(T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T&>;
 
@@ -426,7 +426,7 @@ namespace my
     }
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueRef(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueRef(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<const T&>;
 
@@ -434,7 +434,7 @@ namespace my
     }
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueCopy(const T& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(const T& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T>;
 
@@ -442,7 +442,7 @@ namespace my
     }
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueCopy(T&& collection, IMemAllocator* allocator)
+    Ptr<Collection> makeValueCopy(T&& collection, IAllocator* allocator)
     {
         using Collection = ser_detail::SetLikeNativeCollection<T>;
 

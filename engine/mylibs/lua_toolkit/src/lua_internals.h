@@ -1,4 +1,5 @@
 // #my_engine_source_file
+#pragma once
 
 #include <limits>
 #include <string_view>
@@ -46,7 +47,7 @@ namespace my::lua
         {
             return isIndexed() || !m_name.empty();
         }
-
+   
         operator int() const
         {
             MY_DEBUG_ASSERT(isIndexed());
@@ -60,7 +61,7 @@ namespace my::lua
             return (m_name);
         }
 
-        std::string_view asString() const;
+        std::string_view asString() const;          
 
         bool operator==(const ChildVariableKey& other) const
         {

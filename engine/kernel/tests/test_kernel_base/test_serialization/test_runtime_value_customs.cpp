@@ -34,10 +34,10 @@ namespace nau
     };
     /*
         template <typename T>
-        class VectorCollection : public RuntimeCollection
+        class VectorCollection : public Collection
         {
             using ThisType = VectorCollection<T>;
-            MY_REFCOUNTED_CLASS(ThisType, RuntimeCollection)
+            MY_REFCOUNTED_CLASS(ThisType, Collection)
 
         public:
             VectorCollection(T& collection) :
@@ -92,10 +92,10 @@ namespace nau
 namespace my::math
 {
     template <typename T>
-    class VecRuntimeValue : public RuntimeReadonlyCollection,
-                            public RuntimeReadonlyDictionary
+    class VecRuntimeValue : public ReadonlyCollection,
+                            public ReadonlyDictionary
     {
-        MY_REFCOUNTED_CLASS(my::math::VecRuntimeValue<T>, RuntimeReadonlyCollection, RuntimeReadonlyDictionary)
+        MY_REFCOUNTED_CLASS(my::math::VecRuntimeValue<T>, ReadonlyCollection, ReadonlyDictionary)
 
     public:
         using Type = std::decay_t<T>;

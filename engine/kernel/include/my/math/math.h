@@ -108,13 +108,13 @@ namespace nau::math
     /**
      */
     template <typename T, size_t Size>
-    class VecXRuntimeValue : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeReadonlyCollection>,
-                             public RuntimeReadonlyDictionary
+    class VecXRuntimeValue : public ser_detail::NativePrimitiveRuntimeValueBase<ReadonlyCollection>,
+                             public ReadonlyDictionary
     {
-        using BasePrimitiveValue = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeReadonlyCollection>;
+        using BasePrimitiveValue = ser_detail::NativePrimitiveRuntimeValueBase<ReadonlyCollection>;
         using ThisType = nau::math::VecXRuntimeValue<T, Size>;
 
-        NAU_CLASS_(ThisType, BasePrimitiveValue, RuntimeReadonlyDictionary)
+        NAU_CLASS_(ThisType, BasePrimitiveValue, ReadonlyDictionary)
 
     public:
         using Type = std::decay_t<T>;
@@ -258,13 +258,13 @@ namespace nau::math
     /**
      */
     template <typename T, size_t Size>
-    class MatXRuntimeValue : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeReadonlyCollection>,
-                             public RuntimeReadonlyDictionary
+    class MatXRuntimeValue : public ser_detail::NativePrimitiveRuntimeValueBase<ReadonlyCollection>,
+                             public ReadonlyDictionary
     {
-        using BasePrimitiveValue = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeReadonlyCollection>;
+        using BasePrimitiveValue = ser_detail::NativePrimitiveRuntimeValueBase<ReadonlyCollection>;
         using ThisType = nau::math::MatXRuntimeValue<T, Size>;
 
-        NAU_CLASS_(ThisType, BasePrimitiveValue, RuntimeReadonlyDictionary)
+        NAU_CLASS_(ThisType, BasePrimitiveValue, ReadonlyDictionary)
 
     public:
         using Type = std::decay_t<T>;
@@ -408,7 +408,7 @@ namespace Vectormath
 {
     // Vector2
 
-    inline nau::RuntimeValue::Ptr makeValueRef(Vector2& vec, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(Vector2& vec, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<Vector2&, 2>;
@@ -416,7 +416,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), vec);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const Vector2& v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const Vector2& v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<const Vector2&, 2>;
@@ -424,7 +424,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), v);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(Vector2 v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(Vector2 v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<Vector2, 2>;
@@ -434,7 +434,7 @@ namespace Vectormath
 
     // IVector2
 
-    inline nau::RuntimeValue::Ptr makeValueRef(IVector2& vec, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(IVector2& vec, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<IVector2&, 2>;
@@ -442,7 +442,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), vec);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const IVector2& v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const IVector2& v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<const IVector2&, 2>;
@@ -450,7 +450,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), v);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(IVector2 v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(IVector2 v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<IVector2, 2>;
@@ -460,7 +460,7 @@ namespace Vectormath
 
     // IVector4
 
-    inline nau::RuntimeValue::Ptr makeValueRef(IVector4& vec, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(IVector4& vec, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<IVector4&, 4>;
@@ -468,7 +468,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), vec);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const IVector4& v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const IVector4& v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<const IVector4&, 4>;
@@ -476,7 +476,7 @@ namespace Vectormath
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), v);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(IVector4 v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(IVector4 v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<IVector4, 4>;
@@ -489,7 +489,7 @@ namespace Vectormath::SSE
 {
     // Vector3
 
-    inline nau::RuntimeValue::Ptr makeValueRef(Vector3& vec, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(Vector3& vec, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<Vector3&, 3>;
@@ -497,7 +497,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), vec);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const Vector3& v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const Vector3& v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<const Vector3&, 3>;
@@ -505,7 +505,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<VecValue>(std::move(allocator), v);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(Vector3 v, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(Vector3 v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<Vector3, 3>;
@@ -516,7 +516,7 @@ namespace Vectormath::SSE
     // LikeVec4
 
     template <nau::math::LikeVec4 T>
-    nau::RuntimeValue::Ptr makeValueRef(T& vec, nau::IMemAllocator::Ptr allocator = nullptr)
+    nau::RuntimeValue::Ptr makeValueRef(T& vec, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<T&, 4>;
@@ -525,7 +525,7 @@ namespace Vectormath::SSE
     }
 
     template <nau::math::LikeVec4 T>
-    nau::RuntimeValue::Ptr makeValueRef(const T& v, nau::IMemAllocator::Ptr allocator = nullptr)
+    nau::RuntimeValue::Ptr makeValueRef(const T& v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<const T&, 4>;
@@ -534,7 +534,7 @@ namespace Vectormath::SSE
     }
 
     template <nau::math::LikeVec4 T>
-    nau::RuntimeValue::Ptr makeValueCopy(T v, nau::IMemAllocator::Ptr allocator = nullptr)
+    nau::RuntimeValue::Ptr makeValueCopy(T v, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using VecValue = math::VecXRuntimeValue<T, 4>;
@@ -544,7 +544,7 @@ namespace Vectormath::SSE
 
     // Matrix3
 
-    inline nau::RuntimeValue::Ptr makeValueRef(Matrix3& mat, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(Matrix3& mat, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<Matrix3&, 3>;
@@ -552,7 +552,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<MatValue>(std::move(allocator), mat);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const Matrix3& m, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const Matrix3& m, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<const Matrix3&, 3>;
@@ -560,7 +560,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<MatValue>(std::move(allocator), m);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(Matrix3 m, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(Matrix3 m, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<Matrix3, 3>;
@@ -570,7 +570,7 @@ namespace Vectormath::SSE
 
     // Matrix4
 
-    inline nau::RuntimeValue::Ptr makeValueRef(Matrix4& mat, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(Matrix4& mat, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<Matrix4&, 4>;
@@ -578,7 +578,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<MatValue>(std::move(allocator), mat);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueRef(const Matrix4& m, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueRef(const Matrix4& m, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<const Matrix4&, 4>;
@@ -586,7 +586,7 @@ namespace Vectormath::SSE
         return rtti::createInstanceWithAllocator<MatValue>(std::move(allocator), m);
     }
 
-    inline nau::RuntimeValue::Ptr makeValueCopy(Matrix4 m, nau::IMemAllocator::Ptr allocator = nullptr)
+    inline nau::RuntimeValue::Ptr makeValueCopy(Matrix4 m, nau::IAllocator::Ptr allocator = nullptr)
     {
         using namespace nau;
         using MatValue = math::MatXRuntimeValue<Matrix4, 4>;

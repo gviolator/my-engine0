@@ -13,9 +13,9 @@ namespace my::ser_detail
 {
 
     template <typename T>
-    class NativeBasicStringValue : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>
+    class NativeBasicStringValue : public ser_detail::NativePrimitiveRuntimeValueBase<StringValue>
     {
-        using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>;
+        using Base = ser_detail::NativePrimitiveRuntimeValueBase<StringValue>;
 
         MY_REFCOUNTED_CLASS(NativeBasicStringValue<T>, Base)
     public:
@@ -88,9 +88,9 @@ namespace my::ser_detail
     /**
      */
     template <typename T>
-    class NativeStringParsableValue : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>
+    class NativeStringParsableValue : public ser_detail::NativePrimitiveRuntimeValueBase<StringValue>
     {
-        using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeStringValue>;
+        using Base = ser_detail::NativePrimitiveRuntimeValueBase<StringValue>;
 
         MY_REFCOUNTED_CLASS(NativeStringParsableValue<T>, Base)
     public:
@@ -160,7 +160,7 @@ namespace my::ser_detail
 namespace my
 {
     template <typename... Traits>
-    Ptr<RuntimeStringValue> makeValueRef(std::basic_string<char, Traits...>& str, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueRef(std::basic_string<char, Traits...>& str, IAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char, Traits...>&>;
 
@@ -168,14 +168,14 @@ namespace my
     }
 
     template <typename... Traits>
-    Ptr<RuntimeStringValue> makeValueRef(const std::basic_string<char, Traits...>& str, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueRef(const std::basic_string<char, Traits...>& str, IAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<const std::basic_string<char, Traits...>&>;
 
         return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
     }
 
-    inline Ptr<RuntimeStringValue> makeValueCopy(std::string_view str, IMemAllocator* allocator)
+    inline Ptr<StringValue> makeValueCopy(std::string_view str, IAllocator* allocator)
     {
         using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
@@ -184,7 +184,7 @@ namespace my
 
     // template <typename C, typename... Traits>
     // requires(sizeof(C) == sizeof(char))
-    // Ptr<RuntimeStringValue> makeValueRef(std::basic_string<C, Traits...>& str, IMemAllocator* allocator)
+    // Ptr<StringValue> makeValueRef(std::basic_string<C, Traits...>& str, IAllocator* allocator)
     // {
     //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<C, Traits...>&>;
 
@@ -193,21 +193,21 @@ namespace my
 
     // template <typename C, typename... Traits>
     // requires(sizeof(C) == sizeof(char))
-    // Ptr<RuntimeStringValue> makeValueRef(const std::basic_string<C, Traits...>& str, IMemAllocator* allocator)
+    // Ptr<StringValue> makeValueRef(const std::basic_string<C, Traits...>& str, IAllocator* allocator)
     // {
     //     using StringType = ser_detail::NativeBasicStringValue<const std::basic_string<C, Traits...>&>;
 
     //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str);
     // }
 
-    // inline Ptr<RuntimeStringValue> makeValueCopy(std::string_view str, IMemAllocator* allocator)
+    // inline Ptr<StringValue> makeValueCopy(std::string_view str, IAllocator* allocator)
     // {
     //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
     //     return rtti::createInstanceWithAllocator<StringType>(std::move(allocator), str.data(), str.size());
     // }
 
-    // inline Ptr<RuntimeStringValue> makeValueCopy(std::u8string_view str, IMemAllocator* allocator)
+    // inline Ptr<StringValue> makeValueCopy(std::u8string_view str, IAllocator* allocator)
     // {
     //     using StringType = ser_detail::NativeBasicStringValue<std::basic_string<char>>;
 
@@ -215,7 +215,7 @@ namespace my
     // }
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueRef(T& value, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueRef(T& value, IAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T&>;
 
@@ -223,7 +223,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueRef(const T& value, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueRef(const T& value, IAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<const T&>;
 
@@ -231,7 +231,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueCopy(const T& value, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueCopy(const T& value, IAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T>;
 
@@ -239,7 +239,7 @@ namespace my
     }
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueCopy(T&& value, IMemAllocator* allocator)
+    Ptr<StringValue> makeValueCopy(T&& value, IAllocator* allocator)
     {
         using Type = ser_detail::NativeStringParsableValue<T>;
 

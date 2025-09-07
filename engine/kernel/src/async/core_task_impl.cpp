@@ -27,7 +27,7 @@ namespace my::async
                 m_blockAllocators[3] = createAlloc(1024);
             }
 
-            IMemAllocator& getAllocator(size_t size)
+            IAllocator& getAllocator(size_t size)
             {
                 for (auto& [blockSize, allocator] : m_blockAllocators)
                 {
@@ -37,11 +37,11 @@ namespace my::async
                     }
                 }
 
-                return getSystemAllocator();
+                return getDefaultAllocator();
             }
 
         private:
-            using AllocatorEntry = std::tuple<size_t, MemAllocatorPtr>;
+            using AllocatorEntry = std::tuple<size_t, AllocatorPtr>;
 
             HostMemoryPtr m_hostMemory;
             std::array<AllocatorEntry, 4> m_blockAllocators;
@@ -54,7 +54,7 @@ namespace my::async
 
         static_assert(DefaultAlign % sizeof(void*) == 0);
         static_assert(CoreTaskSize % sizeof(void*) == 0);
-        static_assert(is_power_of2(DefaultAlign));
+        static_assert(isPowerOf2(DefaultAlign));
 
         constexpr static uint32_t TaskFlag_Ready = 1 << 0;
         constexpr static uint32_t TaskFlag_HasContinuation = 1 << 2;
@@ -90,7 +90,7 @@ namespace my::async
             // Notice about "+ dataAlignment".
             // If storage allocated by unaligned address (i.e. addr % dataAlignment != 0)
             // then the offset must be added, so there is need for some extra space to fit data in such cases
-            return aligned_size(CoreTaskSize + dataSize, std::max(DefaultAlign, dataAlignment)) + dataAlignment;
+            return alignedSize(CoreTaskSize + dataSize, std::max(DefaultAlign, dataAlignment)) + dataAlignment;
         }
 
         /**
@@ -156,7 +156,7 @@ namespace my::async
 
     CoreTask::~CoreTask() = default;
 
-    CoreTaskImpl::CoreTaskImpl(IMemAllocator& allocator, void* allocatedStorage, size_t dataSize, StateDestructorCallback destructor) :
+    CoreTaskImpl::CoreTaskImpl(IAllocator& allocator, void* allocatedStorage, size_t dataSize, StateDestructorCallback destructor) :
         m_allocator(allocator),
         m_allocatedStorage(allocatedStorage),
         m_dataSize(dataSize),
@@ -451,12 +451,12 @@ namespace my::async
     {
         static TaskAllocatorHolder g_taskAllocatorHolder;
 
-        MY_DEBUG_ASSERT(is_power_of2(dataAlignment));
+        MY_DEBUG_ASSERT(isPowerOf2(dataAlignment));
         MY_DEBUG_ASSERT(dataAlignment < DefaultAlign || (dataAlignment % DefaultAlign) == 0);
 
         // storageSize must be sufficient to store any properly aligned object.
         const size_t storageSize = getCoreTaskStorageSize(dataSize, dataAlignment);
-        IMemAllocator& allocator = g_taskAllocatorHolder.getAllocator(storageSize);
+        IAllocator& allocator = g_taskAllocatorHolder.getAllocator(storageSize);
 
         // the allocated storage may be different from where the CoreTaskImpl will actually be created.
         void* const allocatedStorage = allocator.alloc(storageSize);

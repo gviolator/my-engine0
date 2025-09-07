@@ -14,9 +14,9 @@ namespace my::ser_detail
     /**
      */
     template <typename T>
-    class StdOptionalValue final : public ser_detail::NativeRuntimeValueBase<RuntimeOptionalValue>
+    class StdOptionalValue final : public ser_detail::NativeRuntimeValueBase<OptionalValue>
     {
-        using Base = ser_detail::NativeRuntimeValueBase<RuntimeOptionalValue>;
+        using Base = ser_detail::NativeRuntimeValueBase<OptionalValue>;
         using OptionalType = std::decay_t<T>;
 
         MY_REFCOUNTED_CLASS(StdOptionalValue<T>, Base)
@@ -103,7 +103,7 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(T& opt, IMemAllocator* allocator)
+    Ptr<OptionalValue> makeValueRef(T& opt, IAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T&>;
 
@@ -111,7 +111,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(const T& opt, IMemAllocator* allocator)
+    Ptr<OptionalValue> makeValueRef(const T& opt, IAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<const T&>;
 
@@ -119,7 +119,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(const T& opt, IMemAllocator* allocator)
+    Ptr<OptionalValue> makeValueCopy(const T& opt, IAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 
@@ -127,7 +127,7 @@ namespace my
     }
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(T&& opt, IMemAllocator* allocator)
+    Ptr<OptionalValue> makeValueCopy(T&& opt, IAllocator* allocator)
     {
         using Optional = ser_detail::StdOptionalValue<T>;
 

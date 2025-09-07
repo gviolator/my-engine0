@@ -7,9 +7,9 @@
 
 namespace my::io
 {
-    class VirtualFileSystemImpl final : public IVirtualFileSystem
+    class VirtualFileSystemImpl final : public VirtualFileSystem
     {
-        MY_REFCOUNTED_CLASS(my::io::VirtualFileSystemImpl, IVirtualFileSystem)
+        MY_REFCOUNTED_CLASS(my::io::VirtualFileSystemImpl, VirtualFileSystem)
         
     private:
         struct FileSystemEntry
@@ -70,7 +70,7 @@ namespace my::io
 
         size_t getLastWriteTime(const FsPath&) override;
 
-        IFile::Ptr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) override;
+        FilePtr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) override;
 
         OpenDirResult openDirIterator(const FsPath& path) override;
 

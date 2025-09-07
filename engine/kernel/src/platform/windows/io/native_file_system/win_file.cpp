@@ -208,7 +208,7 @@ namespace my::io
     void* WinFile::memMap([[maybe_unused]] size_t offset, [[maybe_unused]] size_t count)
     {
         MY_DEBUG_ASSERT(isOpened());
-        MY_DEBUG_ASSERT(getAccessMode().hasAny(AccessMode::Read, AccessMode::Write));
+        MY_DEBUG_ASSERT(getAccessMode().anyIsSet(AccessMode::Read, AccessMode::Write));
         MY_DEBUG_ASSERT(offset < getSize());
 
         lock_(m_mutex);

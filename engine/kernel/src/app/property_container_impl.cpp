@@ -55,7 +55,7 @@ namespace my
 
         for (std::string_view propName : strings::split(valuePath, std::string_view{"/"}))
         {
-            auto* const currentDict = current->as<RuntimeReadonlyDictionary*>();
+            auto* const currentDict = current->as<ReadonlyDictionary*>();
             if (!currentDict)
             {
                 // if (diag::hasLogger())
@@ -75,7 +75,7 @@ namespace my
         return current;
     }
 
-    Result<Ptr<RuntimeDictionary>> PropertyContainerImpl::getDictionaryAtPath(std::string_view valuePath, bool createPath)
+    Result<Ptr<Dictionary>> PropertyContainerImpl::getDictionaryAtPath(std::string_view valuePath, bool createPath)
     {
         // BE AWARE: getDictionaryAtPath requires m_mutex lock !
         MY_FATAL(m_propsRoot);
@@ -84,7 +84,7 @@ namespace my
 
         for (std::string_view propName : strings::split(valuePath, std::string_view{"/"}))
         {
-            auto* const currentDict = current->as<RuntimeDictionary*>();
+            auto* const currentDict = current->as<Dictionary*>();
             if (!currentDict)
             {
                 return MakeError("The enclosing object is not a dictionary", valuePath);
@@ -105,7 +105,7 @@ namespace my
             current = currentDict->getValue(propName);
         }
 
-        if (current && current->is<RuntimeDictionary>())
+        if (current && current->is<Dictionary>())
         {
             return current;
         }
@@ -135,9 +135,9 @@ namespace my
             if (varKind.empty())
             {
                 auto propValue = findValueAtPath(varValue);
-                if (propValue && propValue->is<RuntimeStringValue>())
+                if (propValue && propValue->is<StringValue>())
                 {
-                    std::string strValue = propValue->as<const RuntimeStringValue&>().getString();
+                    std::string strValue = propValue->as<const StringValue&>().getString();
                     replacementStr.assign(strValue.data(), strValue.size());
                 }
             }
@@ -188,13 +188,13 @@ namespace my
         return findValueAtPath(path) != nullptr;
     }
 
-    RuntimeValuePtr PropertyContainerImpl::getRead(std::string_view path, ReadOnlyLock& lock, [[maybe_unused]] IMemAllocator* allocator) const
+    RuntimeValuePtr PropertyContainerImpl::getRead(std::string_view path, ReadOnlyLock& lock, [[maybe_unused]] IAllocator* allocator) const
     {
         lock = std::shared_lock{m_mutex};
         return findValueAtPath(path);
     }
 
-    Result<RuntimeValuePtr> PropertyContainerImpl::getModify(std::string_view path, ModificationLock& lock, [[maybe_unused]] IMemAllocator* allocator)
+    Result<RuntimeValuePtr> PropertyContainerImpl::getModify(std::string_view path, ModificationLock& lock, [[maybe_unused]] IAllocator* allocator)
     {
         MY_FATAL(m_propsRoot);
 
@@ -202,7 +202,7 @@ namespace my
 
         auto [parentPath, propName] = split_property_path(path);
 
-        Result<Ptr<RuntimeDictionary>> parentDict = getDictionaryAtPath(parentPath, false);
+        Result<Ptr<Dictionary>> parentDict = getDictionaryAtPath(parentPath, false);
         CheckResult(parentDict);
         MY_FATAL(*parentDict);
 
@@ -218,7 +218,7 @@ namespace my
 
         RuntimeValuePtr childContainer = (*parentDict)->getValue(propName);
 
-        const bool propertyIsContainer = childContainer->is<RuntimeDictionary>() || childContainer->is<RuntimeCollection>();
+        const bool propertyIsContainer = childContainer->is<Dictionary>() || childContainer->is<Collection>();
         if (!propertyIsContainer)
         {
             return MakeError("Property ({}) expected to be dictionary or collection", propName);
@@ -235,7 +235,7 @@ namespace my
 
         auto [parentPath, propName] = split_property_path(path);
 
-        Result<Ptr<RuntimeDictionary>> parentDict = getDictionaryAtPath(parentPath);
+        Result<Ptr<Dictionary>> parentDict = getDictionaryAtPath(parentPath);
         CheckResult(parentDict);
         MY_FATAL(*parentDict);
 
@@ -246,7 +246,7 @@ namespace my
     {
         MY_FATAL(m_propsRoot);
 
-        if (!value.is<RuntimeReadonlyDictionary>())
+        if (!value.is<ReadonlyDictionary>())
         {
             return MakeError("Dictionary value is expected");
         }

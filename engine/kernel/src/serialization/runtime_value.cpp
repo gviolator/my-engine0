@@ -49,17 +49,17 @@ namespace my
             const bool m_isMutable;
         };
 
-        std::optional<std::string> lexical_cast(const RuntimePrimitiveValue& value)
+        std::optional<std::string> lexical_cast(const PrimitiveValue& value)
         {
-            if (auto iValue = value.as<const RuntimeIntegerValue*>())
+            if (auto iValue = value.as<const IntegerValue*>())
             {
                 return strings::lexicalCast(iValue->getInt64());
             }
-            else if (auto fValue = value.as<const RuntimeFloatValue*>())
+            else if (auto fValue = value.as<const FloatValue*>())
             {
                 return strings::lexicalCast(fValue->getSingle());
             }
-            else if (auto bValue = value.as<const RuntimeBooleanValue*>())
+            else if (auto bValue = value.as<const BooleanValue*>())
             {
                 return strings::lexicalCast(bValue->getBool());
             }
@@ -67,19 +67,19 @@ namespace my
             return std::nullopt;
         }
 
-        bool lexical_cast(RuntimePrimitiveValue& value, const std::string& str)
+        bool lexical_cast(PrimitiveValue& value, const std::string& str)
         {
-            if (auto iValue = value.as<RuntimeIntegerValue*>())
+            if (auto iValue = value.as<IntegerValue*>())
             {
                 const int64_t v = str.empty() ? 0 : strings::lexicalCast<int64_t>(str);
                 iValue->setInt64(v);
             }
-            else if (auto fValue = value.as<RuntimeFloatValue*>())
+            else if (auto fValue = value.as<FloatValue*>())
             {
                 const double v = str.empty() ? 0. : strings::lexicalCast<double>(str);
                 fValue->setDouble(v);
             }
-            else if (auto bValue = value.as<RuntimeBooleanValue*>())
+            else if (auto bValue = value.as<BooleanValue*>())
             {
                 const bool v = str.empty() ? false : strings::lexicalCast<bool>(str);
                 bValue->setBool(v);
@@ -92,9 +92,9 @@ namespace my
             return true;
         }
 
-        Result<> assignStringValue(RuntimeStringValue& dstStr, const RuntimePrimitiveValue& src, serialization::TypeCoercion typeCoercion)
+        Result<> assignStringValue(StringValue& dstStr, const PrimitiveValue& src, serialization::TypeCoercion typeCoercion)
         {
-            if (auto const srcStr = src.as<const RuntimeStringValue*>())
+            if (auto const srcStr = src.as<const StringValue*>())
             {
                 auto strBytes = srcStr->getString();
                 return dstStr.setString(strBytes);
@@ -110,11 +110,11 @@ namespace my
             return MakeError("String value can be assigned only from other string");
         }
 
-        Result<> assignPrimitiveValue(RuntimePrimitiveValue& dst, const RuntimePrimitiveValue& src, serialization::TypeCoercion typeCoercion = serialization::TypeCoercion::Allow)
+        Result<> assignPrimitiveValue(PrimitiveValue& dst, const PrimitiveValue& src, serialization::TypeCoercion typeCoercion = serialization::TypeCoercion::Allow)
         {
             using namespace my::serialization;
 
-            if (auto const dstStr = dst.as<RuntimeStringValue*>())
+            if (auto const dstStr = dst.as<StringValue*>())
             {
                 return assignStringValue(*dstStr, src, typeCoercion);
             }
@@ -126,13 +126,13 @@ namespace my
                     return false;
                 }
 
-                auto const srcStr = src.as<const RuntimeStringValue*>();
+                auto const srcStr = src.as<const StringValue*>();
                 return srcStr && lexical_cast(dst, srcStr->getString());
             };
 
-            if (auto const dstBool = dst.as<RuntimeBooleanValue*>())
+            if (auto const dstBool = dst.as<BooleanValue*>())
             {
-                if (auto const srcBool = src.as<const RuntimeBooleanValue*>())
+                if (auto const srcBool = src.as<const BooleanValue*>())
                 {
                     dstBool->setBool(srcBool->getBool());
                 }
@@ -144,13 +144,13 @@ namespace my
                 return {};
             }
 
-            if (RuntimeFloatValue* const dstFloat = dst.as<RuntimeFloatValue*>())
+            if (FloatValue* const dstFloat = dst.as<FloatValue*>())
             {
-                if (auto const srcFloat = src.as<const RuntimeFloatValue*>())
+                if (auto const srcFloat = src.as<const FloatValue*>())
                 {
                     dstFloat->setDouble(srcFloat->getDouble());
                 }
-                else if (auto const srcInt = src.as<const RuntimeIntegerValue*>())
+                else if (auto const srcInt = src.as<const IntegerValue*>())
                 {
                     if (dstFloat->getBitsCount() == sizeof(double))
                     {
@@ -169,9 +169,9 @@ namespace my
                 return {};
             }
 
-            if (auto const dstInt = dst.as<RuntimeIntegerValue*>())
+            if (auto const dstInt = dst.as<IntegerValue*>())
             {
-                if (auto const srcInt = src.as<const RuntimeIntegerValue*>())
+                if (auto const srcInt = src.as<const IntegerValue*>())
                 {
                     if (dstInt->isSigned())
                     {
@@ -182,7 +182,7 @@ namespace my
                         dstInt->setUint64(srcInt->getUint64());
                     }
                 }
-                else if (auto const srcFloat = src.as<const RuntimeFloatValue*>())
+                else if (auto const srcFloat = src.as<const FloatValue*>())
                 {
                     const auto iValue = static_cast<int64_t>(std::floor(srcFloat->getSingle()));
 
@@ -206,7 +206,7 @@ namespace my
             return MakeError("Do not known how to assign primitive runtime value");
         }
 
-        Result<> assignCollection(RuntimeCollection& dst, RuntimeReadonlyCollection& src, ValueAssignOptionFlag option)
+        Result<> assignCollection(Collection& dst, ReadonlyCollection& src, ValueAssignOptionFlag option)
         {
             if (!option.has(ValueAssignOption::MergeCollection))
             {
@@ -224,9 +224,9 @@ namespace my
             return {};
         }
 
-        Result<> assignDictionary(RuntimeReadonlyDictionary& dst, RuntimeReadonlyDictionary& src, ValueAssignOptionFlag option)
+        Result<> assignDictionary(ReadonlyDictionary& dst, ReadonlyDictionary& src, ValueAssignOptionFlag option)
         {
-            if (RuntimeDictionary* const mutableDictionary = dst.as<RuntimeDictionary*>(); mutableDictionary && !option.has(ValueAssignOption::MergeCollection))
+            if (Dictionary* const mutableDictionary = dst.as<Dictionary*>(); mutableDictionary && !option.has(ValueAssignOption::MergeCollection))
             {
                 mutableDictionary->clear();
             }
@@ -241,7 +241,7 @@ namespace my
             return {};
         }
 
-        Result<> assignObject(RuntimeObject& obj, RuntimeReadonlyDictionary& srcDict)
+        Result<> assignObject(RuntimeObject& obj, ReadonlyDictionary& srcDict)
         {
             for (size_t i = 0, size = obj.getSize(); i < size; ++i)
             {
@@ -272,19 +272,19 @@ namespace my
 
         const auto clearDstIfOptionalSrcIsNull = [&dst]() -> Result<>
         {
-            if (auto const dstOpt = dst->as<RuntimeOptionalValue*>())
+            if (auto const dstOpt = dst->as<OptionalValue*>())
             {
                 dstOpt->reset();
             }
-            else if (auto const dstStr = dst->as<RuntimeStringValue*>())
+            else if (auto const dstStr = dst->as<StringValue*>())
             {
                 CheckResult(dstStr->setString(""));
             }
-            else if (auto const dstCollection = dst->as<RuntimeCollection*>())
+            else if (auto const dstCollection = dst->as<Collection*>())
             {
                 dstCollection->clear();
             }
-            else if (auto const dstDict = dst->as<RuntimeDictionary*>())
+            else if (auto const dstDict = dst->as<Dictionary*>())
             {
                 dstDict->clear();
             }
@@ -302,7 +302,7 @@ namespace my
             return clearDstIfOptionalSrcIsNull();
         }
 
-        if (RuntimeOptionalValue* const srcOpt = src->as<RuntimeOptionalValue*>())
+        if (OptionalValue* const srcOpt = src->as<OptionalValue*>())
         {
             if (srcOpt->hasValue())
             {
@@ -312,14 +312,14 @@ namespace my
             return clearDstIfOptionalSrcIsNull();
         }
 
-        if (auto const dstOpt = dst->as<RuntimeOptionalValue*>())
+        if (auto const dstOpt = dst->as<OptionalValue*>())
         {
             return dstOpt->setValue(src);
         }
 
-        if (auto const dstValue = dst->as<RuntimePrimitiveValue*>())
+        if (auto const dstValue = dst->as<PrimitiveValue*>())
         {
-            const RuntimePrimitiveValue* const srcValue = src->as<RuntimePrimitiveValue*>();
+            const PrimitiveValue* const srcValue = src->as<PrimitiveValue*>();
             if (!srcValue)
             {
                 return MakeError("Expected primitive value");
@@ -327,9 +327,9 @@ namespace my
             return assignPrimitiveValue(*dstValue, *srcValue);
         }
 
-        if (auto const dstCollection = dst->as<RuntimeCollection*>())
+        if (auto const dstCollection = dst->as<Collection*>())
         {
-            RuntimeReadonlyCollection* const srcCollection = src->as<RuntimeReadonlyCollection*>();
+            ReadonlyCollection* const srcCollection = src->as<ReadonlyCollection*>();
             if (!srcCollection)
             {
                 return MakeError("Expected Collection object");
@@ -338,9 +338,9 @@ namespace my
             return assignCollection(*dstCollection, *srcCollection, option);
         }
 
-        if (auto* const dstCollection = dst->as<RuntimeReadonlyCollection*>(); dstCollection && src->is<RuntimeReadonlyCollection>())
+        if (auto* const dstCollection = dst->as<ReadonlyCollection*>(); dstCollection && src->is<ReadonlyCollection>())
         {
-            RuntimeReadonlyCollection* const srcCollection = src->as<RuntimeReadonlyCollection*>();
+            ReadonlyCollection* const srcCollection = src->as<ReadonlyCollection*>();
             if (!srcCollection)
             {
                 return MakeError("Expected Collection object");
@@ -365,25 +365,25 @@ namespace my
         // each object is also dictionary, but logic is differ:  object has fixed set of the fields.
         if (auto* const dstObj = dst->as<RuntimeObject*>())
         {
-            RuntimeReadonlyDictionary* const srcDict = src->as<RuntimeReadonlyDictionary*>();
+            ReadonlyDictionary* const srcDict = src->as<ReadonlyDictionary*>();
             return srcDict ? assignObject(*dstObj, *srcDict) : MakeError("Expected Dictionary object");
         }
 
-        if (auto* const dstDict = dst->as<RuntimeReadonlyDictionary*>())
+        if (auto* const dstDict = dst->as<ReadonlyDictionary*>())
         {
-            RuntimeReadonlyDictionary* const srcDict = src->as<RuntimeReadonlyDictionary*>();
+            ReadonlyDictionary* const srcDict = src->as<ReadonlyDictionary*>();
             return srcDict ? assignDictionary(*dstDict, *srcDict, option) : MakeError("Expected Dictionary object");
         }
 
         return MakeError("Do not known how to assign runtime value");
     }
 
-    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, IMemAllocator* allocator)
+    Ptr<RuntimeValueRef> RuntimeValueRef::create(RuntimeValuePtr& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(allocator, std::ref(value));
     }
 
-    // Ptr<RuntimeValueRef> RuntimeValueRef::create(std::reference_wrapper<const RuntimeValuePtr> value, MemAllocatorPtr allocator)
+    // Ptr<RuntimeValueRef> RuntimeValueRef::create(std::reference_wrapper<const RuntimeValuePtr> value, AllocatorPtr allocator)
     // {
     //     return rtti::createInstanceWithAllocator<RuntimeValueRefImpl, RuntimeValueRef>(std::move(allocator), value);
     // }

@@ -40,6 +40,24 @@ namespace my::lua
         return m_name;
     }
 
+    // int ChildVariableKey::asIndex() const
+    // {
+    //     if(!*this)
+    //     {
+    //         return {};
+    //     }
+
+    //     if(m_index != InvalidLuaIndex)
+    //     {
+    //         if(m_name.empty())
+    //         {
+    //             m_name = strings::lexicalCast(m_index);
+    //         }
+    //     }
+
+    //     return m_name;
+    // }
+
     bool ChildVariableKey::operator==(std::string_view str) const
     {
         MY_DEBUG_ASSERT(static_cast<bool>(*this));

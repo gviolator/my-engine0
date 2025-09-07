@@ -4,11 +4,11 @@
 #pragma once
 
 #include <type_traits>
-#include <typeinfo>
+//#include <typeinfo>
 
 #include "my/diag/assert.h"
 #include "my/rtti/type_info.h"
-#include "my/utils/preprocessor.h"
+//#include "my/utils/preprocessor.h"
 
 #define MY_INTERFACE(TypeName, ...) \
     MY_TYPEID(TypeName)             \
@@ -30,6 +30,7 @@ namespace my
         virtual bool is(const rtti::TypeInfo&) const noexcept = 0;
         virtual void* as(const rtti::TypeInfo&) noexcept = 0;
         virtual const void* as(const rtti::TypeInfo&) const noexcept = 0;
+        virtual void releaseSelf() noexcept = 0;
 
         IRttiObject& operator=(const IRttiObject&) = default;
 
@@ -113,10 +114,6 @@ namespace my
          */
         virtual void addRef() = 0;
 
-        /**
-         */
-        virtual void releaseRef() = 0;
-
         /*!
             Return weak reference
         */
@@ -125,6 +122,13 @@ namespace my
         /**
          */
         virtual uint32_t getRefsCount() const = 0;
+
+        /**
+         */
+        inline void releaseRef() noexcept
+        {
+            this->releaseSelf();
+        }
     };
 
     /*

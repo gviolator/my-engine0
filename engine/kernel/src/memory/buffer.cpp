@@ -4,7 +4,7 @@
 
 #include "my/diag/assert.h"
 #include "my/memory/fixed_size_block_allocator.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/utils/scope_guard.h"
 
 // #define TRACK_BUFFER_ALLOCATIONS
@@ -76,7 +76,7 @@ namespace my
                 m_blockAllocators[3] = createAlloc(2048);
             }
 
-            IMemAllocator& getAllocator(size_t size)
+            IAllocator& getAllocator(size_t size)
             {
                 for (auto& [blockSize, allocator] : m_blockAllocators)
                 {
@@ -86,11 +86,11 @@ namespace my
                     }
                 }
 
-                return getSystemAllocator();
+                return getDefaultAllocator();
             }
 
         private:
-            using AllocatorEntry = std::tuple<size_t, MemAllocatorPtr>;
+            using AllocatorEntry = std::tuple<size_t, AllocatorPtr>;
 
             HostMemoryPtr m_hostMemory;
             std::array<AllocatorEntry, 4> m_blockAllocators;
@@ -115,13 +115,13 @@ namespace my
             return reinterpret_cast<std::byte*>(mutableHeader) + ClientDataOffset;
         }
 
-        IMemAllocator& getBufferAllocator(size_t storageSize)
+        IAllocator& getBufferAllocator(size_t storageSize)
         {
             static BufferAllocatorHolder g_bufferAllocatorHolder;
             return g_bufferAllocatorHolder.getAllocator(storageSize);
         }
 
-        IMemAllocator& getBufferAllocator(const BufferBase::Header& header)
+        IAllocator& getBufferAllocator(const BufferBase::Header& header)
         {
             MY_DEBUG_FATAL(header.capacity > 0);
 
@@ -135,10 +135,10 @@ namespace my
     BufferHandle BufferStorage::allocate(size_t clientSize)
     {
         const size_t granuleSize = (clientSize < BigAllocationThreshold) ? AllocationGranularity : BigAllocationGranularity;
-        const size_t storageSize = aligned_size(HeaderSize + clientSize, granuleSize);
+        const size_t storageSize = alignedSize(HeaderSize + clientSize, granuleSize);
         const size_t capacity = storageSize - HeaderSize;
 
-        IMemAllocator& allocator = getBufferAllocator(storageSize);
+        IAllocator& allocator = getBufferAllocator(storageSize);
         void* const storage = allocator.alloc(storageSize);
         MY_FATAL(storage);
         MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);

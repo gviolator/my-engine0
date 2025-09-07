@@ -22,7 +22,7 @@ namespace my
             mylog_warn("Logger is already set");
         }
 
-        //m_sinks.emplace_back(getDefaultLogger().addSink(createConsoleSink()));
+        m_sinks.emplace_back(getDefaultLogger().addSink(createConsoleSink()));
         m_sinks.emplace_back(getDefaultLogger().addSink(createPlainTextSink(createDebugOutputStream())));
 
         // m_logSubscriptions.reserve(2);

@@ -2,18 +2,22 @@
 #pragma once
 #include <memory>
 
-namespace my::test
+#include "my/runtime/internal/kernel_runtime.h"
+
+
+namespace my::test {
+class RuntimeGuard
 {
-    class RuntimeGuard
-    {
-    public:
-        using Ptr = std::unique_ptr<RuntimeGuard>;
+public:
+    using Ptr = std::unique_ptr<RuntimeGuard>;
 
-        static RuntimeGuard::Ptr create();
+    static RuntimeGuard::Ptr create();
 
-        virtual ~RuntimeGuard() = default;
+    virtual ~RuntimeGuard() = default;
 
-        virtual void reset() = 0;
-    };
+    virtual KernelRuntime& getKRuntime() = 0;
+
+    virtual void reset() = 0;
+};
 
 }  // namespace my::test

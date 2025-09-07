@@ -7,7 +7,7 @@
 
 #include "my/io/stream.h"
 #include "my/kernel/kernel_config.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/serialization/runtime_value.h"
 #include "my/serialization/serialization.h"
 #include "my/utils/functor.h"
@@ -33,12 +33,12 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParse(io::IStream&, IMemAllocator* = nullptr);
+    Result<RuntimeValuePtr> jsonParse(io::IStream&, IAllocator* = nullptr);
 
     /**
      */
     MY_KERNEL_EXPORT
-    Result<RuntimeValuePtr> jsonParseString(std::string_view, IMemAllocator* = nullptr);
+    Result<RuntimeValuePtr> jsonParseString(std::string_view, IAllocator* = nullptr);
 
     /**
      */
@@ -71,18 +71,18 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IMemAllocator* = nullptr);
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IAllocator* = nullptr);
 
     /**
      */
-    inline Ptr<RuntimeDictionary> jsonCreateDictionary()
+    inline Ptr<Dictionary> jsonCreateDictionary()
     {
         return jsonToRuntimeValue(Json::Value{Json::ValueType::objectValue});
     }
 
     /**
      */
-    inline Ptr<RuntimeCollection> jsonCreateCollection()
+    inline Ptr<Collection> jsonCreateCollection()
     {
         return jsonToRuntimeValue(Json::Value{Json::ValueType::arrayValue});
     }
@@ -90,10 +90,10 @@ namespace my::serialization
     /**
      */
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator* = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
-    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IMemAllocator* = nullptr);
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IAllocator* = nullptr);
 
     MY_KERNEL_EXPORT
     Result<> runtimeApplyToJsonValue(Json::Value& jsonValue, const RuntimeValuePtr&, JsonSettings = {});

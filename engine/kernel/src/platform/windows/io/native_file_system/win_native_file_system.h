@@ -20,7 +20,7 @@ namespace my::io
 
         size_t getLastWriteTime(const FsPath&) override;
 
-        IFile::Ptr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) override;
+        FilePtr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) override;
 
         OpenDirResult openDirIterator(const FsPath& path) override;
 

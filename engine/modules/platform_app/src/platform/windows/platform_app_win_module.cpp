@@ -5,27 +5,15 @@
 
 namespace my
 {
-    class PlatformAppWinModule : public IModule
+    class PlatformAppWinModule : public ModuleBase
     {
         MY_RTTI_CLASS(my::PlatformAppWinModule, IModule)
 
-    private:
-        std::string getModuleName() override
+        Result<> moduleInit() override
         {
-            return "Platform app (win)";
+            return ResultSuccess;
         }
 
-        void moduleInit() override
-        {
-        }
-
-        void modulePostInit() override
-        {
-        }
-
-        void moduleShutdown() override
-        {
-        }
     };
 }  // namespace my
 

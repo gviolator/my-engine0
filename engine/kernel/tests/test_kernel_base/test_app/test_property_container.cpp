@@ -84,7 +84,7 @@ namespace my::test
             return str;
         }
 
-        std::unique_ptr<PropertyContainer> m_props; //= createPropertyContainer();
+        std::unique_ptr<PropertyContainer> m_props = createPropertyContainer();
     };
 
     /**
@@ -250,7 +250,7 @@ namespace my::test
         {
             PropertyContainer::ModificationLock lock;
 
-            Result<Ptr<RuntimeCollection>> collection = *m_props->getModify(propName, lock);
+            Result<Ptr<Collection>> collection = *m_props->getModify(propName, lock);
             ASSERT_TRUE(collection);
 
             (*collection)->clear();

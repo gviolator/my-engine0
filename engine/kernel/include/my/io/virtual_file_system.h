@@ -13,15 +13,15 @@
 namespace my::io
 {
     /**
-     * @struct IVirtualFileSystem
+     * @struct VirtualFileSystem
      * @brief Interface for a virtual file system that supports mounting and unmounting of other file systems.
      * @details This interface extends both `IMutableFileSystem` and `INativeFileSystem`. It provides functionalities
      *          for managing multiple file systems as a unified virtual file system.
      */
-    struct MY_ABSTRACT_TYPE IVirtualFileSystem : IMutableFileSystem,
-                                                 INativeFileSystem
+    struct MY_ABSTRACT_TYPE VirtualFileSystem : IMutableFileSystem,
+                                                INativeFileSystem
     {
-        MY_INTERFACE(my::io::IVirtualFileSystem, IMutableFileSystem, INativeFileSystem)
+        MY_INTERFACE(my::io::VirtualFileSystem, IMutableFileSystem, INativeFileSystem)
 
         /**
          * @brief Mounts a file system to a specified path within the virtual file system.
@@ -40,7 +40,7 @@ namespace my::io
         virtual void unmount(FileSystemPtr) = 0;
     };
 
-    using VirtualFileSystemPtr = my::Ptr<IVirtualFileSystem>;  ///< Type alias for a pointer to an `IVirtualFileSystem`.
+    using VirtualFileSystemPtr = my::Ptr<VirtualFileSystem>;  ///< Type alias for a pointer to an `VirtualFileSystem`.
 
     /**
      * @brief Creates a new virtual file system.

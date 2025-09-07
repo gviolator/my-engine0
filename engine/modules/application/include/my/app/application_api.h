@@ -40,6 +40,7 @@ namespace my
     namespace app_detail
     {
         MY_APPMODULE_EXPORT void setApplicationInstance(Application&);
+
         MY_APPMODULE_EXPORT Application* resetApplicationInstance();
     }  // namespace app_detail
 }  // namespace my

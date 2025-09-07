@@ -11,4 +11,5 @@ namespace my
     using ApplicationPtr = std::unique_ptr<Application>;
 
     ApplicationPtr createApplication(ApplicationInitDelegatePtr appDelegate);
-}
+
+}  // namespace my

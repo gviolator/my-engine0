@@ -11,7 +11,7 @@
 #include "my/diag/assert.h"
 #include "my/diag/error.h"
 #include "my/kernel/kernel_config.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/utils/scope_guard.h"
 #include "my/utils/type_utility.h"
 

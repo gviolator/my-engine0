@@ -5,11 +5,12 @@
 
 #include "lua_toolkit/lua_interop.h"
 #include "lua_toolkit/lua_utils.h"
+#include "my/dispatch/dispatch.h"
 
 namespace my::lua_detail
 {
-    const char* ClassDescriptorMetatableName = "Nau_ClassDescriptorMetatable";
-    const char* ClassDescriptorFieldName = "nauClassDescriptor";
+    const char* ClassDescriptorMetatableName = "MyClassDescriptorMetatable";
+    const char* ClassDescriptorFieldName = "myClassDescriptor";
 
     /**
      */
@@ -22,10 +23,10 @@ namespace my::lua_detail
 
     /**
      */
-    class NauRefCountedNativeObject final : public NativeObject
+    class RefCountedNativeObject final : public NativeObject
     {
     public:
-        NauRefCountedNativeObject(Ptr<> obj) :
+        RefCountedNativeObject(Ptr<> obj) :
             m_object(std::move(obj))
         {
             MY_DEBUG_ASSERT(m_object);
@@ -78,7 +79,9 @@ namespace my::lua_detail
         constexpr int FirstArgStackIndex = 2;
         for (int i = FirstArgStackIndex, luaTop = lua_gettop(l); i <= luaTop; ++i)
         {
-            arguments.emplace_back(lua::makeValueFromLuaStack(l, i));
+            auto [argValue, keepMode] = lua::makeValueFromLuaStack(l, i);
+
+            arguments.emplace_back(std::move(argValue));
         }
 
         const auto methodUpvalueIndex = lua_upvalueindex(1);
@@ -281,8 +284,8 @@ namespace my::lua
         MY_DEBUG_ASSERT(object);
         MY_DEBUG_ASSERT(classDescriptor);
 
-        void* const mem = lua_newuserdatauv(l, sizeof(lua_detail::NauRefCountedNativeObject), 1);
-        new(mem)(lua_detail::NauRefCountedNativeObject)(std::move(object));
+        void* const mem = lua_newuserdatauv(l, sizeof(lua_detail::RefCountedNativeObject), 1);
+        new(mem)(lua_detail::RefCountedNativeObject)(std::move(object));
 
         CheckResult(lua::initializeClass(l, std::move(classDescriptor), true));
         MY_DEBUG_ASSERT(lua_type(l, -1) == LUA_TTABLE);

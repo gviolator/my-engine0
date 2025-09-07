@@ -16,7 +16,7 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE IModuleManager
+    struct MY_ABSTRACT_TYPE ModuleManager
     {
         enum class ModulesPhase
         {
@@ -25,15 +25,13 @@ namespace my
             Shutdown
         };
 
-        // using Ptr = std::unique_ptr<IModuleManager>;
+        virtual ~ModuleManager() = default;
 
-        virtual ~IModuleManager() = default;
+        virtual Result<> doModulesPhase(ModulesPhase phase) = 0;
 
-        virtual void doModulesPhase(ModulesPhase phase) = 0;
+        virtual void registerModule(std::string_view moduleName, ModulePtr module) = 0;
 
-        virtual void registerModule(const char* moduleName, ModulePtr module) = 0;
-
-        virtual bool isModuleLoaded(std::string_view moduleName) = 0;
+        // virtual bool isModuleLoaded(std::string_view moduleName) = 0;
 
         virtual IModule* findModule(std::string_view moduleName) = 0;
 
@@ -57,11 +55,11 @@ namespace my
 #endif
     };
 
-    using ModuleManagerPtr = std::unique_ptr<IModuleManager>;
+    using ModuleManagerPtr = std::unique_ptr<ModuleManager>;
 
     MY_KERNEL_EXPORT ModuleManagerPtr createModuleManager();
 
-    MY_KERNEL_EXPORT IModuleManager& getModuleManager();
+    MY_KERNEL_EXPORT ModuleManager& getModuleManager();
 
     MY_KERNEL_EXPORT bool hasModuleManager();
 

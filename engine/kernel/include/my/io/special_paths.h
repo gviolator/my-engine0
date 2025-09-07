@@ -3,7 +3,7 @@
 #pragma once
 
 #include <filesystem>
-#include <string>
+#include <string_view>
 
 #include "my/kernel/kernel_config.h"
 #include "my/utils/runtime_enum.h"

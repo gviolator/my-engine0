@@ -6,12 +6,15 @@
     #include "my/platform/windows/windows_headers.h"
 #endif
 
+#include <uv.h>
+
 #include <algorithm>
 #include <bit>
 #include <filesystem>
 #include <format>
 #include <iostream>
 #include <list>
+#include <map>
 #include <mutex>
 #include <optional>
 #include <regex>

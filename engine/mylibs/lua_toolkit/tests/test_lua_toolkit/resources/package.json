@@ -1,0 +1,18 @@
+{
+  "name": "lua-sample",
+  "version": "1.0.0",
+  "description": "sample for ts-lua project",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tstl",
+    "watch": "tstl --watch"
+  },
+  "author": "N-GINN",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "typescript-to-lua": "^1.24.1"
+  }
+}

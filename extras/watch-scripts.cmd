@@ -1,0 +1,1 @@
+%~dp0..\engine\core_application\content\prog\watch.cmd

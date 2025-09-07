@@ -328,7 +328,7 @@ namespace my::io
         return 0;
     }
 
-    IFile::Ptr VirtualFileSystemImpl::openFile(const FsPath& path, AccessModeFlag accessMode, OpenFileMode openMode)
+    FilePtr VirtualFileSystemImpl::openFile(const FsPath& path, AccessModeFlag accessMode, OpenFileMode openMode)
     {
         MY_DEBUG_ASSERT((openMode == OpenFileMode::OpenExisting || accessMode && AccessMode::Write), "Specified openMode requires write access also");
 

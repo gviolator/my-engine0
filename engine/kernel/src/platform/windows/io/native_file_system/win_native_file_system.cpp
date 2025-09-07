@@ -94,7 +94,7 @@ namespace my::io
         return 0;
     }
 
-    IFile::Ptr WinNativeFileSystem::openFile(const FsPath& vfsPath, AccessModeFlag accessMode, OpenFileMode openMode)
+    FilePtr WinNativeFileSystem::openFile(const FsPath& vfsPath, AccessModeFlag accessMode, OpenFileMode openMode)
     {
         auto fullPath = resolveToNativePathNoCheck(vfsPath);
         if (fullPath.empty())

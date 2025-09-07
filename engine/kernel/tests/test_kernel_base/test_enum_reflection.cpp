@@ -134,7 +134,7 @@ namespace my::test
     {
         TestEnum enumValue = TestEnum::Value0;
         auto runtimeWrapper = makeValueRef(enumValue);
-        ASSERT_TRUE(runtimeWrapper->is<RuntimeStringValue>());
+        ASSERT_TRUE(runtimeWrapper->is<StringValue>());
 
         ASSERT_EQ(runtimeWrapper->getString(), "Value0");
 

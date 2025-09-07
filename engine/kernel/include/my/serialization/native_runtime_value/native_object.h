@@ -261,7 +261,7 @@ namespace my::ser_detail
 namespace my
 {
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueRef(T& obj, IMemAllocator* allocator)
+    Ptr<RuntimeObject> makeValueRef(T& obj, IAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T&>;
 
@@ -269,7 +269,7 @@ namespace my
     }
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueRef(const T& obj, IMemAllocator* allocator)
+    Ptr<RuntimeObject> makeValueRef(const T& obj, IAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<const T&>;
 
@@ -277,7 +277,7 @@ namespace my
     }
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueCopy(const T& obj, IMemAllocator* allocator)
+    Ptr<RuntimeObject> makeValueCopy(const T& obj, IAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T>;
 
@@ -285,7 +285,7 @@ namespace my
     }
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueCopy(T&& obj, IMemAllocator* allocator)
+    Ptr<RuntimeObject> makeValueCopy(T&& obj, IAllocator* allocator)
     {
         using Object = ser_detail::NativeObject<T>;
 

@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include "my/async/core/core_task.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 
 namespace my::async
 {
@@ -16,7 +16,7 @@ namespace my::async
     class CoreTaskImpl final : public CoreTask
     {
     public:
-        CoreTaskImpl(IMemAllocator&, void* allocatedStorage, size_t size, StateDestructorCallback destructor);
+        CoreTaskImpl(IAllocator&, void* allocatedStorage, size_t size, StateDestructorCallback destructor);
 
         ~CoreTaskImpl();
 
@@ -51,7 +51,7 @@ namespace my::async
         void invokeReadyCallback();
         void tryScheduleContinuation();
 
-        IMemAllocator& m_allocator;
+        IAllocator& m_allocator;
 
         // In some cases m_allocatedStorage can differ from (void*)this, because of custom types alignment.
         // For simplification aligned storage allocation, just keeps m_allocatedStorage (which may initially have incorrect alignment).

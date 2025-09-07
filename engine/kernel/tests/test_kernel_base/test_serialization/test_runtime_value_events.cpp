@@ -110,14 +110,14 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeOptional)
     {
         std::optional<float> value = std::nullopt;
-        const RuntimeOptionalValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
+        const OptionalValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
         runtimeValue->setValue(makeValueCopy(77)).ignore();
         ASSERT_TRUE(isChanged());
 
         resetChanged();
         ASSERT_FALSE(isChanged());
 
-        runtimeValue->getValue()->as<RuntimeFloatValue&>().set(99.f);
+        runtimeValue->getValue()->as<FloatValue&>().set(99.f);
         ASSERT_TRUE(isChanged());
     }
 
@@ -126,7 +126,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_Append)
     {
         std::vector<float> collection;
-        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<Collection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
         ASSERT_TRUE(isChanged());
     }
@@ -136,7 +136,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_Clear)
     {
         std::vector<float> collection;
-        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<Collection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
 
         resetChanged();
@@ -150,7 +150,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_ChangeElement_1)
     {
         std::vector<float> collection;
-        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<Collection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(1.f)).ignore();
         runtimeValue->append(makeValueCopy(2.f)).ignore();
 
@@ -159,7 +159,7 @@ namespace my::test
 
         {
             auto element = runtimeValue->getAt(1);
-            element->as<RuntimeFloatValue&>().set(22.f);
+            element->as<FloatValue&>().set(22.f);
         }
 
         ASSERT_TRUE(isChanged());
@@ -170,7 +170,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeCollection_ChangeElement_2)
     {
         std::vector<FooObject> collection;
-        const Ptr<RuntimeCollection> runtimeValue = makeValueRefAndSubscribe(collection);
+        const Ptr<Collection> runtimeValue = makeValueRefAndSubscribe(collection);
         runtimeValue->append(makeValueCopy(FooObject{1})).ignore();
         runtimeValue->append(makeValueCopy(FooObject{2})).ignore();
 
@@ -184,7 +184,7 @@ namespace my::test
             // resetting element.
             // but change notifications must still propagate up to the top parent object
             element.reset();
-            field->as<RuntimeIntegerValue&>().set(22);
+            field->as<IntegerValue&>().set(22);
         }
 
         ASSERT_TRUE(isChanged());
@@ -196,7 +196,7 @@ namespace my::test
     {
         std::map<std::string, FooObject> dict;
         
-        const Ptr<RuntimeDictionary> runtimeValue = makeValueRefAndSubscribe(dict);
+        const Ptr<Dictionary> runtimeValue = makeValueRefAndSubscribe(dict);
         runtimeValue->setValue("one", makeValueCopy(FooObject{1})).ignore();
         runtimeValue->setValue("two", makeValueCopy(FooObject{1})).ignore();
 
@@ -206,7 +206,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, ChangeDictionary_ChangeElement)
     {
         std::map<std::string, FooObject> dict;
-        const Ptr<RuntimeDictionary> runtimeValue = makeValueRefAndSubscribe(dict);
+        const Ptr<Dictionary> runtimeValue = makeValueRefAndSubscribe(dict);
         runtimeValue->setValue("one", makeValueCopy(FooObject{1})).ignore();
         runtimeValue->setValue("two", makeValueCopy(FooObject{1})).ignore();
 
@@ -217,7 +217,7 @@ namespace my::test
             auto element = (*runtimeValue)["one"];
             auto field = element->as<RuntimeObject&>()["field1"];
             element.reset();
-            field->as<RuntimeIntegerValue&>().set(22);
+            field->as<IntegerValue&>().set(22);
         }
 
         ASSERT_TRUE(isChanged());
@@ -228,7 +228,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, Unsubscribe)
     {
         unsigned value = 77;
-        RuntimeIntegerValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
+        IntegerValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
         resetSubscription();
 
         runtimeValue->set(88);
@@ -240,7 +240,7 @@ namespace my::test
     TEST_F(TestRuntimeValueEvents, UnsubscribeAfterObjectIsDead)
     {
         unsigned value = 77;
-        RuntimeIntegerValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
+        IntegerValue::Ptr runtimeValue = makeValueRefAndSubscribe(value);
 
         runtimeValue.reset();
         resetSubscription();

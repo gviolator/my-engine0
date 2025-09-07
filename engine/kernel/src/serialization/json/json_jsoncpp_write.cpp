@@ -64,9 +64,9 @@ namespace my::serialization
             io::IStream& m_writer;
         };
 
-        void makeJsonPrimitiveValue(Json::Value& jValue, const RuntimePrimitiveValue& value)
+        void makeJsonPrimitiveValue(Json::Value& jValue, const PrimitiveValue& value)
         {
-            if(auto integer = value.as<const RuntimeIntegerValue*>(); integer)
+            if(auto integer = value.as<const IntegerValue*>(); integer)
             {
                 if(integer->isSigned())
                 {
@@ -77,7 +77,7 @@ namespace my::serialization
                     jValue = Json::Value(integer->getUint64());
                 }
             }
-            else if(auto floatPoint = value.as<const RuntimeFloatValue*>(); floatPoint)
+            else if(auto floatPoint = value.as<const FloatValue*>(); floatPoint)
             {
                 if(floatPoint->getBitsCount() == sizeof(double))
                 {
@@ -88,12 +88,12 @@ namespace my::serialization
                     jValue = Json::Value(floatPoint->getSingle());
                 }
             }
-            else if(auto str = value.as<const RuntimeStringValue*>(); str)
+            else if(auto str = value.as<const StringValue*>(); str)
             {
                 auto text = str->getString();
                 jValue = Json::Value(text.data(), text.data() + text.size());
             }
-            else if(auto boolValue = value.as<const RuntimeBooleanValue*>(); boolValue)
+            else if(auto boolValue = value.as<const BooleanValue*>(); boolValue)
             {
                 jValue = Json::Value(boolValue->getBool());
             }
@@ -105,7 +105,7 @@ namespace my::serialization
 
         Result<> makeJsonValue(Json::Value& jValue, const RuntimeValuePtr& value, const JsonSettings& settings)
         {
-            if(RuntimeOptionalValue* const optionalValue = value->as<RuntimeOptionalValue*>())
+            if(OptionalValue* const optionalValue = value->as<OptionalValue*>())
             {
                 if(optionalValue->hasValue())
                 {
@@ -128,11 +128,11 @@ namespace my::serialization
                 return {};
             }
 
-            if(const RuntimePrimitiveValue* const primitiveValue = value->as<const RuntimePrimitiveValue*>(); primitiveValue)
+            if(const PrimitiveValue* const primitiveValue = value->as<const PrimitiveValue*>(); primitiveValue)
             {
                 makeJsonPrimitiveValue(jValue, *primitiveValue);
             }
-            else if(RuntimeReadonlyCollection* const collection = value->as<RuntimeReadonlyCollection*>())
+            else if(ReadonlyCollection* const collection = value->as<ReadonlyCollection*>())
             {
                 jValue = Json::Value(Json::arrayValue);
 
@@ -144,7 +144,7 @@ namespace my::serialization
                     }
                 }
             }
-            else if(RuntimeReadonlyDictionary* const obj = value->as<RuntimeReadonlyDictionary*>())
+            else if(ReadonlyDictionary* const obj = value->as<ReadonlyDictionary*>())
             {
                 jValue = Json::Value(Json::objectValue);
 
@@ -155,7 +155,7 @@ namespace my::serialization
 
                     if(!settings.writeNulls)
                     {
-                        if(RuntimeOptionalValue* const optionalValue = member->as<RuntimeOptionalValue*>())
+                        if(OptionalValue* const optionalValue = member->as<OptionalValue*>())
                         {
                             if(!optionalValue->hasValue())
                             {

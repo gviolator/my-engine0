@@ -11,9 +11,9 @@
 namespace my::ser_detail
 {
     template <typename T>
-    class MapLikeNativeDictionary final : public ser_detail::NativeRuntimeValueBase<RuntimeDictionary>
+    class MapLikeNativeDictionary final : public ser_detail::NativeRuntimeValueBase<Dictionary>
     {
-        using Base = ser_detail::NativeRuntimeValueBase<RuntimeDictionary>;
+        using Base = ser_detail::NativeRuntimeValueBase<Dictionary>;
         using DictionaryType = std::decay_t<T>;
 
         MY_REFCOUNTED_CLASS(MapLikeNativeDictionary<T>, Base)
@@ -141,7 +141,7 @@ namespace my::ser_detail
 namespace my
 {
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(T& dict, IMemAllocator* allocator)
+    Ptr<Dictionary> makeValueRef(T& dict, IAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T&>;
 
@@ -149,7 +149,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(const T& dict, IMemAllocator* allocator)
+    Ptr<Dictionary> makeValueRef(const T& dict, IAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<const T&>;
 
@@ -157,7 +157,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(const T& dict, IMemAllocator* allocator)
+    Ptr<Dictionary> makeValueCopy(const T& dict, IAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 
@@ -165,7 +165,7 @@ namespace my
     }
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(T&& dict, IMemAllocator* allocator)
+    Ptr<Dictionary> makeValueCopy(T&& dict, IAllocator* allocator)
     {
         using Dict = ser_detail::MapLikeNativeDictionary<T>;
 

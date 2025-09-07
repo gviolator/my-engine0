@@ -6,7 +6,7 @@ project(MyEngine)
 
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW) 
@@ -25,6 +25,8 @@ set(CMAKE_MODULE_PATH
 
 option(MY_ENGINE_SAMPLES "Build engine samples projects" ON)
 option(MY_ENGINE_TESTS "Build engine tests projects" ON)
+option(MY_ENGINE_BENCHMARK "Build engine benchmark projects" ON)
+
 # option(NAU_RTTI "Enable rtti support" OFF)
 # option(NAU_EXCEPTIONS "Enable exception support" OFF)
 # option(NAU_VERBOSE_LOG "Enable verbose messages for logger" OFF)

@@ -16,6 +16,7 @@
 #include "my/serialization/native_runtime_value/native_tuple.h"
 #include "my/serialization/native_runtime_value/native_dictionary.h"
 #include "my/serialization/native_runtime_value/native_object.h"
+#include "my/memory/runtime_stack.h"
 
 // clang format on
 
@@ -24,12 +25,12 @@ namespace my
     /**
      *
      */
-    inline Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, IMemAllocator* allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, IAllocator* allocator)
     {
         return RuntimeValueRef::create(std::cref(value), allocator);
     }
 
-    inline Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, IMemAllocator* allocator)
+    inline Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, IAllocator* allocator)
     {
         return RuntimeValueRef::create(value, allocator);
     }
@@ -39,7 +40,8 @@ namespace my
     Result<> runtimeValueApply(T& target, const RuntimeValuePtr& rtValue)
     {
         static_assert(!std::is_const_v<T>, "Const type is passed. Use remove_const_t on call site");
-        return RuntimeValue::assign(makeValueRef(target), rtValue);
+        rtstack_scope;
+        return RuntimeValue::assign(makeValueRef(target, getRtStackAllocatorPtr()), rtValue);
     }
 
     template <typename T>
@@ -60,19 +62,19 @@ namespace my
     [[nodiscard]]
     Result<T> runtimeValueCast(const RuntimeValuePtr& rtValue)
     {
-        if (const auto* const floatValue = rtValue->as<const RuntimeFloatValue*>())
+        if (const auto* const floatValue = rtValue->as<const FloatValue*>())
         {
             return floatValue->get<T>();
         }
-        else if (const auto* const intValue = rtValue->as<const RuntimeIntegerValue*>())
+        else if (const auto* const intValue = rtValue->as<const IntegerValue*>())
         {
             return intValue->isSigned() ? static_cast<T>(intValue->getInt64()) : static_cast<T>(intValue->getUint64());
         }
-        else if (const auto* const boolValue = rtValue->as<const RuntimeBooleanValue*>())
+        else if (const auto* const boolValue = rtValue->as<const BooleanValue*>())
         {
             return static_cast<T>(boolValue->getBool() ? 1u : 0u);
         }
-        else if (auto* const optValue = rtValue->as<RuntimeOptionalValue*>())
+        else if (auto* const optValue = rtValue->as<OptionalValue*>())
         {
             return !optValue->hasValue() ? static_cast<T>(0u) : runtimeValueCast<T>(optValue->getValue());
         }

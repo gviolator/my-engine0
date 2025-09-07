@@ -42,7 +42,7 @@ macro(my_write_static_modules_initialization resVariable)
 
     string(APPEND entryContent "\n\nnamespace my::module_detail\n")
     string(APPEND entryContent "{\n")
-    string(APPEND entryContent "  void initializeAllStaticModules(my::IModuleManager& manager)\n  {\n")
+    string(APPEND entryContent "  void initializeAllStaticModules(ModuleManager& manager)\n  {\n")
 
     foreach (module ${ARGN})
         string(APPEND entryContent "    manager.registerModule(\"${module}\", createModule_${module}())\;\n")

@@ -11,12 +11,12 @@ namespace my::io
 {
     /**
      */
-    class MemoryStream final : public IMemoryStream
+    class MemoryStreamImpl final : public MemoryStream
     {
-        MY_REFCOUNTED_CLASS(my::io::MemoryStream, IMemoryStream)
+        MY_REFCOUNTED_CLASS(my::io::MemoryStreamImpl, MemoryStream)
     public:
-        MemoryStream() = default;
-        MemoryStream(Buffer buffer);
+        MemoryStreamImpl() = default;
+        MemoryStreamImpl(Buffer buffer);
 
         size_t getPosition() const override;
 
@@ -39,9 +39,9 @@ namespace my::io
         size_t m_pos = 0;
     };
 
-    class ReadOnlyMemoryStream final : public IMemoryStream
+    class ReadOnlyMemoryStream final : public MemoryStream
     {
-        MY_REFCOUNTED_CLASS(my::io::ReadOnlyMemoryStream, IMemoryStream)
+        MY_REFCOUNTED_CLASS(my::io::ReadOnlyMemoryStream, MemoryStream)
     public:
         ReadOnlyMemoryStream() = default;
         ReadOnlyMemoryStream(std::span<const std::byte> buffer);
@@ -69,12 +69,12 @@ namespace my::io
     };
 
 
-    MemoryStream::MemoryStream(Buffer buffer) :
+    MemoryStreamImpl::MemoryStreamImpl(Buffer buffer) :
         m_buffer(std::move(buffer))
     {
     }
 
-    Result<size_t> MemoryStream::read(std::byte* buffer, size_t count)
+    Result<size_t> MemoryStreamImpl::read(std::byte* buffer, size_t count)
     {
         MY_FATAL(m_pos <= m_buffer.size());
 
@@ -90,7 +90,7 @@ namespace my::io
         return actualReadCount;
     }
 
-    Result<size_t> MemoryStream::write(const std::byte* buffer, size_t count)
+    Result<size_t> MemoryStreamImpl::write(const std::byte* buffer, size_t count)
     {
         MY_FATAL(m_pos <= m_buffer.size());
         const size_t availableSize = m_buffer.size() - m_pos;
@@ -107,12 +107,12 @@ namespace my::io
         return count;
     }
 
-    size_t MemoryStream::getPosition() const
+    size_t MemoryStreamImpl::getPosition() const
     {
         return m_pos;
     }
 
-    size_t MemoryStream::setPosition(OffsetOrigin origin, int64_t offset)
+    size_t MemoryStreamImpl::setPosition(OffsetOrigin origin, int64_t offset)
     {
         int64_t newPos = offset;  // OffsetOrigin::Begin
         const int64_t currentSize = static_cast<int64_t>(m_buffer.size());
@@ -148,26 +148,26 @@ namespace my::io
         return m_pos;
     }
 
-    void MemoryStream::flush()
+    void MemoryStreamImpl::flush()
     {
     }
 
-    bool MemoryStream::canSeek() const
-    {
-        return true;
-    }
-
-    bool MemoryStream::canRead() const
+    bool MemoryStreamImpl::canSeek() const
     {
         return true;
     }
 
-    bool MemoryStream::canWrite() const
+    bool MemoryStreamImpl::canRead() const
     {
         return true;
     }
 
-    std::span<const std::byte> MemoryStream::getBufferAsSpan(size_t offset, std::optional<size_t> size) const
+    bool MemoryStreamImpl::canWrite() const
+    {
+        return true;
+    }
+
+    std::span<const std::byte> MemoryStreamImpl::getBufferAsSpan(size_t offset, std::optional<size_t> size) const
     {
         MY_DEBUG_ASSERT(offset >= 0 && offset <= m_buffer.size(), "Invalid offset");
         MY_DEBUG_ASSERT(!size || (offset + *size <= m_buffer.size()));
@@ -277,18 +277,18 @@ namespace my::io
         return { m_buffer.data() + actualOffset, actualSize };
     }
 
-    MemoryStreamPtr createMemoryStream([[maybe_unused]] AccessModeFlag accessMode, IMemAllocator* allocator)
+    MemoryStreamPtr createMemoryStream([[maybe_unused]] AccessModeFlag accessMode, IAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<MemoryStream, IMemoryStream>(allocator);
+        return rtti::createInstanceWithAllocator<MemoryStreamImpl, MemoryStream>(allocator);
     }
 
-    MemoryStreamPtr createReadonlyMemoryStream(std::span<const std::byte> buffer, IMemAllocator* allocator)
+    MemoryStreamPtr createReadonlyMemoryStream(std::span<const std::byte> buffer, IAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<ReadOnlyMemoryStream, IMemoryStream>(std::move(allocator), std::move(buffer));
+        return rtti::createInstanceWithAllocator<ReadOnlyMemoryStream, MemoryStream>(allocator, std::move(buffer));
     }
 
-    MemoryStreamPtr createMemoryStream(Buffer buffer, [[maybe_unused]] AccessModeFlag accessMode, IMemAllocator* allocator)
+    MemoryStreamPtr createMemoryStream(Buffer buffer, [[maybe_unused]] AccessModeFlag accessMode, IAllocator* allocator)
     {
-        return rtti::createInstanceWithAllocator<MemoryStream, IMemoryStream>(std::move(allocator), std::move(buffer));
+        return rtti::createInstanceWithAllocator<MemoryStreamImpl, MemoryStream>(allocator, std::move(buffer));
     }
 }  // namespace my::io

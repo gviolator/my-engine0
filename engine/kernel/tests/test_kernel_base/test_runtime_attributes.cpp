@@ -107,10 +107,10 @@ namespace my::test
     {
         meta::RuntimeAttributeContainer container = meta::makeRuntimeAttributeContainer<MyClass>();
 
-        ASSERT_TRUE(container.getValue("attrib_0")->is<RuntimeStringValue>());
-        ASSERT_TRUE(container.getValue("attrib_1")->is<RuntimeIntegerValue>());
+        ASSERT_TRUE(container.getValue("attrib_0")->is<StringValue>());
+        ASSERT_TRUE(container.getValue("attrib_1")->is<IntegerValue>());
         ASSERT_TRUE(container.getValue("attrib_2")->is<RuntimeObject>());
-        ASSERT_TRUE(container.getValue("attrib_tag")->is<RuntimeStringValue>());
+        ASSERT_TRUE(container.getValue("attrib_tag")->is<StringValue>());
 
         ASSERT_EQ(*runtimeValueCast<std::string>(container.getValue("attrib_0")), "One");
         ASSERT_EQ(*runtimeValueCast<int>(container.getValue("attrib_1")), 11);

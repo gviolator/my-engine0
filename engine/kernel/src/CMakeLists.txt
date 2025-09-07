@@ -52,7 +52,7 @@ target_precompile_headers(${TargetName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pch.
 
 set(ThirdPartyPublicLibs
   vectormath
-  libuv
+  my::libuv
 )
 
 if (NOT BUILD_SHARED_LIBS)
@@ -68,11 +68,15 @@ else()
 endif()
 
 target_link_libraries(${TargetName} PUBLIC ${ThirdPartyPublicLibs})
-target_compile_definitions(${TargetName} PRIVATE MY_KERNEL_BUILD)
+target_compile_definitions(${TargetName} PRIVATE MY_KERNEL_BUILD JSON_USE_EXCEPTION=0)
 
 target_include_directories(${TargetName} PUBLIC
   $<BUILD_INTERFACE:${moduleRoot}/include>
   $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include/core/kernel/include>
+)
+
+target_include_directories(${TargetName} PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # target_link_libraries(${TargetName} PUBLIC

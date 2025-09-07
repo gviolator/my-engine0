@@ -1,0 +1,63 @@
+{
+  "name": "vscode-my-debug",
+  "version": "0.7.0",
+  "description": "My Engine embedding debugger",
+  "keywords": [
+    "debug",
+    "my-engine"
+  ],
+  "license": "ISC",
+  "author": "Nikolai Timofeev",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=./dist/extension.js --sourcemap --sources-content=false",
+    "build": "npm run -S esbuild-base",
+    "watch": "npm run -S esbuild-base -- --watch"
+  },
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/vscode": "^1.103.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "@vscode/debugadapter": "^1.68.0",
+    "esbuild": "^0.25.9",
+    "eslint": "^9.33.0",
+    "typescript": "^5.9.2",
+    "vsce": "^2.15.0"
+  },
+  "contributes": {
+    "debuggers": [
+      {
+        "type": "my-embedded",
+        "languages": [
+          "lua",
+          "typescript"
+        ],
+        "label": "My Embedded",
+        "configurationAttributes": {
+          "attach": {
+            "required": ["endpoint"],
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "description": "Debug server endpoint"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onDebugResolve:my-embedded",
+    "onDebugDynamicConfigurations:my-embedded"
+  ]
+}

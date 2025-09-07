@@ -8,7 +8,7 @@
 
 #include "my/diag/assert.h"
 #include "my/kernel/kernel_config.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/rtti/ptr.h"
 #include "my/rtti/rtti_object.h"
 #include "my/utils/numeric_cast.h"
@@ -52,10 +52,10 @@ namespace my
         MY_INTERFACE(my::RuntimeValueRef, RuntimeValue)
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, IMemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(RuntimeValuePtr&, IAllocator* = nullptr);
 
         MY_KERNEL_EXPORT
-        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr>, IMemAllocator* = nullptr);
+        static my::Ptr<RuntimeValueRef> create(std::reference_wrapper<const RuntimeValuePtr>, IAllocator* = nullptr);
 
         virtual void setValue(RuntimeValuePtr) = 0;
  
@@ -64,16 +64,16 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimePrimitiveValue : RuntimeValue
+    struct MY_ABSTRACT_TYPE PrimitiveValue : RuntimeValue
     {
-        MY_INTERFACE(my::RuntimePrimitiveValue, RuntimeValue)
+        MY_INTERFACE(my::PrimitiveValue, RuntimeValue)
     };
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeStringValue : RuntimePrimitiveValue
+    struct MY_ABSTRACT_TYPE StringValue : PrimitiveValue
     {
-        MY_INTERFACE(my::RuntimeStringValue, RuntimePrimitiveValue)
+        MY_INTERFACE(my::StringValue, PrimitiveValue)
 
         /*
          */
@@ -86,9 +86,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeIntegerValue : RuntimePrimitiveValue
+    struct MY_ABSTRACT_TYPE IntegerValue : PrimitiveValue
     {
-        MY_INTERFACE(my::RuntimeIntegerValue, RuntimePrimitiveValue)
+        MY_INTERFACE(my::IntegerValue, PrimitiveValue)
 
         /*
          */
@@ -147,9 +147,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeFloatValue : RuntimePrimitiveValue
+    struct MY_ABSTRACT_TYPE FloatValue : PrimitiveValue
     {
-        MY_INTERFACE(my::RuntimeFloatValue, RuntimePrimitiveValue)
+        MY_INTERFACE(my::FloatValue, PrimitiveValue)
 
         virtual size_t getBitsCount() const = 0;
 
@@ -178,9 +178,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeBooleanValue : RuntimePrimitiveValue
+    struct MY_ABSTRACT_TYPE BooleanValue : PrimitiveValue
     {
-        MY_INTERFACE(my::RuntimeBooleanValue, RuntimePrimitiveValue)
+        MY_INTERFACE(my::BooleanValue, PrimitiveValue)
 
         virtual void setBool(bool) = 0;
 
@@ -190,9 +190,9 @@ namespace my
     /**
 
     */
-    struct MY_ABSTRACT_TYPE RuntimeOptionalValue : RuntimeValue
+    struct MY_ABSTRACT_TYPE OptionalValue : RuntimeValue
     {
-        MY_INTERFACE(my::RuntimeOptionalValue, RuntimeValue)
+        MY_INTERFACE(my::OptionalValue, RuntimeValue)
 
         virtual bool hasValue() const = 0;
 
@@ -213,9 +213,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeReadonlyCollection : virtual RuntimeValue
+    struct MY_ABSTRACT_TYPE ReadonlyCollection : virtual RuntimeValue
     {
-        MY_INTERFACE(my::RuntimeReadonlyCollection, RuntimeValue)
+        MY_INTERFACE(my::ReadonlyCollection, RuntimeValue)
 
         virtual size_t getSize() const = 0;
 
@@ -231,9 +231,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeCollection : virtual RuntimeReadonlyCollection
+    struct MY_ABSTRACT_TYPE Collection : virtual ReadonlyCollection
     {
-        MY_INTERFACE(my::RuntimeCollection, RuntimeReadonlyCollection)
+        MY_INTERFACE(my::Collection, ReadonlyCollection)
 
         virtual void clear() = 0;
 
@@ -244,9 +244,9 @@ namespace my
 
     /**
      */
-    struct MY_ABSTRACT_TYPE RuntimeReadonlyDictionary : virtual RuntimeValue
+    struct MY_ABSTRACT_TYPE ReadonlyDictionary : virtual RuntimeValue
     {
-        MY_INTERFACE(my::RuntimeReadonlyDictionary, RuntimeValue)
+        MY_INTERFACE(my::ReadonlyDictionary, RuntimeValue)
 
         virtual size_t getSize() const = 0;
 
@@ -273,9 +273,9 @@ namespace my
     /**
      *
      */
-    struct MY_ABSTRACT_TYPE RuntimeDictionary : virtual RuntimeReadonlyDictionary
+    struct MY_ABSTRACT_TYPE Dictionary : virtual ReadonlyDictionary
     {
-        MY_INTERFACE(my::RuntimeDictionary, RuntimeReadonlyDictionary)
+        MY_INTERFACE(my::Dictionary, ReadonlyDictionary)
 
         virtual void clear() = 0;
 
@@ -285,9 +285,9 @@ namespace my
     /**
         Generalized object runtime representation.
     */
-    struct MY_ABSTRACT_TYPE RuntimeObject : virtual RuntimeReadonlyDictionary
+    struct MY_ABSTRACT_TYPE RuntimeObject : virtual ReadonlyDictionary
     {
-        MY_INTERFACE(my::RuntimeObject, RuntimeReadonlyDictionary)
+        MY_INTERFACE(my::RuntimeObject, ReadonlyDictionary)
 
         struct FieldInfo
         {

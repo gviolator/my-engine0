@@ -2,7 +2,10 @@
 
 #include "lua_toolkit/lua_utils.h"
 
+#include "chunk_loader.h"
 #include "lua_toolkit/lua_interop.h"
+#include "my/io/memory_stream.h"
+#include "my/memory//runtime_stack.h"
 #include "my/utils/scope_guard.h"
 
 namespace my::lua
@@ -16,7 +19,7 @@ namespace my::lua
     StackGuard::~StackGuard()
     {
         const int currentTop = lua_gettop(luaState);
-        if(currentTop == top)
+        if (currentTop == top)
         {
             return;
         }
@@ -24,7 +27,7 @@ namespace my::lua
         // it is possible to restore the stack only if it is larger than the current one.
         // Potentially, there may be situations where the logic (is the opposite) removes values from the stack;
         // in this case, consider the use of lua::StackGuard to be incorrect.
-        if(top < currentTop)
+        if (top < currentTop)
         {
             lua_settop(luaState, top);
         }
@@ -37,45 +40,30 @@ namespace my::lua
         }
     }
 
-    Result<> loadBuffer(lua_State* l, std::string_view buffer, const char* chunkName)
-    {
-        MY_DEBUG_ASSERT(l);
-        MY_DEBUG_ASSERT(!buffer.empty());
+    // Result<> loadBuffer(lua_State* l, std::string_view buffer, const char* chunkName)
+    // {
+    //     MY_DEBUG_ASSERT(l);
+    //     MY_DEBUG_ASSERT(!buffer.empty());
 
-        if(!l)
-        {
-            return MakeError("Invalid argument");
-        }
+    //     if(!l)
+    //     {
+    //         return MakeError("Invalid argument");
+    //     }
 
-        if(luaL_loadbuffer(l, buffer.data(), buffer.size(), chunkName) == 0)
-        {
-            return {};
-        }
+    //     if(luaL_loadbuffer(l, buffer.data(), buffer.size(), chunkName) == 0)
+    //     {
+    //         return ResultSuccess;
+    //     }
 
-        scope_on_leave
-        {
-            lua_pop(l, 1);
-        };
+    //     scope_on_leave
+    //     {
+    //         lua_pop(l, 1);
+    //     };
 
-        size_t len;
-        const char* const message = lua_tolstring(l, -1, &len);
-        return MakeError(std::string_view{message, len});
-    }
-
-    int getAbsoluteStackPos(lua_State* l, int index)
-    {
-        MY_DEBUG_ASSERT(index != 0);
-
-        if(index > 0 || index <= LUA_REGISTRYINDEX)
-        {
-            return index;
-        }
-
-        const int top = lua_gettop(l);
-        const int pos = top + (index + 1);
-        MY_DEBUG_ASSERT(pos > 0);
-        return pos;
-    }
+    //     size_t len;
+    //     const char* const message = lua_tolstring(l, -1, &len);
+    //     return MakeError(std::string_view{message, len});
+    // }
 
     UpValuesEnumerator::iterator::iterator() = default;
 
@@ -87,7 +75,7 @@ namespace my::lua
         MY_DEBUG_ASSERT(m_luaState);
         MY_DEBUG_ASSERT(m_n > 0);
 
-        if(m_name = lua_getupvalue(m_luaState, m_index, m_n); m_name == nullptr)
+        if (m_name = lua_getupvalue(m_luaState, m_index, m_n); m_name == nullptr)
         {
             m_n = -1;
         }
@@ -176,13 +164,44 @@ namespace my::lua
 
     TableEnumerator::iterator& TableEnumerator::iterator::takeNext()
     {
-        if(lua_next(m_luaState, m_tableIndex) == 0)
+        if (lua_next(m_luaState, m_tableIndex) == 0)
         {
             m_tableIndex = BadIndex;
             m_luaState = nullptr;
         }
 
         return *this;
+    }
+
+    Result<> load(lua_State* l, io::IStream& stream, const char* chunkName)
+    {
+        rtstack_scope;
+
+        ChunkLoader loader{stream, getRtStackAllocator(), 1024};
+        Lua_CheckErr(l, lua_load(l, ChunkLoader::read, &loader, chunkName, "tb"));
+
+        return ResultSuccess;
+    }
+
+    Result<> execute(lua_State* l, io::IStream& stream, int retCount, const char* chunkName)
+    {
+        CheckResult(load(l, stream, chunkName));
+        Lua_CheckErr(l, lua_pcall(l, 0, retCount, 0));
+
+        return ResultSuccess;
+    }
+
+    Result<> execute(lua_State* l, std::span<const std::byte> program, int retCount, const char* chunkName)
+    {
+        if (program.empty())
+        {
+            return MakeError("program is empty");
+        }
+
+        rtstack_scope;
+
+        Ptr<io::IStream> stream = io::createReadonlyMemoryStream(program, getRtStackAllocatorPtr());
+        return execute(l, *stream, retCount, chunkName);
     }
 
 }  // namespace my::lua

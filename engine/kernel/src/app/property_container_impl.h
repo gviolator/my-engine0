@@ -19,9 +19,9 @@ namespace my
 
         bool contains(std::string_view path) const override;
 
-        RuntimeValuePtr getRead(std::string_view path, ReadOnlyLock& lock,  IMemAllocator* allocator) const override;
+        RuntimeValuePtr getRead(std::string_view path, ReadOnlyLock& lock,  IAllocator* allocator) const override;
 
-        Result<RuntimeValuePtr> getModify(std::string_view path, ModificationLock& lock, IMemAllocator* allocator) override;
+        Result<RuntimeValuePtr> getModify(std::string_view path, ModificationLock& lock, IAllocator* allocator) override;
 
         Result<> set(std::string_view path, RuntimeValuePtr value) override;
 
@@ -32,11 +32,11 @@ namespace my
     private:
         RuntimeValuePtr findValueAtPath(std::string_view valuePath) const;
 
-        Result<Ptr<RuntimeDictionary>> getDictionaryAtPath(std::string_view valuePath, bool createPath = true);
+        Result<Ptr<Dictionary>> getDictionaryAtPath(std::string_view valuePath, bool createPath = true);
 
         std::optional<std::string> expandConfigString(std::string_view str) const;
 
-        Ptr<RuntimeDictionary> m_propsRoot;
+        Ptr<Dictionary> m_propsRoot;
         std::map<std::string, VariableResolverCallback, strings::CiStringComparer<std::string_view>> m_variableResolvers;
         mutable std::shared_mutex m_mutex;
     };

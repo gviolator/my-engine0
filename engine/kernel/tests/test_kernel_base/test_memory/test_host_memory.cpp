@@ -74,8 +74,8 @@ namespace my::test
         const IHostMemory::MemRegion* prevRegion = &*(iter++);
         for (; iter != allRegions.end(); ++iter)
         {
-            ASSERT_TRUE(IHostMemory::MemRegion::is_adjacent(*prevRegion, *iter));
-            ASSERT_TRUE(IHostMemory::MemRegion::is_adjacent(*iter, *prevRegion));
+            ASSERT_TRUE(IHostMemory::MemRegion::isAdjacent(*prevRegion, *iter));
+            ASSERT_TRUE(IHostMemory::MemRegion::isAdjacent(*iter, *prevRegion));
             prevRegion = &*(iter);
         }
     }

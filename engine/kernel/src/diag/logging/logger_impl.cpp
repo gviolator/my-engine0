@@ -64,11 +64,21 @@ namespace my::diag
                 char timeStr[TimeStrLen];
                 strftime(timeStr, TimeStrLen, "%F %H:%M:%S", std::localtime(&message.timeStamp));
 
-                std::string formattedMessage = std::format("[{}][{}]{}", std::string_view{timeStr}, message.level, message.text);
-                if (const SourceInfo& src = message.source)
-                {
-                    formattedMessage.append(std::format(":{}({})", src.filePath, src.line.value_or(0)));
-                }
+                const SourceInfo& src = message.source;
+
+                std::string formattedMessage = std::format("{}({}):", src.filePath, src.line.value_or(0));
+                formattedMessage.append(std::format("[{}]:{}", message.level, message.text));
+                // if ()
+                // {
+                //     formattedMessage.append(std::format(" at {}({})", src.filePath, src.line.value_or(0)));
+                // }
+
+
+                // std::string formattedMessage = std::format("[{}][{}]{}", std::string_view{timeStr}, message.level, message.text);
+                // if (const SourceInfo& src = message.source)
+                // {
+                //     formattedMessage.append(std::format(" at {}({})", src.filePath, src.line.value_or(0)));
+                // }
 
                 return formattedMessage;
             }

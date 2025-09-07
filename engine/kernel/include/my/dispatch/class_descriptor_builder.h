@@ -226,7 +226,7 @@ namespace my::kernel_detail
 
     private:
         template <bool Const, bool NoExcept, typename C, typename R, typename... P>
-        static Result<UniPtr<IRttiObject>> invokeImpl(IRttiObject* instance, meta::CallableTypeInfo<Const, NoExcept, C, R, P...> callableInfo, DispatchArguments& inArgs)
+        static Result<UniPtr<IRttiObject>> invokeImpl(IRttiObject* instance, [[maybe_unused]] meta::CallableTypeInfo<Const, NoExcept, C, R, P...> callableInfo, DispatchArguments& inArgs)
         {
             if constexpr (MethodInfo::IsMemberFunction)
             {
@@ -335,7 +335,7 @@ namespace my::kernel_detail
         {
             if constexpr (rtti::HasTypeInfo<T>)
             {
-                return &rtti::getTypeInfo<T>();
+                return rtti::getTypeInfo<T>();
             }
             else
             {
@@ -403,17 +403,16 @@ namespace my::kernel_detail
             }
             else if constexpr (std::is_base_of_v<IRefCounted, T>)
             {
-                // TODO: need to check first argument is IMemAllocator
+                // TODO: need to check first argument is IAllocator
                 // and using rtti::createInstanceWithAllocator in that case.
                 static_assert(std::is_constructible_v<T>, "Type is not default constructible (or not constructible at all)");
                 my::Ptr<T> instance = rtti::createInstance<T, IRefCounted>();
-
-                return instance.giveUp()->template as<IRttiObject*>();
+                return UniPtr<IRttiObject>{std::move(instance)};
             }
             else if constexpr (std::is_constructible_v<T>)
             {
-                T* const instance = new T();
-                return rtti::staticCast<IRttiObject*>(instance);
+                std::unique_ptr<T> instance = std::make_unique<T>();
+                return UniPtr<IRttiObject>{std::move(instance)};
             }
             else
             {
@@ -429,13 +428,13 @@ namespace my::kernel_detail
             // but currently checking only for allocator
             if (!args.empty())
             {
-                MY_DEBUG_ASSERT(!args.front() || args.front()->is<IMemAllocator>(), "Instance creation method supports only IMemAllocator as argument");
+                MY_DEBUG_ASSERT(!args.front() || args.front()->is<IAllocator>(), "Instance creation method supports only IAllocator as argument");
             }
 
             Ptr<IRttiObject> resultInstance;
-            // if constexpr (std::is_invocable_v<typename T::template classCreateInstance<T>, IMemAllocator*>)
+            // if constexpr (std::is_invocable_v<typename T::template classCreateInstance<T>, IAllocator*>)
             {
-                IMemAllocator* const allocator = nullptr;
+                IAllocator* const allocator = nullptr;
 
                 resultInstance = T::template classCreateInstance<T>(allocator);
             }

@@ -44,6 +44,8 @@ namespace my
 
         void addClass(ClassDescriptorPtr&& descriptor) override;
 
+        virtual ClassDescriptorPtr findClass(rtti::TypeInfo type) override;
+
         std::vector<ClassDescriptorPtr> findClasses(rtti::TypeInfo type) override;
 
         std::vector<ClassDescriptorPtr> findClasses(std::span<rtti::TypeInfo>, bool anyType) override;

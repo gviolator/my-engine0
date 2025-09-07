@@ -23,7 +23,7 @@ namespace my
     {
     public:
         PageAllocator(size_t size) :
-            m_size(my::aligned_size(size, my::mem::AllocationGranularity))
+            m_size(my::alignedSize(size, my::mem::AllocationGranularity))
         {
             m_basePtr = os_virtual_mem_alloc(m_size); 
         }
@@ -40,7 +40,7 @@ namespace my
 
             if(newAllocOffset > m_commitedSize)
             {
-                const size_t commitSize = aligned_size(newAllocOffset - m_commitedSize, my::mem::PageSize);
+                const size_t commitSize = alignedSize(newAllocOffset - m_commitedSize, my::mem::PageSize);
                 const size_t newCommitedSize = m_commitedSize + commitSize;
                 if(newCommitedSize > m_size)
                 {
@@ -58,9 +58,9 @@ namespace my
 
         void* alloc(size_t size, size_t alignment) noexcept
         {
-            G_ASSERT(is_power_of2(alignment), "Alignment must be power of two");
+            G_ASSERT(isPowerOf2(alignment), "Alignment must be power of two");
 
-            const size_t alignedBlockSize = aligned_size(size, alignment);
+            const size_t alignedBlockSize = alignedSize(size, alignment);
 
             // make result address aligned:
             const size_t d = reinterpret_cast<ptrdiff_t>(reinterpret_cast<std::byte*>(m_basePtr) + m_allocOffset) % alignment;

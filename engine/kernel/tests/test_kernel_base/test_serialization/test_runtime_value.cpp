@@ -118,7 +118,7 @@ namespace my::test
         {
             DeclValue<Factory, NativeType> nativeValue = val;
             auto rtValue = m_valueFactory(nativeValue);
-            static_assert(std::is_assignable_v<my::RuntimeIntegerValue&, typename decltype(rtValue)::type&>);
+            static_assert(std::is_assignable_v<my::IntegerValue&, typename decltype(rtValue)::type&>);
 
             if (!m_valueFactory.checkMutability(*rtValue))
             {
@@ -148,7 +148,7 @@ namespace my::test
         {
             DeclValue<Factory, NativeType> nativeValue = val;
             auto rtValue = m_valueFactory(nativeValue);
-            static_assert(std::is_assignable_v<my::RuntimeFloatValue&, typename decltype(rtValue)::type&>);
+            static_assert(std::is_assignable_v<my::FloatValue&, typename decltype(rtValue)::type&>);
 
             if (!m_valueFactory.checkMutability(*rtValue))
             {
@@ -185,7 +185,7 @@ namespace my::test
     {
         DeclValue<TypeParam, bool> value = true;
         auto rtValue = this->m_valueFactory(value);
-        static_assert(std::is_same_v<my::Ptr<RuntimeBooleanValue>, decltype(rtValue)>);
+        static_assert(std::is_same_v<my::Ptr<BooleanValue>, decltype(rtValue)>);
 
         ASSERT_TRUE(this->m_valueFactory.checkMutability(*rtValue));
         ASSERT_THAT(rtValue->getBool(), Eq(value));
@@ -202,7 +202,7 @@ namespace my::test
         DeclValue<TypeParam, std::string> str;
         auto rtValue1 = this->m_valueFactory(str);
 
-        ASSERT_TRUE(rtValue1->template is<RuntimeStringValue>());
+        ASSERT_TRUE(rtValue1->template is<StringValue>());
 
         // std::string_view strView;
         // auto rtValue2 = _valueFactory(strView);
@@ -213,7 +213,7 @@ namespace my::test
         DeclValue<TypeParam, std::string> str;
         auto rtValue1 = this->m_valueFactory(str);
 
-        ASSERT_TRUE(rtValue1->template is<RuntimeStringValue>());
+        ASSERT_TRUE(rtValue1->template is<StringValue>());
 
         // std::string_view strView;
         // auto rtValue2 = _valueFactory(strView);
@@ -227,7 +227,7 @@ namespace my::test
 
         auto rtVal = this->_valueFactory(iValue);*/
         /*
-        ASSERT_TRUE(rtVal->Is<my::RuntimeStringValue>());
+        ASSERT_TRUE(rtVal->Is<my::StringValue>());
         ASSERT_THAT(rtVal->GetUtf8(), Eq("78945"));
 
         if constexpr (IsMutable) {
@@ -241,7 +241,7 @@ namespace my::test
         DeclValue<TypeParam, std::optional<unsigned>> opt;
         auto value = this->m_valueFactory(opt);
 
-        static_assert(std::is_assignable_v<my::RuntimeOptionalValue&, typename decltype(value)::type&>);
+        static_assert(std::is_assignable_v<my::OptionalValue&, typename decltype(value)::type&>);
     }
 
     TEST(TestRuntimeValue, CollectionValue)
@@ -249,42 +249,42 @@ namespace my::test
         {
             std::vector<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_TRUE(value->isMutable());
         }
 
         {
             const std::vector<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
 
         {
             std::list<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_TRUE(value->isMutable());
         }
 
         {
             const std::list<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
 
         {
             const std::set<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
 
         {
             const std::unordered_set<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
     }
@@ -294,7 +294,7 @@ namespace my::test
         {
             std::vector<int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
             ASSERT_TRUE(value->isMutable());
         }
         {
@@ -303,7 +303,7 @@ namespace my::test
             static_assert(IsList);
 
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
         }
 
         {
@@ -311,7 +311,7 @@ namespace my::test
             static_assert(LikeSet<decltype(arr)>);
 
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
         }
 
         {
@@ -319,7 +319,7 @@ namespace my::test
             static_assert(LikeSet<decltype(arr)>);
 
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeCollection&, typename decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Collection&, typename decltype(value)::type&>);
         }
     }
 
@@ -328,7 +328,7 @@ namespace my::test
         DeclValue<TypeParam, std::tuple<int, float>> tuple1 = {};
 
         auto rtValue = this->m_valueFactory(tuple1);
-        static_assert(std::is_assignable_v<my::RuntimeReadonlyCollection&, typename decltype(rtValue)::type&>);
+        static_assert(std::is_assignable_v<my::ReadonlyCollection&, typename decltype(rtValue)::type&>);
 
         ASSERT_TRUE(this->m_valueFactory.checkMutability(*rtValue));
         ASSERT_THAT(rtValue->getSize(), Eq(std::tuple_size_v<decltype(tuple1)>));
@@ -339,14 +339,14 @@ namespace my::test
         {
             std::map<std::string, int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeDictionary&, decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Dictionary&, decltype(value)::type&>);
             ASSERT_TRUE(value->isMutable());
         }
 
         {
             const std::map<std::string, int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeDictionary&, decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Dictionary&, decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
     }
@@ -356,14 +356,14 @@ namespace my::test
         {
             std::map<std::string, int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeDictionary&, decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Dictionary&, decltype(value)::type&>);
             ASSERT_TRUE(value->isMutable());
         }
 
         {
             const std::map<std::string, int> arr;
             auto value = my::makeValueRef(arr);
-            static_assert(std::is_assignable_v<my::RuntimeDictionary&, decltype(value)::type&>);
+            static_assert(std::is_assignable_v<my::Dictionary&, decltype(value)::type&>);
             ASSERT_FALSE(value->isMutable());
         }
     }
@@ -392,7 +392,7 @@ namespace my::test
         auto runtimeObj = my::makeValueRef(obj);
 
         auto fieldValue = runtimeObj->getValue("field1");
-        fieldValue->as<RuntimeIntegerValue&>().set(ExpectedValue);
+        fieldValue->as<IntegerValue&>().set(ExpectedValue);
 
         ASSERT_EQ(obj.field1, ExpectedValue);
     }
@@ -403,7 +403,7 @@ namespace my::test
 
         FooObject1 obj;
 
-        Ptr<RuntimeIntegerValue> fieldValue = my::makeValueRef(obj)->getValue("field1");
+        Ptr<IntegerValue> fieldValue = my::makeValueRef(obj)->getValue("field1");
         fieldValue->set(ExpectedValue);
         ASSERT_EQ(obj.field1, ExpectedValue);
     }
@@ -554,7 +554,7 @@ namespace my::test
 
     namespace
     {
-        inline std::vector<unsigned> makeSortedCollection(RuntimeCollection& inCollection)
+        inline std::vector<unsigned> makeSortedCollection(Collection& inCollection)
         {
             std::vector<unsigned> sortedCollection;
             sortedCollection.reserve(inCollection.getSize());
@@ -695,7 +695,7 @@ namespace my::test
     {
         auto runtimeTypeInfoValue = makeValueCopy(rtti::getTypeInfo<TypeWithInfo1>());
         ASSERT_TRUE(runtimeTypeInfoValue);
-        ASSERT_TRUE(runtimeTypeInfoValue->is<RuntimeIntegerValue>());
+        ASSERT_TRUE(runtimeTypeInfoValue->is<IntegerValue>());
 
         const size_t typeId = *runtimeValueCast<size_t>(runtimeTypeInfoValue);
         ASSERT_EQ(rtti::getTypeInfo<TypeWithInfo1>(), rtti::makeTypeInfoFromId(typeId));

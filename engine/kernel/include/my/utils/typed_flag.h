@@ -85,12 +85,12 @@ namespace my
         //     return *this;
         // }
 
-        constexpr bool has(TypedFlag<T> flags) const
+        constexpr bool isSet(TypedFlag<T> flags) const
         {
             return (m_value & flags.m_value) == flags.m_value;
         }
 
-        constexpr bool hasAny(TypedFlag<T> flags) const
+        constexpr bool anyIsSet(TypedFlag<T> flags) const
         {
             return (m_value & flags.m_value) != 0;
         }
@@ -107,7 +107,7 @@ namespace my
 
         template <typename... U>
         requires((std::is_same_v<T, U> && ...))
-        constexpr bool hasAny(U... flags) const
+        constexpr bool anyIsSet(U... flags) const
         {
             static_assert(sizeof...(flags) > 0);
 
@@ -128,6 +128,11 @@ namespace my
         constexpr operator ValueType() const
         {
             return m_value;
+        }
+
+        constexpr explicit operator bool () const
+        {
+            return m_value != 0;
         }
 
     private:
@@ -192,12 +197,12 @@ namespace my
 
         friend bool operator&&(TypedFlag<T> value, T flag)
         {
-            return value.has(flag);
+            return value.isSet(flag);
         }
 
         friend bool operator&&(TypedFlag<T> value, TypedFlag<T> flag)
         {
-            return value.has(flag);
+            return value.isSet(flag);
         }
 
         friend constexpr bool operator==(TypedFlag<T> value, T flag)

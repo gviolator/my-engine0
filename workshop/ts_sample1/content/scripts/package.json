@@ -1,0 +1,16 @@
+{
+  "name": "nau_scripts_sample",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tstl",
+    "dev": "tstl --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "typescript-to-lua": "^1.31.1"
+  },
+  "description": "no desc",
+  "main": "index.js",
+  "author": "ntimofeev",
+  "license": "ISC"
+}

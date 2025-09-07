@@ -16,33 +16,24 @@ add_subdirectory(jsoncpp)
 add_subdirectory(ModifiedSonyMath)
 add_subdirectory(lua)
 add_subdirectory(libuv)
+add_subdirectory(rpmalloc)
 
 
 if (BUILD_SHARED_LIBS)
-  add_library(libuv ALIAS uv)
+  add_library(my::libuv ALIAS uv)
 else()
-  add_library(libuv ALIAS uv_a)
+  add_library(my::libuv ALIAS uv_a)
+
+  set_property(TARGET uv_a PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-
-# set (3rdPartyLibDirs
-#   jsoncpp
-# )
-
-# set (3rdPartyLibTargets
-#   jsoncpp
-# )
-
-
-# foreach (libDir ${3rdPartyLibDirs})
-#   add_subdirectory(${libDir})
-# endforeach()
-
 # my_add_compile_options(TARGETS ${3rdPartyLibTargets})
-# set_target_properties ( ${3rdPartyLibTargets}
-#   PROPERTIES
-#     FOLDER "${ThirdPartyFolderName}"
-# )
+set_target_properties (
+  jsoncpp_object jsoncpp_static lua rpmalloc vectormath
+  PROPERTIES
+    FOLDER ${ThirdPartyFolderName}
+)
 
 
 ## test targets
@@ -57,8 +48,25 @@ if (MY_ENGINE_TESTS)
   set_target_properties (
     gtest gmock gtest_main gmock_main
     PROPERTIES
-      FOLDER "${FolderName}"
+      FOLDER ${ThirdPartyFolderName}
   )
 
 endif()
 
+## benchmark targets
+if (MY_ENGINE_BENCHMARK)
+  set(BENCHMARK_ENABLE_TESTING OFF)
+  set(BENCHMARK_ENABLE_INSTALL OFF)
+  set(BENCHMARK_ENABLE_DOXYGEN OFF)
+  set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+  set(BENCHMARK_USE_BUNDLED_GTEST OFF)
+  
+  add_subdirectory(googlebench)
+
+  set_target_properties (
+    benchmark benchmark_main 
+    PROPERTIES
+      FOLDER ${ThirdPartyFolderName}
+  )
+
+endif()

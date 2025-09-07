@@ -2,11 +2,14 @@
 #include "application_impl.h"
 
 #include "my/app/application.h"
+#include "my/module/module_manager.h"
 #include "my/service/internal/service_provider_initialization.h"
+
 
 namespace my
 {
-    ApplicationImpl::ApplicationImpl()
+    ApplicationImpl::ApplicationImpl(void (*shutdownCoreServicesCallback)()) :
+        m_shutdownCoreServicesCallback(shutdownCoreServicesCallback)
     {
         MY_FATAL(!applicationExists());
         app_detail::setApplicationInstance(*this);
@@ -15,6 +18,8 @@ namespace my
     ApplicationImpl::~ApplicationImpl()
     {
         MY_ASSERT(app_detail::resetApplicationInstance() == this);
+
+        m_shutdownCoreServicesCallback();
     }
 
     AppState ApplicationImpl::getState() const
@@ -68,11 +73,17 @@ namespace my
             return initResult;
         };
 
+        // TODO: handle invalid initialization: 
+        // if service/module failed to init, then application must be reverted to initial state.
+        CheckResult(m_moduleManager->doModulesPhase(ModuleManager::ModulesPhase::Init));
+
         ServiceProvider& serviceProvider = getServiceProvider();
         auto& serviceInit = serviceProvider.as<core_detail::IServiceProviderInitialization&>();
 
         CheckResult(waitTaskAndCheckResult(serviceInit.preInitServices()));
         CheckResult(waitTaskAndCheckResult(serviceInit.initServices()));
+
+        CheckResult(m_moduleManager->doModulesPhase(ModuleManager::ModulesPhase::PostInit));
 
         return ResultSuccess;
     }
@@ -83,11 +94,10 @@ namespace my
         MY_DEBUG_ASSERT(prevAppState == AppState::GameShutdownProcessed);
 
         async::Task<> servicesShutdown = getServiceProvider().as<core_detail::IServiceProviderInitialization&>().shutdownServices();
-        m_kernelRuntimeShutdown = m_kernelRuntime->shutdown(false); // keep kernel service till application destruction
+        m_kernelRuntimeShutdown = m_kernelRuntime->shutdown(false);  // keep kernel service till application destruction
 
         return servicesShutdown;
     }
-
 
     bool ApplicationImpl::step()
     {
@@ -119,11 +129,19 @@ namespace my
             MY_DEBUG_FATAL(m_kernelRuntimeShutdown);
             MY_DEBUG_FATAL(m_shutdownTask);
 
-            if (const bool runtimeShutdownCompleted = !m_kernelRuntimeShutdown(); runtimeShutdownCompleted)
+            const bool runtimeShutdownCompleted = !m_kernelRuntimeShutdown();
+            if (runtimeShutdownCompleted)
             {
                 MY_DEBUG_ASSERT(m_shutdownTask.isReady());
 
                 m_appState = AppState::ShutdownCompleted;
+
+                // 1. clear all global services
+                setDefaultServiceProvider(nullptr);
+
+                // 2. unload modules
+                m_moduleManager->doModulesPhase(ModuleManager::ModulesPhase::Shutdown).ignore();
+                m_moduleManager.reset();
             }
         }
 

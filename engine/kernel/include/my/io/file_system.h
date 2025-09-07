@@ -99,8 +99,6 @@ namespace my::io
     {
         MY_INTERFACE(my::io::IFile, IRefCounted)
 
-        using Ptr = my::Ptr<IFile>;
-
         /**
          * @enum FileFeature
          * @brief Features supported by the file.
@@ -149,6 +147,8 @@ namespace my::io
          */
         virtual FsPath getPath() const = 0;
     };
+
+    using FilePtr = Ptr<IFile>;
 
     /**
      * @struct INativeFile
@@ -246,7 +246,7 @@ namespace my::io
          * @return Pointer to the opened file.
          */
         [[nodiscard]]
-        virtual IFile::Ptr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) = 0;
+        virtual FilePtr openFile(const FsPath&, AccessModeFlag accessMode, OpenFileMode openMode) = 0;
 
         /**
          * @typedef OpenDirResult

@@ -1,5 +1,4 @@
 // #my_engine_source_file
-
 #pragma once
 
 #ifdef __clang__
@@ -8,22 +7,47 @@
 #endif  // __clang__
 
 #include <memory>
+#include <optional>
 
 #include "lua_toolkit/lua_headers.h"
 #include "lua_toolkit/lua_toolkit_config.h"
+#include "lua_toolkit/lua_utils.h"
 #include "my/dispatch/class_descriptor.h"
-#include "my/dispatch/dispatch.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/runtime_stack.h"
+
+
 
 namespace my::lua
 {
+    enum class ValueKeepMode
+    {
+        OnStack,
+        AsReference
+    };
+
+    struct MY_LUATOOLKIT_EXPORT ValueKeeperGuard
+    {
+        lua_State* const l;
+        const ValueKeepMode keepMode = ValueKeepMode::OnStack;
+        //const int top;
+        const ValueKeeperGuard* const parentGuard;
+        std::optional<lua::StackGuard> luaStackGuard;
+        std::optional<RuntimeStackGuard> runtimeStackGuard;
+
+        ~ValueKeeperGuard();
+        ValueKeeperGuard(lua_State* l, ValueKeepMode keepResult = ValueKeepMode::OnStack);
+        ValueKeeperGuard() = delete;
+        ValueKeeperGuard(const ValueKeeperGuard&) = delete;
+        ValueKeeperGuard(ValueKeeperGuard&&) = delete;
+        ValueKeeperGuard& operator=(const ValueKeeperGuard&) = delete;
+
+        static const ValueKeeperGuard* current();
+    };
+
     /**
      */
     MY_LUATOOLKIT_EXPORT
-    Ptr<> makeValueFromLuaStack(lua_State* l, int index, IMemAllocator* = nullptr);
-
-    // MY_LUATOOLKIT_EXPORT
-    // Ptr<> makeRefValueFromLuaStack(lua_
+    std::tuple<Ptr<>, bool> makeValueFromLuaStack(lua_State* l, int index, std::optional<ValueKeepMode> overrideKeepMode = std::nullopt);
 
     MY_LUATOOLKIT_EXPORT
     Result<> pushRuntimeValue(lua_State* l, const RuntimeValuePtr& value);
@@ -48,12 +72,13 @@ namespace my::lua
     template <typename T>
     inline Result<> cast(lua_State* l, int index, T& value)
     {
-        // auto& allocator = GetRtStackAllocator();
-        IMemAllocator* const allocator = getSystemAllocatorPtr();
+        rtstack_scope;
+
+        const auto [luaValue, _] = makeValueFromLuaStack(l, index, ValueKeepMode::OnStack);
 
         return RuntimeValue::assign(
-            makeValueRef(value, allocator),
-            makeValueFromLuaStack(l, index, allocator));
+            makeValueRef(value, getRtStackAllocatorPtr()),
+            luaValue);
     }
 
     /**
@@ -69,3 +94,7 @@ namespace my::lua
     }
 
 }  // namespace my::lua
+
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#endif  // __clang__

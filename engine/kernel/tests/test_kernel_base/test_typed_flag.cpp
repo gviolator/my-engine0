@@ -97,10 +97,10 @@ namespace my::test
     TEST(TestTypedFlag, HasAny)
     {
         MyEnumFlag flags {MyEnum::Value1, MyEnum::Value3};
-        ASSERT_TRUE(flags.hasAny(MyEnum::Value1, MyEnum::Value2));
+        ASSERT_TRUE(flags.anyIsSet(MyEnum::Value1, MyEnum::Value2));
         ASSERT_FALSE(flags.has(MyEnum::Value1, MyEnum::Value2));
-        ASSERT_FALSE(flags.hasAny(MyEnum::Value2, MyEnum::Value4));
-        ASSERT_TRUE((flags + MyEnum::Value4).hasAny(MyEnum::Value4));
+        ASSERT_FALSE(flags.anyIsSet(MyEnum::Value2, MyEnum::Value4));
+        ASSERT_TRUE((flags + MyEnum::Value4).anyIsSet(MyEnum::Value4));
     }
 
     TEST(TestTypedFlag, IsConstexpr)

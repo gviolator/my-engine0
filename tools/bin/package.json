@@ -1,0 +1,15 @@
+{
+  "name": "ts2lua",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tstl",
+    "dev": "tstl --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "typescript-to-lua": "^1.31.2"
+  },
+  "description": "no desc",
+  "author": "ntimofeev",
+  "license": "ISC"
+}

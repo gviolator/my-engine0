@@ -2,8 +2,9 @@
 
 #include "my/diag/assert.h"
 
-#include "my/debug/debugger.h"
+// #include "my/debug/debugger.h"
 #include "my/diag/assert_handler.h"
+#include "my/diag/logging.h"
 #include "my/memory/singleton_memop.h"
 #include "my/utils/scope_guard.h"
 
@@ -11,10 +12,28 @@ namespace my::diag
 {
     namespace
     {
-
-        AssertHandlerPtr& getCheckHandlerRef()
+        class DefaultAssertHandler final : public diag::IAssertHandler
         {
-            static AssertHandlerPtr s_handler;
+        public:
+            MY_DECLARE_SINGLETON_MEMOP(DefaultAssertHandler)
+
+            diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
+            {
+                using namespace my::diag;
+
+                std::string message =
+                    data.message.empty() ? std::format("ASSERT FAIL({})", data.condition) : std::format("ASSERT FAIL({})\n{}", data.condition, data.message);
+
+                const LogLevel level = data.kind == AssertionKind::Fatal ? LogLevel::Critical : LogLevel::Error;
+                getDefaultLogger().log(level, data.source, nullptr, std::move(message));
+
+                return data.kind == AssertionKind::Fatal ? FailureAction::DebugBreak | FailureAction::Abort : FailureAction::DebugBreak;
+            }
+        };
+
+        AssertHandlerPtr& getAssertHandler()
+        {
+            static AssertHandlerPtr s_handler = std::make_unique<DefaultAssertHandler>();
             return (s_handler);
         }
 
@@ -24,15 +43,15 @@ namespace my::diag
     {
         if (prevHandler)
         {
-            *prevHandler = std::move(getCheckHandlerRef());
+            *prevHandler = std::move(getAssertHandler());
         }
 
-        getCheckHandlerRef() = std::move(newHandler);
+        getAssertHandler() = std::move(newHandler);
     }
 
     IAssertHandler* getCurrentAssertHandler()
     {
-        return getCheckHandlerRef().get();
+        return getAssertHandler().get();
     }
 
 }  // namespace my::diag
@@ -58,7 +77,7 @@ namespace my::diag_detail
             --threadRaiseFailureCounter;
         };
 
-        if (auto& handler = diag::getCheckHandlerRef())
+        if (auto& handler = diag::getAssertHandler())
         {
             const FailureData failureData{
                 kind,
@@ -72,54 +91,4 @@ namespace my::diag_detail
         return kind == AssertionKind::Default ? FailureAction::DebugBreak : (FailureAction::DebugBreak | FailureAction::Abort);
     }
 
-    class DefaultCheckHandler final : public diag::IAssertHandler
-    {
-    public:
-        MY_DECLARE_SINGLETON_MEMOP(DefaultCheckHandler)
-
-        diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
-        {
-            using namespace my::diag;
-
-            std::string message;
-
-            if (!data.message.empty())
-            {
-                message = std::format("Failed \"{}\". At [{}] {}({}). \nMessage: \"{}\"",
-                                      data.condition,
-                                      data.source.functionName,
-                                      data.source.filePath,
-                                      data.source.line.value_or(0),
-                                      data.message.data());
-            }
-            else
-            {
-                message = std::format("Failed \"{}\". At [{}] {}({}).",
-                                      data.condition,
-                                      data.source.functionName,
-                                      data.source.filePath.data(),
-                                      data.source.line.value_or(0));
-            }
-
-            /*  if (hasLogger())
-              {
-                  getLogger().logMessage(LogLevel::Critical,
-                                         {"Fatal"},
-                                         data.source,
-                                         my::utils::format(message.data()));
-              }*/
-
-            return data.kind == AssertionKind::Fatal ? FailureAction::DebugBreak | FailureAction::Abort : FailureAction::DebugBreak;
-        }
-    };
-
 }  // namespace my::diag_detail
-
-namespace my::diag
-{
-    AssertHandlerPtr createDefaultDeviceError()
-    {
-        return std::make_unique<diag_detail::DefaultCheckHandler>();
-    }
-
-}  // namespace my::diag

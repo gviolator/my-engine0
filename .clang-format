@@ -56,14 +56,15 @@ AttributeMacros:
 BinPackArguments: true
 BinPackParameters: false
 BitFieldColonSpacing: Both
+BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel:  true
-  AfterClass:      false
+  AfterClass:      true
   AfterControlStatement: Always
   AfterEnum:       true
   AfterExternBlock: true
   AfterFunction:   true
-  AfterNamespace:  true
+  AfterNamespace:  false
   AfterObjCDeclaration: true
   AfterStruct:     true
   AfterUnion:      true
@@ -80,7 +81,7 @@ BreakAfterJavaFieldAnnotations: true
 BreakArrays:     false
 BreakBeforeBinaryOperators: None
 BreakBeforeConceptDeclarations: Always
-BreakBeforeBraces: Allman
+#BreakBeforeBraces: Allman
 BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
@@ -106,6 +107,10 @@ IfMacros:
   - KJ_IF_MAYBE
 IncludeBlocks:   Regroup
 IncludeCategories:
+  - Regex:           '^".*'
+    Priority:        0
+    SortPriority:    0
+    CaseSensitive:   false
   - Regex:           '^<ext/.*\.h>'
     Priority:        2
     SortPriority:    0
@@ -152,7 +157,7 @@ LineEnding:      DeriveLF
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
-NamespaceIndentation: All
+NamespaceIndentation: None
 ObjCBinPackProtocolList: Never
 ObjCBlockIndentWidth: 4
 ObjCBreakBeforeNestedBlockParam: true

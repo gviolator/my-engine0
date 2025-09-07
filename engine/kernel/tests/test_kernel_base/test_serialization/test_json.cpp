@@ -79,7 +79,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, CreateDictionary)
     {
-        Ptr<RuntimeDictionary> value = serialization::jsonCreateDictionary();
+        Ptr<Dictionary> value = serialization::jsonCreateDictionary();
         ASSERT_TRUE(value);
         ASSERT_EQ(value->as<serialization::JsonValueHolder&>().getThisJsonValue().type(), Json::ValueType::objectValue);
     }
@@ -88,7 +88,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, CreateCollection)
     {
-        Ptr<RuntimeCollection> value = serialization::jsonCreateCollection();
+        Ptr<Collection> value = serialization::jsonCreateCollection();
         ASSERT_TRUE(value);
         ASSERT_EQ(value->as<serialization::JsonValueHolder&>().getThisJsonValue().type(), Json::ValueType::arrayValue);
     }
@@ -106,7 +106,7 @@ namespace my::test
             }
         )--";
 
-        const Ptr<RuntimeDictionary> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
+        const Ptr<Dictionary> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
         ASSERT_TRUE(value);
         ASSERT_TRUE(value->containsKey("id"));
         ASSERT_TRUE(value->containsKey("type"));
@@ -122,7 +122,7 @@ namespace my::test
             [1, 2, true, 77]
         )--";
 
-        const Ptr<RuntimeCollection> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
+        const Ptr<Collection> value = jsonToRuntimeValue(*jsonParseToValue(jsonStr));
         ASSERT_TRUE(value);
         ASSERT_EQ(value->getSize(), 4);
     }
@@ -131,7 +131,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, JsonIntToRuntimeValue)
     {
-        const Ptr<RuntimeIntegerValue> value = serialization::jsonToRuntimeValue(Json::Value{77});
+        const Ptr<IntegerValue> value = serialization::jsonToRuntimeValue(Json::Value{77});
         ASSERT_EQ(value->getInt64(), 77ll);
     }
 
@@ -139,7 +139,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, JsonFloatToRuntimeValue)
     {
-        const Ptr<RuntimeFloatValue> value = serialization::jsonToRuntimeValue(Json::Value{77.7f});
+        const Ptr<FloatValue> value = serialization::jsonToRuntimeValue(Json::Value{77.7f});
         ASSERT_EQ(value->getSingle(), 77.7f);
     }
 
@@ -147,7 +147,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, JsonStringToRuntimeValue)
     {
-        const Ptr<RuntimeStringValue> value = serialization::jsonToRuntimeValue(Json::Value{"text"});
+        const Ptr<StringValue> value = serialization::jsonToRuntimeValue(Json::Value{"text"});
         ASSERT_EQ(value->getString(), std::string_view{"text"});
     }
 
@@ -155,7 +155,7 @@ namespace my::test
      */
     TEST(TestSerializationJson, JsonBoolToRuntimeValue)
     {
-        const Ptr<RuntimeBooleanValue> value = serialization::jsonToRuntimeValue(Json::Value{true});
+        const Ptr<BooleanValue> value = serialization::jsonToRuntimeValue(Json::Value{true});
         ASSERT_TRUE(value->getBool());
     }
 
@@ -167,7 +167,7 @@ namespace my::test
         jsonValue["field1"] = 111;
 
         {
-            const Ptr<RuntimeDictionary> dict = serialization::jsonAsRuntimeValue(jsonValue);
+            const Ptr<Dictionary> dict = serialization::jsonAsRuntimeValue(jsonValue);
             ASSERT_TRUE(dict->containsKey("field1"));
             dict->setValue("field2", makeValueCopy(222)).ignore();
         }
@@ -184,10 +184,10 @@ namespace my::test
         jsonValue.append(222);
 
         {
-            const Ptr<RuntimeCollection> collection = serialization::jsonAsRuntimeValue(jsonValue);
+            const Ptr<Collection> collection = serialization::jsonAsRuntimeValue(jsonValue);
             ASSERT_EQ(collection->getSize(), 2);
-            ASSERT_EQ((*collection)[0]->as<const RuntimeIntegerValue&>().getInt64(), 111);
-            ASSERT_EQ((*collection)[1]->as<const RuntimeIntegerValue&>().getInt64(), 222);
+            ASSERT_EQ((*collection)[0]->as<const IntegerValue&>().getInt64(), 111);
+            ASSERT_EQ((*collection)[1]->as<const IntegerValue&>().getInt64(), 222);
 
             collection->append(makeValueCopy(std::string_view{"text"})).ignore();
             collection->append(makeValueCopy(444.4f)).ignore();
@@ -334,7 +334,7 @@ namespace my::test
 
         std::string_view fieldNames = "id, type, data1";
 
-        Ptr<RuntimeDictionary> dict = *serialization::jsonParseString(json);
+        Ptr<Dictionary> dict = *serialization::jsonParseString(json);
         dict->getValue("boo");
 
         for (auto field : strings::split(fieldNames, std::string_view{","}))
@@ -343,12 +343,12 @@ namespace my::test
             ASSERT_TRUE(dict->containsKey(field));
             auto fieldValue = dict->getValue(field);
 
-            if (auto intValue = fieldValue->as<RuntimeIntegerValue*>())
+            if (auto intValue = fieldValue->as<IntegerValue*>())
             {
                 ASSERT_EQ(intValue->getInt64(), 222);
                 dict->setValue(field, makeValueCopy(333)).ignore();
             }
-            else if (auto strValue = fieldValue->as<RuntimeStringValue*>())
+            else if (auto strValue = fieldValue->as<StringValue*>())
             {
                 ASSERT_EQ(strValue->getString(), "object");
                 dict->setValue(field, makeValueCopy(std::string{"array"})).ignore();

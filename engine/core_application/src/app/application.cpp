@@ -58,6 +58,10 @@ namespace my
         return ResultSuccess;
     }
 
+    void shutdownCoreServices()
+    {
+    }
+
     ApplicationPtr createApplication(ApplicationInitDelegatePtr appDelegate)
     {
         MY_FATAL(!applicationExists());
@@ -67,7 +71,7 @@ namespace my
             return nullptr;
         }
 
-        ApplicationPtr app = std::make_unique<ApplicationImpl>();
+        ApplicationPtr app = std::make_unique<ApplicationImpl>(shutdownCoreServices);
         MY_FATAL(app);
 
         if (appDelegate && !appDelegate->registerApplicationServices())

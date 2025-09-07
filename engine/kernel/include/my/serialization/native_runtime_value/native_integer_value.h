@@ -13,14 +13,14 @@ namespace my::ser_detail
     /**
      */
     template <typename T>
-    class NativeIntegerValue final : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeIntegerValue>
+    class NativeIntegerValue final : public ser_detail::NativePrimitiveRuntimeValueBase<IntegerValue>
     {
         /**
             template <typename T> -> template<std::integral T>
             must not be used (because T can be reference/const reference, so std::integral<T> will fail).
         */
 
-        using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeIntegerValue>;
+        using Base = ser_detail::NativePrimitiveRuntimeValueBase<IntegerValue>;
         using IntegralValueType = std::remove_const_t<std::remove_reference_t<T>>;
 
         MY_REFCOUNTED_CLASS(NativeIntegerValue<T>, Base)
@@ -93,19 +93,19 @@ namespace my::ser_detail
 namespace my
 {
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(T& value, IMemAllocator* allocator)
+    Ptr<IntegerValue> makeValueRef(T& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(const T& value, IMemAllocator* allocator)
+    Ptr<IntegerValue> makeValueRef(const T& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<const T&>>(allocator, value);
     }
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueCopy(T value, IMemAllocator* allocator)
+    Ptr<IntegerValue> makeValueCopy(T value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeIntegerValue<T>>(allocator, value);
     }

@@ -313,6 +313,23 @@ namespace my
         m_classDescriptors.push_back(std::move(descriptor));
     }
 
+    ClassDescriptorPtr ServiceProviderImpl::findClass(rtti::TypeInfo type)
+    {
+        shared_lock_(m_mutex);
+        ClassDescriptorPtr resultClass;
+
+        for (const auto& classDescriptor : m_classDescriptors)
+        {
+            if (classDescriptor->findInterface(type) != nullptr)
+            {
+                MY_DEBUG_FATAL(!resultClass, "There is multiple classes that provides required api");
+                resultClass = std::move(classDescriptor);
+            }
+        }
+
+        return resultClass;
+    }
+
     std::vector<ClassDescriptorPtr> ServiceProviderImpl::findClasses(rtti::TypeInfo t)
     {
         std::vector<ClassDescriptorPtr> classes;

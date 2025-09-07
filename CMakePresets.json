@@ -13,7 +13,8 @@
                 "JSONCPP_WITH_TESTS": false,
                 "JSONCPP_WITH_POST_BUILD_UNITTEST": false,
                 "JSONCPP_WITH_CMAKE_PACKAGE": false,
-                "JSONCPP_WITH_PKGCONFIG_SUPPORT": false
+                "JSONCPP_WITH_PKGCONFIG_SUPPORT": false,
+                "JSON_USE_EXCEPTION": false
 
             }
         },

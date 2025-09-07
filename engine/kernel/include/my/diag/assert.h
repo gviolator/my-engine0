@@ -77,17 +77,31 @@ namespace my::diag_detail
     }
 
 
+    inline std::string_view makeFailureMessage(std::string_view str)
+    {
+        return str;
+    }
+
+
     template <typename... Args>
-    inline std::string makeFailureMessage(const char* message, const Args&... formatArgs)
+    inline std::string_view makeFailureMessage(std::string_view  message, const Args&... args)
     {
         if constexpr (sizeof...(Args) == 0)
         {
-            return std::string{message};
+            return {};
         }
         else
         {
-            std::string formattedMessage = std::vformat(std::string_view{message}, std::make_format_args(formatArgs...));
-            return formattedMessage;
+            constexpr size_t FailureMessageLenMax = 512; 
+            static thread_local char buffer[FailureMessageLenMax];
+            //std::format_to_n_result result = std::format_to_n(buffer, sizeof(buffer), message, args ...);
+
+            auto end = std::vformat_to(buffer, message, std::make_format_args(args ...));
+            *end = 0;
+            return std::string_view {buffer, end};
+            //return std::string_view {buffer, result.out};
+            //std::string formattedMessage = std::vformat_n_t(std::string_view{message}, std::make_format_args(formatArgs...));
+            //return formattedMessage;
             //return std::format(message, makeFormatableArgs<Args>(formatArgs)...);
         }
     }
@@ -149,7 +163,7 @@ namespace my::diag_detail
     #define MY_DEBUG_ASSERT(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
     #define MY_DEBUG_FATAL(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
     #define MY_DEBUG_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Default, ##__VA_ARGS__)
-    #define MY_DEBUG_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal, ##__VA_ARGS__)
+    #define MY_DEBUG_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal,  ##__VA_ARGS__)
 #else
     #define MY_DEBUG_ASSERT(condition, ...)
     #define MY_DEBUG_FATAL(condition, ...)

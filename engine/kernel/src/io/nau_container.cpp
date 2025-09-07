@@ -57,7 +57,7 @@ namespace my::io
 
     void writeContainerHeader(IStreamWriter::Ptr outputStream, eastl::string_view kind, const RuntimeValuePtr& containerData)
     {
-        io::IMemoryStream::Ptr tempStream = io::createMemoryStream();
+        io::MemoryStream::Ptr tempStream = io::createMemoryStream();
         serialization::jsonWrite(tempStream->as<io::IStreamWriter&>(), containerData).ignore();
 
         const eastl::span<const std::byte> serializedData = tempStream->getBufferAsSpan();

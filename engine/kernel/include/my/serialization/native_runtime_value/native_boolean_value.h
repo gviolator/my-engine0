@@ -13,9 +13,9 @@ namespace my
     /**
      */
     template <typename T>
-    class NativeBooleanValue final : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeBooleanValue>
+    class NativeBooleanValue final : public ser_detail::NativePrimitiveRuntimeValueBase<BooleanValue>
     {
-        using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeBooleanValue>;
+        using Base = ser_detail::NativePrimitiveRuntimeValueBase<BooleanValue>;
 
         MY_REFCOUNTED_CLASS(NativeBooleanValue<T>, Base)
 
@@ -56,17 +56,17 @@ namespace my
 
     /**
     */
-    inline Ptr<RuntimeBooleanValue> makeValueRef(bool& value, IMemAllocator* allocator)
+    inline Ptr<BooleanValue> makeValueRef(bool& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<bool&>>(allocator, value);
     }
 
-    inline Ptr<RuntimeBooleanValue> makeValueRef(const bool& value, IMemAllocator* allocator)
+    inline Ptr<BooleanValue> makeValueRef(const bool& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<const bool&>>(std::move(allocator), value);
     }
 
-    inline Ptr<RuntimeBooleanValue> makeValueCopy(bool value, IMemAllocator* allocator)
+    inline Ptr<BooleanValue> makeValueCopy(bool value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<NativeBooleanValue<bool>>(std::move(allocator), value);
     }

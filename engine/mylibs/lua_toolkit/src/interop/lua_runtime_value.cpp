@@ -1,103 +1,100 @@
 // #my_engine_source_file
+#include "lua_runtime_value.h"
 
-#include "lua_internals.h"
-#include "lua_toolkit/lua_interop.h"
-#include "lua_toolkit/lua_utils.h"
-// #include "my/memory/mem_allocator_std_wrapper.h"
-#include "my/rtti/rtti_impl.h"
-#include "my/rtti/weak_ptr.h"
+#include "my/dispatch/closure_value.h"
+#include "my/memory/allocator.h"
+#include "value_roots.h"
 
 namespace my::lua_detail
 {
-    struct PushValueGuard;
+    namespace
+    {
+        using ChildKeysArray = std::pmr::vector<lua::ChildVariableKey>;
 
-    // using ChildKeysArray = std::vector<lua::ChildVariableKey, MemAllocatorStdWrapper<lua::ChildVariableKey>>;
-    using ChildKeysArray = std::vector<lua::ChildVariableKey>;
+        inline bool isReferenceType(int type)
+        {
+            return type == LUA_TFUNCTION || type == LUA_TTABLE;
+        }
+
+        inline bool isValueType(int type)
+        {
+            return type == LUA_TNIL || type == LUA_TNUMBER || type == LUA_TSTRING || type == LUA_TBOOLEAN;
+        }
+    }  // namespace
+
+    ReferenceValue::ReferenceValue(LuaRootPtr root, lua::ChildVariableKey key) :
+        m_root(std::move(root)),
+        m_key(std::move(key))
+    {
+        MY_DEBUG_FATAL(m_root);
+        MY_DEBUG_FATAL(m_key);
+    }
+
+    ReferenceValue::~ReferenceValue()
+    {
+        m_root->unref(m_key);
+    }
+
+    lua_State* ReferenceValue::getLua() const
+    {
+        return m_root->getLua();
+    }
+
+    int ReferenceValue::pushSelf() const
+    {
+        return m_root->push(m_key);
+    }
 
     /**
-        Base class for any compound lua object: table, closure, stack.
-        Responsible for pushing the 'child values' onto the lua stack via pushChild.
-    */
-    class MY_ABSTRACT_TYPE CompoundValue : public virtual IRefCounted
+     */
+
+    class LuaClosureValue final : public ReferenceValue,
+                                  public ClosureValue
+
     {
-        MY_INTERFACE(my::lua_detail::CompoundValue, IRefCounted)
+        MY_REFCOUNTED_CLASS(my::lua_detail::LuaClosureValue, ReferenceValue, ClosureValue)
 
     public:
+        using ReferenceValue::ReferenceValue;
 
-        virtual lua_State* getLua() const = 0;
-
-        virtual int pushChild(const lua::ChildVariableKey&) const = 0;
-
-        inline Ptr<CompoundValue> getSelfPtr() const
+        Result<Ptr<>> invoke(DispatchArguments args) override
         {
-            auto mutableThis = const_cast<CompoundValue*>(this);
-            return mutableThis;
-        }
-    };
+            using namespace lua;
 
-    using CompoundValuePtr = Ptr<CompoundValue>;
-
-    /**
-        Stores a reference to the parent and the key by which the parent can find the given value.
-        The object itself "does not know" how its value can be placed on the lua stack - parent + key is responsible for this.
-    */
-    class MY_ABSTRACT_TYPE ChildValue : public virtual IRefCounted
-    {
-        MY_INTERFACE(my::lua_detail::ChildValue, IRefCounted)
-    public:
-        ChildValue(CompoundValuePtr parent, lua::ChildVariableKey key) :
-            m_parent(std::move(parent)),
-            m_key(std::move(key))
-        {
-        }
-
-        inline lua_State* getLua() const
-        {
-            MY_DEBUG_ASSERT(m_parent);
-            return m_parent->getLua();
-        }
-
-        inline auto pushSelf() const
-        {
-            return m_parent->pushChild(m_key);
-        }
-
-    protected:
-        const CompoundValuePtr m_parent;
-        const lua::ChildVariableKey m_key;
-
-        friend struct PushValueGuard;
-    };
-
-    class LuaFunctionDispatch final : public ChildValue,
-                                      public IDispatch
-    {
-        MY_REFCOUNTED_CLASS(my::lua_detail::LuaFunctionDispatch, ChildValue, IDispatch)
-
-    public:
-        using ChildValue::ChildValue;
-
-        Result<Ptr<>> invoke(std::string_view contract, std::string_view method, DispatchArguments args) override
-        {
             lua_State* const l = getLua();
 
-            guard_lstack(l);
+            // const ValueKeepMode keepMode = EXPR_Block
+            // {
+            //     const ValueKeeperGuard* const keepGuard = ValueKeeperGuard::current();
+            //     return keepGuard ? keepGuard->keepMode : ValueKeepMode::AsReference;
+            // };
 
-            [[maybe_unused]]
-            const auto index = pushSelf();
-            for (size_t i = 0; i < args.size(); ++i)
+            const int top = lua_gettop(l);
+            [[maybe_unused]] const auto index = pushSelf();
+
+            for (Ptr<>& arg : args)
             {
-                lua::pushRuntimeValue(l, args[i]).ignore();
+                CheckResult(lua::pushRuntimeValue(l, arg));
             }
 
-            lua_call(l, args.size(), LUA_MULTRET);
+            Lua_CheckErr(l, lua_pcall(l, args.size(), LUA_MULTRET, 0));
 
-            return nullptr;
-        }
+            const int retCount = lua_gettop(l) - top;
+            MY_DEBUG_ASSERT(retCount >= 0);
 
-        ClassDescriptorPtr getClassDescriptor() const override
-        {
-            return nullptr;
+            if (retCount == 0)
+            {
+                return nullptr;
+            }
+            MY_DEBUG_ASSERT(retCount == 1, "Multiple function results not supported");
+
+            auto [value, keepStackValue] = makeValueFromLuaStack(l, -1);
+            if (!keepStackValue)
+            {
+                lua_settop(l, top);
+            }
+
+            return {std::move(value)};
         }
     };
 
@@ -105,120 +102,112 @@ namespace my::lua_detail
         Base for implementing tables and arrays.
         An array in lua is the same table, but from the point of view of the Runtime view, access to the table and the array should be different.
     */
-    class LuaTableValueBase : public ChildValue,
-                              public CompoundValue
+    class LuaTableValueBase : public ReferenceValue
     {
-        MY_INTERFACE(LuaTableValueBase, ChildValue, CompoundValue)
+        MY_INTERFACE(LuaTableValueBase, ReferenceValue)
     public:
-        LuaTableValueBase(CompoundValuePtr parent, lua::ChildVariableKey key, ChildKeysArray childKeys) :
-            ChildValue(std::move(parent), std::move(key)),
+        LuaTableValueBase(LuaRootPtr root, lua::ChildVariableKey key, ChildKeysArray childKeys) :
+            ReferenceValue(std::move(root), std::move(key)),
             m_keys(std::move(childKeys))
         {
         }
 
-        lua_State* getLua() const noexcept final
-        {
-            return static_cast<const ChildValue&>(*this).getLua();
-        }
-
-        int pushChild(const lua::ChildVariableKey& childKey) const final
+        int pushChild(const lua::ChildVariableKey& childKey) const
         {
             lua_State* const l = getLua();
-            const int selfIdx = m_parent->pushChild(m_key);
-            MY_DEBUG_ASSERT(lua_type(l, selfIdx) == LUA_TTABLE);
+            const int tblIndex = pushSelf();
+            MY_DEBUG_ASSERT(lua_type(l, tblIndex) == LUA_TTABLE);
 
             if (!childKey)
             {
-                return selfIdx;
+                return tblIndex;
             }
-            childKey.push(l);
-            lua_gettable(l, selfIdx);
 
+            childKey.push(l);
+            [[maybe_unused]] const int t = lua_gettable(l, tblIndex);
+            if (t == LUA_TNIL)
+            {
+            }
+
+            lua_remove(l, -2);
             return lua::getAbsoluteStackPos(l, -1);
         }
 
         Result<> setField(const lua::ChildVariableKey& childKey, const RuntimeValuePtr& value)
         {
             lua_State* const l = getLua();
-            const int selfIdx = m_parent->pushChild(m_key);
+            const int selfIdx = pushSelf();
             MY_DEBUG_ASSERT(lua_type(l, selfIdx) == LUA_TTABLE);
 
             childKey.push(l);
-
             lua_gettable(l, selfIdx);
 
             const auto fieldType = lua_type(l, -1);
-            if (fieldType == LUA_TNIL || fieldType == LUA_TNUMBER || fieldType == LUA_TSTRING || fieldType == LUA_TBOOLEAN)
+            if (isValueType(fieldType))
             {
                 lua_pop(l, 1);
                 childKey.push(l);
                 CheckResult(lua::pushRuntimeValue(l, value))
                 lua_settable(l, selfIdx);
 
-                return {};
+                if (fieldType == LUA_TNIL && !hasKey(childKey))
+                {
+                    m_keys.push_back(childKey);
+                }
+
+                return ResultSuccess;
             }
 
             if (fieldType == LUA_TTABLE)
             {
                 CheckResult(lua::populateTable(l, -1, value))
-                return {};
+                return ResultSuccess;
             }
 
             return MakeError("Unexpected lua type");
         }
 
     protected:
-        const ChildKeysArray m_keys;
-    };
-
-    /**
-     */
-    struct PushValueGuard : lua::StackGuard
-    {
-        const int index;
-
-        PushValueGuard(const ChildValue& value, int expectedLuaType) :
-            lua::StackGuard{value.getLua()},
-            index(pushChildValue(value.getLua(), value, expectedLuaType))
+        bool hasKey(const lua::ChildVariableKey& key) const
         {
-        }
-
-        explicit operator bool() const
-        {
-            return index != lua::InvalidLuaIndex;
-        }
-
-        operator int() const
-        {
-            MY_DEBUG_ASSERT(index != lua::InvalidLuaIndex);
-            return index;
-        }
-
-    private:
-        static inline int pushChildValue(lua_State* l, const ChildValue& value, [[maybe_unused]] int expectedLuaType)
-        {
-            const int stackIndex = value.pushSelf();
-            if (const int type = lua_type(l, stackIndex); type != expectedLuaType)
+            return std::find_if(m_keys.begin(), m_keys.end(), [&key](const lua::ChildVariableKey& childKey)
             {
-                return lua::InvalidLuaIndex;
+                return childKey == key;
+            }) != m_keys.end();
+        }
+
+        RuntimeValuePtr makeChildValue(const lua::ChildVariableKey& key) const
+        {
+            lua_State* const l = getLua();
+            const int idx = pushChild(key);
+            auto [childValue, keepStackValue] = lua::makeValueFromLuaStack(l, idx);
+            if (!keepStackValue)
+            {
+                lua_pop(l, 1);
             }
 
-            return stackIndex;
+            return childValue;
         }
-    };
 
-    RuntimeValuePtr createLuaRuntimeValue(CompoundValuePtr parent, lua::ChildVariableKey, IMemAllocator*);
+        ChildKeysArray m_keys;
+    };
 
     /**
      */
-
-    class LuaStringValue final : public ChildValue,
-                                 public RuntimeStringValue
+    class LuaStringValue final : public StringValue
     {
-        MY_REFCOUNTED_CLASS(LuaStringValue, ChildValue, RuntimeStringValue)
+        MY_REFCOUNTED_CLASS(LuaStringValue, StringValue)
 
     public:
-        using ChildValue::ChildValue;
+        LuaStringValue(lua_State* l, int idx, IAllocator& allocator) :
+            m_value(allocator.getMemoryResource())
+        {
+            MY_DEBUG_FATAL(l);
+            MY_DEBUG_ASSERT(lua_type(l, idx) == LUA_TSTRING);
+            size_t len = 0;
+            const char* const str = lua_tolstring(l, idx, &len);
+            m_value.assign(str, len);
+        }
 
         bool isMutable() const override
         {
@@ -227,29 +216,39 @@ namespace my::lua_detail
 
         Result<> setString(std::string_view) override
         {
-            return ResultSuccess;
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
+            return MakeError("Direct set primitive value is not supported");
         }
 
         std::string getString() const override
         {
-            if (const PushValueGuard index{*this, LUA_TSTRING}; index)
-            {
-                size_t len = 0;
-                const char* const str = lua_tolstring(getLua(), index, &len);
-                return std::string{str, len};
-            }
-
-            return {};
+            return std::string{m_value.data(), m_value.size()};
         }
+
+        std::pmr::string m_value;
     };
 
-    /*
-     */
-    class MY_ABSTRACT_TYPE LuaIntegerValue : public RuntimeIntegerValue
+    class LuaNumericValue final : public IntegerValue,
+                                  public FloatValue
     {
-        MY_INTERFACE(LuaIntegerValue, RuntimeIntegerValue)
+        MY_REFCOUNTED_CLASS(LuaNumericValue, IntegerValue, FloatValue)
 
     public:
+        LuaNumericValue(lua_State* l, int idx)
+        {
+            MY_DEBUG_FATAL(l);
+            MY_DEBUG_ASSERT(lua_type(l, idx) == LUA_TNUMBER);
+
+            [[maybe_unused]] int convOk = true;
+            m_value = lua_tonumberx(l, idx, &convOk);
+            MY_DEBUG_ASSERT(convOk);
+        }
+
+        bool isMutable() const override
+        {
+            return false;
+        }
+
         bool isSigned() const final
         {
             return true;
@@ -257,116 +256,70 @@ namespace my::lua_detail
 
         size_t getBitsCount() const final
         {
-            return sizeof(lua_Integer);
+            return sizeof(lua_Number);
         }
 
-        void setInt64(int64_t value) final
+        void setInt64(int64_t) final
         {
-            if (const PushValueGuard index(this->as<const ChildValue&>(), LUA_TNUMBER); index)
-            {
-                // const lua_Integer value = lua_tointeger(index.l, index);
-            }
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
         }
 
-        void setUint64(uint64_t value) final
+        void setUint64(uint64_t) final
         {
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
         }
 
         int64_t getInt64() const final
         {
-            if (const PushValueGuard index(this->as<const ChildValue&>(), LUA_TNUMBER); index)
-            {
-                const lua_Integer value = lua_tointegerx(index.luaState, index, nullptr);
-                return static_cast<int64_t>(value);
-            }
-
-            return 0;
+            return static_cast<int64_t>(m_value);
         }
 
         uint64_t getUint64() const final
         {
-            if (const PushValueGuard index(this->as<const ChildValue&>(), LUA_TNUMBER); index)
-            {
-                const lua_Integer value = lua_tointegerx(index.luaState, index, nullptr);
-                return static_cast<uint64_t>(value);
-            }
-
-            return 0;
-        }
-    };
-
-    /*
-     */
-    class MY_ABSTRACT_TYPE LuaFloatValue : public RuntimeFloatValue
-    {
-        MY_INTERFACE(LuaFloatValue, RuntimeFloatValue)
-    public:
-        size_t getBitsCount() const final
-        {
-            return sizeof(lua_Number);
+            return static_cast<uint64_t>(m_value);
         }
 
         void setDouble(double) final
         {
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
         }
 
         void setSingle(float) final
         {
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
         }
 
         double getDouble() const override
         {
-            if (const PushValueGuard index(this->as<const ChildValue&>(), LUA_TNUMBER); index)
-            {
-                const lua_Number value = lua_tonumber(index.luaState, index);
-                return static_cast<double>(value);
-            }
-
-            return 0.;
+            return static_cast<double>(m_value);
         }
 
         float getSingle() const override
         {
-            if (const PushValueGuard index(this->as<const ChildValue&>(), LUA_TNUMBER); index)
+#if MY_DEBUG_ASSERT_ENABLED
+            if constexpr (sizeof(lua_Number) > sizeof(float))
             {
-                const lua_Number value = lua_tonumber(index.luaState, index);
-                if constexpr (sizeof(lua_Number) > sizeof(float))
-                {
-                    MY_DEBUG_ASSERT(value <= std::numeric_limits<float>::max(), "Numeric overflow");
-                }
-                return static_cast<float>(value);
+                MY_DEBUG_ASSERT(m_value <= std::numeric_limits<float>::max(), "Numeric overflow");
             }
-
-            return 0.f;
+#endif
+            return static_cast<float>(m_value);
         }
-    };
 
-    /*
-     */
-    class LuaNumericValue final : public ChildValue,
-                                  public LuaIntegerValue,
-                                  public LuaFloatValue
-    {
-        MY_REFCOUNTED_CLASS(LuaNumericValue, ChildValue, LuaIntegerValue, LuaFloatValue)
-
-    public:
-        using ChildValue::ChildValue;
-
-        bool isMutable() const override
-        {
-            return false;
-        }
+    private:
+        lua_Number m_value = 0;
     };
 
     /**
      */
-    class LuaBooleanValue final : public ChildValue,
-                                  public RuntimeBooleanValue
+    class LuaBooleanValue final : public BooleanValue
     {
-        MY_REFCOUNTED_CLASS(LuaBooleanValue, ChildValue, RuntimeBooleanValue)
+        MY_REFCOUNTED_CLASS(LuaBooleanValue, BooleanValue)
 
     public:
-        using ChildValue::ChildValue;
+        LuaBooleanValue(lua_State* l, int idx)
+        {
+            m_value = lua_toboolean(l, idx) != 0;
+        }
 
         bool isMutable() const override
         {
@@ -375,35 +328,36 @@ namespace my::lua_detail
 
         void setBool(bool) override
         {
+            MY_DEBUG_FAILURE("direct set primitive lua value is not supported");
         }
 
         bool getBool() const override
         {
-            if (const PushValueGuard index(*this, LUA_TBOOLEAN); index)
-            {
-                const bool value = (lua_toboolean(index.luaState, index) != 0);
-                return value;
-            }
-
-            return false;
+            return m_value;
         }
+
+    private:
+        bool m_value = false;
     };
+
     /**
      */
-    class LuaOptionalValue final : public ChildValue,
-                                   public RuntimeOptionalValue
+    class LuaNilValue final : public OptionalValue
     {
-        MY_REFCOUNTED_CLASS(LuaOptionalValue, ChildValue, RuntimeOptionalValue)
+        MY_REFCOUNTED_CLASS(LuaNilValue, OptionalValue)
 
     public:
-        using ChildValue::ChildValue;
+        LuaNilValue([[maybe_unused]] lua_State* l, [[maybe_unused]] int idx)
+        {
+            MY_DEBUG_ASSERT(lua_type(l, idx) == LUA_TNIL);
+        }
 
         bool isMutable() const override
         {
             return false;
         }
 
-        Result<> setValue(RuntimeValuePtr value) override
+        Result<> setValue(RuntimeValuePtr) override
         {
             return {};
         }
@@ -420,9 +374,9 @@ namespace my::lua_detail
     };
 
     class LuaTableValue final : public LuaTableValueBase,
-                                public RuntimeDictionary
+                                public Dictionary
     {
-        MY_REFCOUNTED_CLASS(LuaTableValue, LuaTableValueBase, RuntimeDictionary)
+        MY_REFCOUNTED_CLASS(LuaTableValue, LuaTableValueBase, Dictionary)
 
     public:
         using LuaTableValueBase::LuaTableValueBase;
@@ -455,7 +409,7 @@ namespace my::lua_detail
                 return nullptr;
             }
 
-            return createLuaRuntimeValue(getSelfPtr(), *key, nullptr);
+            return makeChildValue(*key);
         }
 
         bool containsKey(std::string_view keyName) const override
@@ -486,9 +440,9 @@ namespace my::lua_detail
     /*
      */
     class LuaArrayValue final : public LuaTableValueBase,
-                                public RuntimeCollection
+                                public Collection
     {
-        MY_REFCOUNTED_CLASS(LuaArrayValue, LuaTableValueBase, RuntimeCollection)
+        MY_REFCOUNTED_CLASS(LuaArrayValue, LuaTableValueBase, Collection)
 
     public:
         using LuaTableValueBase::LuaTableValueBase;
@@ -509,7 +463,8 @@ namespace my::lua_detail
 
             auto key = m_keys.begin();
             std::advance(key, index);
-            return createLuaRuntimeValue(getSelfPtr(), *key, nullptr);
+
+            return makeChildValue(*key);
         }
 
         Result<> setAt([[maybe_unused]] size_t index, [[maybe_unused]] const RuntimeValuePtr& value) override
@@ -532,180 +487,80 @@ namespace my::lua_detail
         }
     };
 
-    /**
-     */
-    class LuaStackRootValue final : public CompoundValue
+    // /**
+    //  */
+    // Ptr<> createLuaRuntimeValue(LuaRootPtr root, int index, lua::ChildVariableKey&& childKey, IAllocator* allocator)
+    // {
+    // }
+
+}  // namespace my::lua_detail
+
+namespace my::lua
+{
+    std::tuple<Ptr<>, bool> makeValueFromLuaStack(lua_State* l, int index, std::optional<ValueKeepMode> overrideKeepMode)
     {
-        MY_REFCOUNTED_CLASS(LuaStackRootValue, CompoundValue)
+        using namespace my::lua_detail;
 
-    public:
-        static Ptr<LuaStackRootValue> instance(lua_State* l)
+        MY_DEBUG_FATAL(l != nullptr);
+        // TODO: may be need to manage ValueKeeperGuard per state ?
+        MY_DEBUG_FATAL(!ValueKeeperGuard::current() || ValueKeeperGuard::current()->l == l);
+
+        const ValueKeepMode keepMode = EXPR_Block
         {
-            using RootMap = std::unordered_map<lua_State*, my::WeakPtr<LuaStackRootValue>>;
-
-            static thread_local RootMap roots;
-
-            auto& rootRef = roots[l];
-            auto root = rootRef.acquire();
-            if (!root)
+            if (overrideKeepMode)
             {
-                root = rtti::createInstance<LuaStackRootValue>(l);
-                rootRef = root;
+                return *overrideKeepMode;
             }
 
-            MY_DEBUG_ASSERT(root && root->m_lua == l);
-            return root;
-        }
+            const ValueKeeperGuard* const keepGuard = ValueKeeperGuard::current();
+            return keepGuard ? keepGuard->keepMode : ValueKeepMode::AsReference;
+        };
 
-        LuaStackRootValue(lua_State* l) :
-            m_lua(l)
-        {
-            MY_DEBUG_ASSERT(m_lua);
-        }
+        // value types (number, string, bool) must not be stored as referenced
+        // and always returning as copies, so lua root does not need for it.
+        // (because it will be copied into native type)
 
-        lua_State* getLua() const override
-        {
-            return m_lua;
-        }
-
-        int pushChild(const lua::ChildVariableKey& key) const override
-        {
-            MY_DEBUG_ASSERT(key && key.isIndexed());
-            return static_cast<int>(key);
-        }
-
-        RuntimeValuePtr wrapStackValue(int index, IMemAllocator* allocator)
-        {
-            return createLuaRuntimeValue(getSelfPtr(), lua::getAbsoluteStackPos(m_lua, index), allocator);
-        }
-
-    private:
-        lua_State* const m_lua;
-    };
-
-    /**
-     */
-    class LuaGlobalRefRootValue final : public CompoundValue
-    {
-        MY_REFCOUNTED_CLASS(LuaGlobalRefRootValue, CompoundValue)
-
-        static inline const char* GlobalRefsFieldName = "Nau__GlobalRefs";
-
-    public:
-        static Ptr<LuaGlobalRefRootValue> instance(lua_State* l)
-        {
-            using RootMap = std::unordered_map<lua_State*, my::WeakPtr<LuaGlobalRefRootValue>>;
-
-            static thread_local RootMap roots;
-
-            auto& rootRef = roots[l];
-            auto root = rootRef.acquire();
-            if (!root)
-            {
-                root = rtti::createInstance<LuaGlobalRefRootValue>(l);
-                rootRef = root;
-            }
-
-            MY_DEBUG_ASSERT(root && root->m_lua == l);
-            return root;
-        }
-
-        LuaGlobalRefRootValue(lua_State* l) :
-            m_lua(l)
-        {
-            MY_DEBUG_ASSERT(m_lua);
-
-#ifdef _DEBUG
-            MY_DEBUG_ASSERT(lua_getglobal(m_lua, GlobalRefsFieldName) == LUA_TNIL);
-            lua_pop(m_lua, 1);
-#endif
-            lua_createtable(m_lua, 0, 0);
-            lua_setglobal(m_lua, GlobalRefsFieldName);
-        }
-
-        ~LuaGlobalRefRootValue()
-        {
-            lua_pushnil(m_lua);
-            lua_setglobal(m_lua, GlobalRefsFieldName);
-        }
-
-        lua_State* getLua() const override
-        {
-            return m_lua;
-        }
-
-        int pushChild(const lua::ChildVariableKey& key) const override
-        {
-            MY_DEBUG_ASSERT(key && key.isIndexed());
-
-            [[maybe_unused]]
-            const auto t = lua_getglobal(m_lua, GlobalRefsFieldName);
-            MY_DEBUG_ASSERT(t == LUA_TTABLE);
-
-            lua_rawgeti(m_lua, -1, key);
-            lua_remove(m_lua, -2);
-
-            return lua_gettop(m_lua);
-        }
-
-        int keepReference(int stackIndex)
-        {
-            guard_lstack(m_lua);
-
-            [[maybe_unused]]
-            const auto t = lua_getglobal(m_lua, GlobalRefsFieldName);
-            MY_DEBUG_ASSERT(t == LUA_TTABLE);
-
-            lua_pushvalue(m_lua, stackIndex);
-            return luaL_ref(m_lua, -2);
-        }
-
-        void releaseReference(int refId)
-        {
-        }
-
-    private:
-        lua_State* const m_lua;
-    };
-
-    /**
-     */
-    RuntimeValuePtr createLuaRuntimeValue(CompoundValuePtr parent, lua::ChildVariableKey key, IMemAllocator* allocator)
-    {
-        MY_DEBUG_ASSERT(parent);
-        MY_DEBUG_ASSERT(key);
-
-        if (!allocator)
-        {
-            allocator = getSystemAllocatorPtr();
-        }
-
-        auto* const l = parent->getLua();
-
-        guard_lstack(l);
-
-        const int index = parent->pushChild(key);
         const int type = lua_type(l, index);
+        const bool isReference = lua_detail::isReferenceType(type);
+        const bool keepValueOnStack = keepMode == ValueKeepMode::OnStack;
+        IAllocator* const allocator = keepValueOnStack ? getRtStackAllocatorPtr() : getDefaultAllocatorPtr();
+        LuaRootPtr root = isReference ? (keepValueOnStack ? LuaStackRoot::instance(l) : LuaGlobalRefRoot::instance(l)) : nullptr;
 
-        if (type == LUA_TNUMBER)
+        ChildVariableKey childKey = root ? root->ref(index) : nullptr;
+        MY_DEBUG_ASSERT(static_cast<bool>(childKey) != isValueType(type));
+        //
+        // guard_lstack(l);
+        assert_lstack_unchanged(l);
+
+        RuntimeValuePtr value;
+
+        if (type == LUA_TSTRING)
         {
-            return rtti::createInstanceWithAllocator<LuaNumericValue>(allocator, std::move(parent), std::move(key));
+            value = rtti::createInstanceWithAllocator<LuaStringValue>(allocator, l, index, *allocator);
+        }
+        else if (type == LUA_TNUMBER)
+        {
+            value = rtti::createInstanceWithAllocator<LuaNumericValue>(allocator, l, index);
         }
         else if (type == LUA_TBOOLEAN)
         {
-            return rtti::createInstanceWithAllocator<LuaBooleanValue>(allocator, std::move(parent), std::move(key));
+            value = rtti::createInstanceWithAllocator<LuaBooleanValue>(allocator, l, index);
         }
-        else if (type == LUA_TSTRING)
+        else if (type == LUA_TNIL)
         {
-            return rtti::createInstanceWithAllocator<LuaStringValue>(allocator, std::move(parent), std::move(key));
+            value = rtti::createInstanceWithAllocator<LuaNilValue>(allocator, l, index);
+        }
+        else if (type == LUA_TFUNCTION)
+        {
+            value = rtti::createInstanceWithAllocator<lua_detail::LuaClosureValue>(allocator, std::move(root), std::move(childKey));
         }
         else if (type == LUA_TTABLE)
         {
-            const lua::TableEnumerator fields{l, parent->pushChild(key)};
+            const lua::TableEnumerator fields{l, index};
             const size_t keysCount = std::distance(fields.begin(), fields.end());
             bool isArray = keysCount > 0;  // empty table -> dict
 
-            ChildKeysArray childKeys;
+            ChildKeysArray childKeys{allocator->getMemoryResource()};
 
             if (keysCount > 0)
             {
@@ -730,43 +585,19 @@ namespace my::lua_detail
                     }
                 }
             }
-
             if (isArray)
             {
-                return rtti::createInstanceWithAllocator<LuaArrayValue, RuntimeValue>(std::move(allocator), std::move(parent), std::move(key), std::move(childKeys));
+                value = rtti::createInstanceWithAllocator<LuaArrayValue, RuntimeValue>(allocator, std::move(root), std::move(childKey), std::move(childKeys));
             }
-
-            return rtti::createInstanceWithAllocator<LuaTableValue, RuntimeValue>(std::move(allocator), std::move(parent), std::move(key), std::move(childKeys));
-        }
-        else if (type == LUA_TNIL)
-        {
-            return rtti::createInstanceWithAllocator<LuaOptionalValue>(std::move(allocator), std::move(parent), std::move(key));
+            else
+            {
+                value = rtti::createInstanceWithAllocator<LuaTableValue, RuntimeValue>(allocator, std::move(root), std::move(childKey), std::move(childKeys));
+            }
         }
 
-        MY_DEBUG_FATAL_FAILURE("Unknown lua type");
-
-        return nullptr;
-    }
-
-    // Ptr<> createDispatchForLuaFunc(lua_State* l, int index)
-    // {
-
-    // }
-}  // namespace my::lua_detail
-
-namespace my::lua
-{
-    Ptr<> makeValueFromLuaStack(lua_State* l, int index, IMemAllocator* allocator)
-    {
-        if (lua_type(l, index) == LUA_TFUNCTION)
-        {
-            auto globalsRoot = lua_detail::LuaGlobalRefRootValue::instance(l);
-
-            const int refId = globalsRoot->keepReference(index);
-            return rtti::createInstance<lua_detail::LuaFunctionDispatch>(std::move(globalsRoot), refId);
-        }
-
-        return lua_detail::LuaStackRootValue::instance(l)->wrapStackValue(index, allocator);
+        MY_DEBUG_FATAL(value, "Do not known how to represent lua type:({})", type);
+        const bool needKeepStackValue = keepValueOnStack && isReference;
+        return {std::move(value), needKeepStackValue};
     }
 
     Result<> pushRuntimeValue(lua_State* l, const RuntimeValuePtr& value)
@@ -774,7 +605,7 @@ namespace my::lua
         MY_DEBUG_ASSERT(l);
         MY_DEBUG_ASSERT(value);
 
-        if (RuntimeOptionalValue* const optValue = value->as<RuntimeOptionalValue*>())
+        if (OptionalValue* const optValue = value->as<OptionalValue*>())
         {
             if (!optValue->hasValue())
             {
@@ -784,17 +615,17 @@ namespace my::lua
 
             return pushRuntimeValue(l, optValue->getValue());
         }
-        else if (const RuntimeStringValue* const strValue = value->as<const RuntimeStringValue*>())
+        else if (const StringValue* const strValue = value->as<const StringValue*>())
         {
             const std::string str = strValue->getString();
             lua_pushlstring(l, str.data(), str.size());
         }
-        else if (const RuntimeBooleanValue* const boolValue = value->as<const RuntimeBooleanValue*>())
+        else if (const BooleanValue* const boolValue = value->as<const BooleanValue*>())
         {
             const int b = boolValue->getBool() ? 1 : 0;
             lua_pushboolean(l, b);
         }
-        else if (const RuntimeIntegerValue* const intValue = value->as<const RuntimeIntegerValue*>())
+        else if (const IntegerValue* const intValue = value->as<const IntegerValue*>())
         {
             const auto i = EXPR_Block->lua_Integer
             {
@@ -808,12 +639,12 @@ namespace my::lua
 
             lua_pushinteger(l, i);
         }
-        else if (const RuntimeFloatValue* const floatValue = value->as<const RuntimeFloatValue*>())
+        else if (const FloatValue* const floatValue = value->as<const FloatValue*>())
         {
             const double fValue = floatValue->getDouble();
             lua_pushnumber(l, static_cast<lua_Number>(fValue));
         }
-        else if (RuntimeReadonlyCollection* const collection = value->as<RuntimeReadonlyCollection*>())
+        else if (ReadonlyCollection* const collection = value->as<ReadonlyCollection*>())
         {
             const size_t size = collection->getSize();
             lua_createtable(l, static_cast<int>(size), 0);
@@ -828,7 +659,7 @@ namespace my::lua
                 lua_rawset(l, tableIndex);
             }
         }
-        else if (RuntimeReadonlyDictionary* const dict = value->as<RuntimeReadonlyDictionary*>())
+        else if (ReadonlyDictionary* const dict = value->as<ReadonlyDictionary*>())
         {
             const size_t size = dict->getSize();
             lua_createtable(l, 0, static_cast<int>(size));
@@ -857,7 +688,7 @@ namespace my::lua
         MY_DEBUG_ASSERT(value);
         MY_DEBUG_ASSERT(lua_type(l, tablePos) == LUA_TTABLE);
 
-        if (auto* const dict = value->as<RuntimeReadonlyDictionary*>())
+        if (auto* const dict = value->as<ReadonlyDictionary*>())
         {
             for (size_t i = 0, size = dict->getSize(); i < size; ++i)
             {
@@ -879,7 +710,7 @@ namespace my::lua
                 }
             }
         }
-        else if (const auto collection = value->as<const RuntimeReadonlyCollection*>())
+        else if (const auto collection = value->as<const ReadonlyCollection*>())
         {
         }
         else

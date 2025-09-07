@@ -131,12 +131,12 @@ namespace my::json_detail
 
     RuntimeValuePtr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue);
 
-    Ptr<RuntimeDictionary> createJsonDictionary(Json::Value&& jsonValue);
+    Ptr<Dictionary> createJsonDictionary(Json::Value&& jsonValue);
     
-    Ptr<RuntimeCollection> createJsonCollection(Json::Value&& jsonValue);
+    Ptr<Collection> createJsonCollection(Json::Value&& jsonValue);
 
-    Ptr<RuntimeDictionary> wrapJsonDictionary(Json::Value& jsonValue);
+    Ptr<Dictionary> wrapJsonDictionary(Json::Value& jsonValue);
     
-    Ptr<RuntimeCollection> wrapJsonCollection(Json::Value& jsonValue);
+    Ptr<Collection> wrapJsonCollection(Json::Value& jsonValue);
 
 }  // namespace my::json_detail

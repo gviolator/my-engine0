@@ -389,10 +389,15 @@ namespace my
         /**
 
         */
+        template <rtti::WithTypeInfo T>
+        ClassDescriptorPtr findClass();
+
         template <rtti::WithTypeInfo T, rtti::WithTypeInfo... U>
         std::vector<ClassDescriptorPtr> findClasses(bool anyType = true);
 
         virtual void addClass(ClassDescriptorPtr&& classDesc) = 0;
+
+        virtual ClassDescriptorPtr findClass(rtti::TypeInfo type) = 0;
 
         virtual std::vector<ClassDescriptorPtr> findClasses(rtti::TypeInfo type) = 0;
 
@@ -554,6 +559,12 @@ namespace my
     {
         static_assert(!std::is_abstract_v<T>, "Invalid class");
         addClass(getClassDescriptor<T>());
+    }
+
+    template <rtti::WithTypeInfo T>
+    ClassDescriptorPtr ServiceProvider::findClass()
+    {
+        return findClass(rtti::getTypeInfo<T>());
     }
 
     template <rtti::WithTypeInfo T, rtti::WithTypeInfo... U>

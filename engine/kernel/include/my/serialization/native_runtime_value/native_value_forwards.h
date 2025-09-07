@@ -10,7 +10,7 @@
 #include <tuple>
 #include <unordered_set>
 
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/meta/class_info.h"
 #include "my/serialization/runtime_value.h"
 #include "my/utils/to_string.h"
@@ -240,158 +240,158 @@ namespace my
     template <typename T>
     concept LikeUniformTuple = UniformTupleValueOperations<T>::value;
 
-    Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, IMemAllocator* = nullptr);
+    Ptr<RuntimeValueRef> makeValueRef(const RuntimeValuePtr& value, IAllocator* = nullptr);
 
-    Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, IMemAllocator* = nullptr);
+    Ptr<RuntimeValueRef> makeValueRef(RuntimeValuePtr& value, IAllocator* = nullptr);
 
     // Integral
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<IntegerValue> makeValueRef(T&, IAllocator* = nullptr);
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<IntegerValue> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <std::integral T>
-    Ptr<RuntimeIntegerValue> makeValueCopy(T, IMemAllocator* = nullptr);
+    Ptr<IntegerValue> makeValueCopy(T, IAllocator* = nullptr);
 
     // Boolean
-    Ptr<RuntimeBooleanValue> makeValueRef(bool&, IMemAllocator* = nullptr);
+    Ptr<BooleanValue> makeValueRef(bool&, IAllocator* = nullptr);
 
-    Ptr<RuntimeBooleanValue> makeValueRef(const bool&, IMemAllocator* = nullptr);
+    Ptr<BooleanValue> makeValueRef(const bool&, IAllocator* = nullptr);
 
-    Ptr<RuntimeBooleanValue> makeValueCopy(bool, IMemAllocator* = nullptr);
+    Ptr<BooleanValue> makeValueCopy(bool, IAllocator* = nullptr);
 
     // Floating point
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<FloatValue> makeValueRef(T&, IAllocator* = nullptr);
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<FloatValue> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueCopy(T, IMemAllocator* = nullptr);
+    Ptr<FloatValue> makeValueCopy(T, IAllocator* = nullptr);
 
     // String
     template <typename... Traits>
-    Ptr<RuntimeStringValue> makeValueRef(std::basic_string<char, Traits...>&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueRef(std::basic_string<char, Traits...>&, IAllocator* = nullptr);
 
     template <typename... Traits>
-    Ptr<RuntimeStringValue> makeValueRef(const std::basic_string<char, Traits...>&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueRef(const std::basic_string<char, Traits...>&, IAllocator* = nullptr);
 
-    Ptr<RuntimeStringValue> makeValueCopy(std::string_view, IMemAllocator* = nullptr);
-
-    template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueCopy(std::string_view, IAllocator* = nullptr);
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueRef(T&, IAllocator* = nullptr);
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <AutoStringRepresentable T>
-    Ptr<RuntimeStringValue> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<StringValue> makeValueCopy(const T&, IAllocator* = nullptr);
+
+    template <AutoStringRepresentable T>
+    Ptr<StringValue> makeValueCopy(T&&, IAllocator* = nullptr);
 
     // Optional
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<OptionalValue> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<OptionalValue> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<OptionalValue> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeStdOptional T>
-    Ptr<RuntimeOptionalValue> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<OptionalValue> makeValueCopy(T&&, IAllocator* = nullptr);
 
     // Tuple
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueCopy(T&&, IAllocator* = nullptr);
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeUniformTuple T>
-    Ptr<RuntimeReadonlyCollection> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<ReadonlyCollection> makeValueCopy(T&&, IAllocator* = nullptr);
 
     // Collection
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeStdVector T>
-    Ptr<RuntimeCollection> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(T&&, IAllocator* = nullptr);
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeStdList T>
-    Ptr<RuntimeCollection> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(T&&, IAllocator* = nullptr);
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueRef(T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(T&, IAllocator* = nullptr);
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueRef(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueRef(const T&, IAllocator* = nullptr);
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueCopy(const T&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(const T&, IAllocator* = nullptr);
 
     template <LikeSet T>
-    Ptr<RuntimeCollection> makeValueCopy(T&&, IMemAllocator* = nullptr);
+    Ptr<Collection> makeValueCopy(T&&, IAllocator* = nullptr);
 
     // Dictionary
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(T& dict, IMemAllocator* = nullptr);
+    Ptr<Dictionary> makeValueRef(T& dict, IAllocator* = nullptr);
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueRef(const T& dict, IMemAllocator* = nullptr);
+    Ptr<Dictionary> makeValueRef(const T& dict, IAllocator* = nullptr);
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(const T& dict, IMemAllocator* = nullptr);
+    Ptr<Dictionary> makeValueCopy(const T& dict, IAllocator* = nullptr);
 
     template <LikeStdMap T>
-    Ptr<RuntimeDictionary> makeValueCopy(T&& dict, IMemAllocator* = nullptr);
+    Ptr<Dictionary> makeValueCopy(T&& dict, IAllocator* = nullptr);
 
     // Object
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueRef(T& obj, IMemAllocator* = nullptr);
+    Ptr<RuntimeObject> makeValueRef(T& obj, IAllocator* = nullptr);
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueRef(const T& obj, IMemAllocator* = nullptr);
+    Ptr<RuntimeObject> makeValueRef(const T& obj, IAllocator* = nullptr);
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueCopy(const T& obj, IMemAllocator* = nullptr);
+    Ptr<RuntimeObject> makeValueCopy(const T& obj, IAllocator* = nullptr);
 
     template <NauClassWithFields T>
-    Ptr<RuntimeObject> makeValueCopy(T&& obj, IMemAllocator* = nullptr);
+    Ptr<RuntimeObject> makeValueCopy(T&& obj, IAllocator* = nullptr);
 
 }  // namespace my
 

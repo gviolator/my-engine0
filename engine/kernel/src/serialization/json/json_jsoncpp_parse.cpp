@@ -21,7 +21,7 @@ namespace my::serialization
         return (*parser);
     }
 
-    Result<RuntimeValuePtr> jsonParse(io::IStream& reader, IMemAllocator* allocator)
+    Result<RuntimeValuePtr> jsonParse(io::IStream& reader, IAllocator* allocator)
     {
         MY_DEBUG_ASSERT(reader.canRead());
 
@@ -69,7 +69,7 @@ namespace my::serialization
         return root;
     }
 
-    Result<RuntimeValuePtr> jsonParseString(std::string_view str, IMemAllocator*)
+    Result<RuntimeValuePtr> jsonParseString(std::string_view str, IAllocator*)
     {
         auto root = jsonParseToValue(str);
         CheckResult(root);

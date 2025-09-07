@@ -14,9 +14,9 @@ namespace my::ser_detail
      *
      */
     template <typename T>
-    class NativeFloatValue final : public ser_detail::NativePrimitiveRuntimeValueBase<RuntimeFloatValue>
+    class NativeFloatValue final : public ser_detail::NativePrimitiveRuntimeValueBase<FloatValue>
     {
-        using Base = ser_detail::NativePrimitiveRuntimeValueBase<RuntimeFloatValue>;
+        using Base = ser_detail::NativePrimitiveRuntimeValueBase<FloatValue>;
         using FloatValueType = std::remove_const_t<std::remove_reference_t<T>>;
 
         MY_REFCOUNTED_CLASS(NativeFloatValue<T>, Base)
@@ -88,19 +88,19 @@ namespace my
 {
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(T& value, IMemAllocator* allocator)
+    Ptr<FloatValue> makeValueRef(T& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueRef(const T& value, IMemAllocator* allocator)
+    Ptr<FloatValue> makeValueRef(const T& value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<const T&>>(allocator, value);
     }
 
     template <std::floating_point T>
-    Ptr<RuntimeFloatValue> makeValueCopy(T value, IMemAllocator* allocator)
+    Ptr<FloatValue> makeValueCopy(T value, IAllocator* allocator)
     {
         return rtti::createInstanceWithAllocator<ser_detail::NativeFloatValue<T>>(allocator, value);
     }

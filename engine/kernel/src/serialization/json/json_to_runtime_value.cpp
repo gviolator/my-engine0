@@ -18,7 +18,7 @@ namespace my::json_detail
 
     Result<> setJsonValue(Json::Value& jsonValue, RuntimeValue& rtValue)
     {
-        if (auto* const optValue = rtValue.as<RuntimeOptionalValue*>())
+        if (auto* const optValue = rtValue.as<OptionalValue*>())
         {
             if (optValue->hasValue())
             {
@@ -29,7 +29,7 @@ namespace my::json_detail
                 jsonValue = Json::Value::nullSingleton();
             }
         }
-        else if (const auto* const intValue = rtValue.as<const RuntimeIntegerValue*>())
+        else if (const auto* const intValue = rtValue.as<const IntegerValue*>())
         {
             const bool isLong = intValue->getBitsCount() == sizeof(int64_t);
 
@@ -44,19 +44,19 @@ namespace my::json_detail
                 jsonValue = isLong ? Json::Value{static_cast<Json::UInt64>(i)} : Json::Value{static_cast<Json::UInt>(i)};
             }
         }
-        else if (const auto* const floatValue = rtValue.as<const RuntimeFloatValue*>())
+        else if (const auto* const floatValue = rtValue.as<const FloatValue*>())
         {
             jsonValue = Json::Value{floatValue->getDouble()};
         }
-        else if (const auto* const boolValue = rtValue.as<const RuntimeBooleanValue*>())
+        else if (const auto* const boolValue = rtValue.as<const BooleanValue*>())
         {
             jsonValue = Json::Value{boolValue->getBool()};
         }
-        else if (const auto* const strValue = rtValue.as<RuntimeStringValue*>())
+        else if (const auto* const strValue = rtValue.as<StringValue*>())
         {
             jsonValue = Json::Value{strValue->getString()};
         }
-        else if (auto* coll = rtValue.as<RuntimeReadonlyCollection*>(); coll)
+        else if (auto* coll = rtValue.as<ReadonlyCollection*>(); coll)
         {
             if (jsonValue.type() != Json::ValueType::arrayValue)
             {
@@ -75,7 +75,7 @@ namespace my::json_detail
                 jsonValue.append(std::move(elementJsonValue));
             }
         }
-        else if (auto* dict = rtValue.as<RuntimeReadonlyDictionary*>(); dict)
+        else if (auto* dict = rtValue.as<ReadonlyDictionary*>(); dict)
         {
             if (jsonValue.type() != Json::ValueType::objectValue)
             {
@@ -163,9 +163,9 @@ namespace my::json_detail
     /**
      */
     class JsonNull final : public JsonValueHolderImpl,
-                           public RuntimeOptionalValue
+                           public OptionalValue
     {
-        MY_REFCOUNTED_CLASS(my::json_detail::JsonNull, JsonValueHolderImpl, RuntimeOptionalValue)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonNull, JsonValueHolderImpl, OptionalValue)
 
     public:
         JsonNull(const my::Ptr<JsonValueHolderImpl>& root) :
@@ -197,9 +197,9 @@ namespace my::json_detail
     /**
      */
     class JsonCollection final : public JsonValueHolderImpl,
-                                 public RuntimeCollection
+                                 public Collection
     {
-        MY_REFCOUNTED_CLASS(my::json_detail::JsonCollection, JsonValueHolderImpl, RuntimeCollection)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonCollection, JsonValueHolderImpl, Collection)
 
     public:
         JsonCollection() = default;
@@ -291,9 +291,9 @@ namespace my::json_detail
     /**
      */
     class JsonDictionary : public JsonValueHolderImpl,
-                           public RuntimeDictionary
+                           public Dictionary
     {
-        MY_REFCOUNTED_CLASS(my::json_detail::JsonDictionary, JsonValueHolderImpl, RuntimeDictionary)
+        MY_REFCOUNTED_CLASS(my::json_detail::JsonDictionary, JsonValueHolderImpl, Dictionary)
     public:
         JsonDictionary() = default;
 
@@ -419,22 +419,22 @@ namespace my::json_detail
         return rtti::createInstance<JsonNull>(root);
     }
 
-    Ptr<RuntimeDictionary> createJsonDictionary(Json::Value&& jsonValue)
+    Ptr<Dictionary> createJsonDictionary(Json::Value&& jsonValue)
     {
         return rtti::createInstance<JsonDictionary>(std::move(jsonValue));
     }
 
-    Ptr<RuntimeCollection> createJsonCollection(Json::Value&& jsonValue)
+    Ptr<Collection> createJsonCollection(Json::Value&& jsonValue)
     {
         return rtti::createInstance<JsonCollection>(std::move(jsonValue));
     }
 
-    Ptr<RuntimeDictionary> wrapJsonDictionary(Json::Value& jsonValue)
+    Ptr<Dictionary> wrapJsonDictionary(Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonDictionary>(jsonValue);
     }
 
-    Ptr<RuntimeCollection> wrapJsonCollection(Json::Value& jsonValue)
+    Ptr<Collection> wrapJsonCollection(Json::Value& jsonValue)
     {
         return rtti::createInstance<JsonCollection>(jsonValue);
     }
@@ -443,7 +443,7 @@ namespace my::json_detail
 
 namespace my::serialization
 {
-    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IMemAllocator*)
+    RuntimeValuePtr jsonToRuntimeValue(Json::Value&& root, IAllocator*)
     {
         if (root.isObject())
         {
@@ -457,7 +457,7 @@ namespace my::serialization
         return json_detail::getValueFromJson(nullptr, root);
     }
 
-    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IMemAllocator*)
+    RuntimeValuePtr jsonAsRuntimeValue(Json::Value& root, IAllocator*)
     {
         if (root.isObject())
         {
@@ -471,7 +471,7 @@ namespace my::serialization
         return nullptr;
     }
 
-    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IMemAllocator*)
+    RuntimeValuePtr jsonAsRuntimeValue(const Json::Value& root, IAllocator*)
     {
         auto value = jsonAsRuntimeValue(const_cast<Json::Value&>(root));
         value->as<json_detail::JsonValueHolderImpl&>().setMutable(false);

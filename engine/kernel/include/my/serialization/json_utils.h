@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include "my/io/stream_utils.h"
-#include "my/memory/mem_allocator.h"
+#include "my/memory/allocator.h"
 #include "my/serialization/json.h"
 #include "my/serialization/runtime_value_builder.h"
 #include "my/utils/string_conv.h"
@@ -30,7 +30,7 @@ namespace my::serialization
         static inline Result<T> parse(std::reference_wrapper<const Json::Value> jValue)
         {
             // rtstack();
-            return runtimeValueCast<T>(jsonAsRuntimeValue(jValue, getSystemAllocatorPtr()));
+            return runtimeValueCast<T>(jsonAsRuntimeValue(jValue, getDefaultAllocatorPtr()));
         }
 
         /**
@@ -40,7 +40,7 @@ namespace my::serialization
         static inline Result<> parse(T& value, std::reference_wrapper<const Json::Value> jValue)
         {
             // rtstack();
-            return runtimeValueApply(value, jsonAsRuntimeValue(jValue, getSystemAllocatorPtr()));
+            return runtimeValueApply(value, jsonAsRuntimeValue(jValue, getDefaultAllocatorPtr()));
         }
 
         /**
@@ -51,7 +51,7 @@ namespace my::serialization
         {
             // rtstack();
 
-            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getSystemAllocatorPtr());
+            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getDefaultAllocatorPtr());
             if (!parseResult)
             {
                 return parseResult.getError();
@@ -67,7 +67,7 @@ namespace my::serialization
         {
             // rtstack();
 
-            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getSystemAllocatorPtr());
+            Result<RuntimeValuePtr> parseResult = jsonParseString(jsonString, getDefaultAllocatorPtr());
             if (!parseResult)
             {
                 return parseResult.getError();
@@ -84,7 +84,7 @@ namespace my::serialization
             // rtstack();
             std::basic_string<Char> buffer;
             io::InplaceStringWriter writer{buffer};
-            serialization::jsonWrite(writer, makeValueRef(value, getSystemAllocatorPtr()), settings).ignore();
+            serialization::jsonWrite(writer, makeValueRef(value, getDefaultAllocatorPtr()), settings).ignore();
 
             return buffer;
         }
@@ -95,7 +95,7 @@ namespace my::serialization
         static inline Json::Value toJsonValue(const T& value)
         {
             // rtstack();
-            return runtimeToJsonValue(makeValueRef(value, getSystemAllocatorPtr()));
+            return runtimeToJsonValue(makeValueRef(value, getDefaultAllocatorPtr()));
         }
     };
 

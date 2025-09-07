@@ -49,7 +49,7 @@ namespace my
     {
         // TODO: check that regions concatenation is supported pn host memory.
         MY_DEBUG_ASSERT(right);
-        MY_DEBUG_ASSERT(is_adjacent(*this, right));
+        MY_DEBUG_ASSERT(isAdjacent(*this, right));
         MY_DEBUG_ASSERT(m_basePtr < right.m_basePtr);
 
         m_size += right.m_size;
@@ -59,7 +59,7 @@ namespace my
         return *this;
     }
 
-    bool IHostMemory::MemRegion::is_adjacent(const MemRegion& left, const MemRegion& right)
+    bool IHostMemory::MemRegion::isAdjacent(const MemRegion& left, const MemRegion& right)
     {
         if (!left || !right)
         {
@@ -94,7 +94,7 @@ namespace my
     private:
         MemRegion allocPages(size_t size) override
         {
-            size = aligned_size(size, mem::PageSize);
+            size = alignedSize(size, mem::PageSize);
 #ifdef _WIN32
             void* const ptr = ::_aligned_malloc(size, GuaranteedBlockAlignment);
 #else

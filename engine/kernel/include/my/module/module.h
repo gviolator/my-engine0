@@ -1,11 +1,11 @@
 // #my_engine_source_file
-
 #pragma once
 
 #include <memory>
 #include <string>
 
 #include "my/rtti/rtti_object.h"
+#include "my/utils/result.h"
 
 namespace my
 {
@@ -14,11 +14,11 @@ namespace my
     {
         virtual ~IModule() = default;
 
-        virtual std::string getModuleName() = 0;  // could be usefull for Editor
+        //virtual std::string getModuleDescription() = 0;  // could be usefull for Editor
 
-        virtual void moduleInit() = 0;
+        virtual Result<> moduleInit() = 0;
 
-        virtual void modulePostInit() = 0;
+        virtual Result<> modulePostInit() = 0;
 
         virtual void moduleShutdown() = 0;
     };
@@ -29,8 +29,9 @@ namespace my
         MY_CLASS_BASE(IModule)
 
     public:
-        void modulePostInit() override
+        Result<> modulePostInit() override
         {
+            return ResultSuccess;
         }
 
         void moduleShutdown() override

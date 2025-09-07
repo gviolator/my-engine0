@@ -73,6 +73,11 @@ namespace my::io_detail
         String& m_string;
     };
 
+    class BufferReaderImpl : public io::IStream
+    {
+
+    };
+
     /**
      */
     template <typename StreamImpl>
@@ -118,4 +123,6 @@ namespace my::io
             this->createStream(outputString);
         }
     };
+
+    //class 
 }  // namespace my::io
