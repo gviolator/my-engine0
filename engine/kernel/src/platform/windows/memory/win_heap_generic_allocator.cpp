@@ -57,7 +57,7 @@ public:
     }
 
 private:
-    static inline constexpr size_t getAllocOpts()
+    static inline constexpr DWORD getAllocOpts()
     {
         constexpr DWORD opts =
 #ifndef NDEBUG
