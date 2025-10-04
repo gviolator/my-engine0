@@ -19,7 +19,7 @@ namespace my::io
      *
      * `IStreamBase` defines the basic operations for interacting with a stream, including querying and setting the current position.
      */
-    struct MY_ABSTRACT_TYPE IStreamBase : IRefCounted
+    struct MY_ABSTRACT_TYPE IStreamBase : virtual IRefCounted
     {
         MY_INTERFACE(my::io::IStreamBase, IRefCounted)
 

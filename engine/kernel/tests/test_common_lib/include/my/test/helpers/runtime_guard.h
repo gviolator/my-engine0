@@ -1,9 +1,8 @@
 // #my_engine_source_file
 #pragma once
-#include <memory>
-
 #include "my/runtime/internal/kernel_runtime.h"
 
+#include <memory>
 
 namespace my::test {
 class RuntimeGuard
@@ -15,7 +14,7 @@ public:
 
     virtual ~RuntimeGuard() = default;
 
-    virtual KernelRuntime& getKRuntime() = 0;
+    virtual IKernelRuntime& getKRuntime() = 0;
 
     virtual void reset() = 0;
 };

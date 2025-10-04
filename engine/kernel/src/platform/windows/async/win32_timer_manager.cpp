@@ -66,7 +66,7 @@ namespace my::async
 
             if (executor)
             {
-                ASYNC_SWITCH_EXECUTOR(executor)
+                ASYNC_SWITCH_EXECUTOR(executor);
             }
 
             callback(std::move(error), callbackData);

@@ -1,32 +1,60 @@
 // #my_engine_source_file
 #pragma once
 
-#include "my/async/task_base.h"
+#include "my/async/task.h"
 #include "my/io/async_stream.h"
 #include "my/kernel/kernel_config.h"
+#include "my/network/address.h"
 #include "my/rtti/rtti_object.h"
+#include "my/runtime/disposable.h"
 #include "my/utils/cancellation.h"
 
-namespace my::network
+// #include <tuple>
+
+namespace my::network {
+
+/**
+ */
+enum class SocketProtocol
 {
-    struct MY_ABSTRACT_TYPE IServer : IRefCounted
-    {
-        MY_INTERFACE(IServer, IRefCounted)
+    Unknown,
+    Stream,
+    Datagram
+};
 
-        virtual async::Task<io::AsyncStreamPtr> accept() = 0;
-    };
+struct IEndPoint : virtual IRefCounted
+{
+    MY_INTERFACE(my::network::IEndPoint, IRefCounted)
 
-    struct MY_ABSTRACT_TYPE ISocketControl
-    {
-        MY_TYPEID(my::network::ISocketControl)
+    virtual Address getLocalAddress() const = 0;
+    virtual Address getRemoteAddress() const = 0;
+};
 
-        virtual size_t setInboundBufferSize(size_t size) = 0;
-    };
+/**
+ */
+struct MY_ABSTRACT_TYPE IStreamSocketControl
+{
+    MY_TYPEID(my::network::IStreamSocketControl)
 
-    using ServerPtr = Ptr<IServer>;
+    virtual size_t setInboundBufferSize(size_t size) = 0;
+};
 
-    MY_KERNEL_EXPORT Result<ServerPtr> bind(std::string_view address);
+/**
+ */
+struct MY_ABSTRACT_TYPE IListener : IEndPoint, IDisposable
+{
+    MY_INTERFACE(my::network::IListener, IEndPoint, IDisposable)
 
-    MY_KERNEL_EXPORT async::Task<io::AsyncStreamPtr> connect(std::string_view address, Expiration expiration);
+    virtual async::Task<io::AsyncStreamPtr> accept() = 0;
+};
+
+struct ListenOptions
+{
+    unsigned backlog = 0;
+};
+
+MY_KERNEL_EXPORT async::Task<Ptr<IListener>> listen(Address address, ListenOptions = {});
+
+MY_KERNEL_EXPORT async::Task<io::AsyncStreamPtr> connect(Address address, Address bindAddress = {}, Expiration expiration = Expiration::never());
 
 }  // namespace my::network

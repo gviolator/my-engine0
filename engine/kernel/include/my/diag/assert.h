@@ -2,133 +2,130 @@
 
 #pragma once
 
-#include <format>
-#include <type_traits>
-
 #include "my/debug/debugger.h"
 #include "my/diag/source_info.h"
 #include "my/kernel/kernel_config.h"
-#include "my/utils/string_conv.h"
 #include "my/utils/preprocessor.h"
+#include "my/utils/string_conv.h"
 #include "my/utils/typed_flag.h"
 
-namespace my::diag
+#include <format>
+#include <type_traits>
+
+
+namespace my::diag {
+enum class AssertionKind
 {
-    enum class AssertionKind
-    {
-        Default,
-        Fatal
-    };
+    Default,
+    Fatal
+};
 
-    enum class FailureAction
-    {
-        None = FlagValue(0),
-        DebugBreak = FlagValue(1),
-        Abort = FlagValue(2)
-    };
+enum class FailureAction
+{
+    None = FlagValue(0),
+    DebugBreak = FlagValue(1),
+    Abort = FlagValue(2)
+};
 
-    MY_DEFINE_TYPED_FLAG(FailureAction)
+MY_DEFINE_TYPED_FLAG(FailureAction)
 
 }  // namespace my::diag
 
-namespace my::diag_detail
+namespace my::diag_detail {
+consteval inline std::string_view makeFailureMessage()
 {
-    consteval inline std::string_view makeFailureMessage()
+    return std::string_view{};
+}
+
+/*  template <typename T>
+  requires(!std::is_constructible_v<std::string_view, T>)
+  inline auto makeFormatableArgs(T&& arg)
+  {
+      return std::forward<T>(arg);
+  }
+
+  template <typename T>
+  requires std::is_constructible_v<std::string_view, T>
+  inline const char* makeFormatableArgs(T&& arg)
+  {
+      const char* res = std::string_view{std::forward<T>(arg)}.data();
+      if (!res)
+      {
+          return "NULLPTR";
+      }
+      return res;
+  }
+
+  template <typename T>
+  requires(!std::is_constructible_v<std::string_view, T>) &&
+          std::is_constructible_v<std::string_view, T>
+  inline const char* makeFormatableArgs(T&& arg)
+  {
+      const char* res = std::string_view{std::forward<T>(arg)}.data();
+      if (!res)
+      {
+          return "NULLPTR";
+      }
+      return res;
+  }*/
+
+// template <typename T>
+inline const char* makeFormatableArgs(nullptr_t)
+{
+    return "NULLPTR";
+}
+
+inline std::string_view makeFailureMessage(std::string_view str)
+{
+    return str;
+}
+
+template <typename... Args>
+inline std::string_view makeFailureMessage(std::string_view message, const Args&... args)
+{
+    if constexpr (sizeof...(Args) == 0)
     {
-        return std::string_view{};
+        return {};
     }
-
-  /*  template <typename T>
-    requires(!std::is_constructible_v<std::string_view, T>)
-    inline auto makeFormatableArgs(T&& arg)
+    else
     {
-        return std::forward<T>(arg);
+        constexpr size_t FailureMessageLenMax = 512;
+        static thread_local char buffer[FailureMessageLenMax];
+        // std::format_to_n_result result = std::format_to_n(buffer, sizeof(buffer), message, args ...);
+
+        auto end = std::vformat_to(buffer, message, std::make_format_args(args...));
+        *end = 0;
+        return std::string_view{buffer, end};
+        // return std::string_view {buffer, result.out};
+        // std::string formattedMessage = std::vformat_n_t(std::string_view{message}, std::make_format_args(formatArgs...));
+        // return formattedMessage;
+        // return std::format(message, makeFormatableArgs<Args>(formatArgs)...);
     }
+}
 
-    template <typename T>
-    requires std::is_constructible_v<std::string_view, T>
-    inline const char* makeFormatableArgs(T&& arg)
+template <typename... Args>
+inline std::string makeFailureMessage(const wchar_t* message, const Args&... formatArgs)
+{
+    if constexpr (sizeof...(Args) == 0)
     {
-        const char* res = std::string_view{std::forward<T>(arg)}.data();
-        if (!res)
-        {
-            return "NULLPTR";
-        }
-        return res;
+        return strings::wstringToUtf8(message);
     }
-
-    template <typename T>
-    requires(!std::is_constructible_v<std::string_view, T>) &&
-            std::is_constructible_v<std::string_view, T>
-    inline const char* makeFormatableArgs(T&& arg)
+    else
     {
-        const char* res = std::string_view{std::forward<T>(arg)}.data();
-        if (!res)
-        {
-            return "NULLPTR";
-        }
-        return res;
-    }*/
-
-    //template <typename T>
-    inline const char* makeFormatableArgs(nullptr_t)
-    {
-        return "NULLPTR";
+        const std::wstring formattedMessage = std::vformat(std::wstring_view{message}, std::make_format_args(formatArgs...));
+        // return makeFailureMessage(strings::wstringToUtf8(formattedMessage));
+        return "FIXME";
     }
+}
 
-
-    inline std::string_view makeFailureMessage(std::string_view str)
-    {
-        return str;
-    }
-
-
-    template <typename... Args>
-    inline std::string_view makeFailureMessage(std::string_view  message, const Args&... args)
-    {
-        if constexpr (sizeof...(Args) == 0)
-        {
-            return {};
-        }
-        else
-        {
-            constexpr size_t FailureMessageLenMax = 512; 
-            static thread_local char buffer[FailureMessageLenMax];
-            //std::format_to_n_result result = std::format_to_n(buffer, sizeof(buffer), message, args ...);
-
-            auto end = std::vformat_to(buffer, message, std::make_format_args(args ...));
-            *end = 0;
-            return std::string_view {buffer, end};
-            //return std::string_view {buffer, result.out};
-            //std::string formattedMessage = std::vformat_n_t(std::string_view{message}, std::make_format_args(formatArgs...));
-            //return formattedMessage;
-            //return std::format(message, makeFormatableArgs<Args>(formatArgs)...);
-        }
-    }
-
-    template <typename... Args>
-    inline std::string makeFailureMessage(const wchar_t* message, const Args&... formatArgs)
-    {
-        if constexpr (sizeof...(Args) == 0)
-        {
-            return strings::wstringToUtf8(message);
-        }
-        else
-        {
-            const std::wstring formattedMessage = std::vformat(std::wstring_view{message}, std::make_format_args(formatArgs...));
-            //return makeFailureMessage(strings::wstringToUtf8(formattedMessage));
-            return "FIXME";
-        }
-    }
-
-    /**
-     */
-    MY_KERNEL_EXPORT
-    diag::FailureActionFlag raiseFailure(diag::AssertionKind kind, diag::SourceInfo source, std::string_view condition, std::string_view message);
+/**
+ */
+MY_KERNEL_EXPORT
+diag::FailureActionFlag raiseFailure(diag::AssertionKind kind, diag::SourceInfo source, std::string_view condition, std::string_view message);
 
 }  // namespace my::diag_detail
 
-#define MY_ASSERT_IMPL(kind, condition, ...)                                                                                                                        \
+#define MY_ASSERT_IMPL(kind, condition, ...)                                                                                                                       \
     do                                                                                                                                                             \
     {                                                                                                                                                              \
         if (!(condition)) [[unlikely]]                                                                                                                             \
@@ -143,7 +140,8 @@ namespace my::diag_detail
                 MY_PLATFORM_ABORT;                                                                                                                                 \
             }                                                                                                                                                      \
         }                                                                                                                                                          \
-    } while (0)
+    }                                                                                                                                                              \
+    while (false)
 
 #define MY_FAILURE_IMPL(kind, ...)                                                                                                                            \
     do                                                                                                                                                        \
@@ -157,13 +155,14 @@ namespace my::diag_detail
         {                                                                                                                                                     \
             MY_PLATFORM_ABORT;                                                                                                                                \
         }                                                                                                                                                     \
-    } while (0)
+    }                                                                                                                                                         \
+    while (false)
 
 #if MY_DEBUG_ASSERT_ENABLED
     #define MY_DEBUG_ASSERT(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Default, condition, ##__VA_ARGS__)
     #define MY_DEBUG_FATAL(condition, ...) MY_ASSERT_IMPL(::my::diag::AssertionKind::Fatal, condition, ##__VA_ARGS__)
     #define MY_DEBUG_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Default, ##__VA_ARGS__)
-    #define MY_DEBUG_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal,  ##__VA_ARGS__)
+    #define MY_DEBUG_FATAL_FAILURE(...) MY_FAILURE_IMPL(::my::diag::AssertionKind::Fatal, ##__VA_ARGS__)
 #else
     #define MY_DEBUG_ASSERT(condition, ...)
     #define MY_DEBUG_FATAL(condition, ...)

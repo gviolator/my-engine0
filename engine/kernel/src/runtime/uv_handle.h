@@ -44,16 +44,16 @@ public:
     explicit operator bool() const;
     void setData(void*);
     void* data() const;
+    void reset();
 
 protected:
     static bool isAssignable(const std::type_info& thisHandleType, const std::type_info& srcHandleType);
 
-    void reset(uv_handle_t* handle = nullptr);
+    void resetInternal(uv_handle_t* handle = nullptr);
 
     uv_handle_t* m_handle = nullptr;
 
     template <typename X>
-    requires(IsKnownUvHandleHelper<X>::value)
     friend class UvHandle;
 };
 
@@ -118,9 +118,9 @@ inline Target* castUvHandle(Handle* source)
 /**
  */
 template <typename Handle = uv_handle_t>
-requires(IsKnownUvHandle<Handle>)
 class UvHandle : public kernel_detail::UvHandleBase
 {
+    static_assert(IsKnownUvHandle<Handle>);
     using Base = kernel_detail::UvHandleBase;
 
 public:
@@ -149,7 +149,7 @@ public:
 
     UvHandle& operator=(UvHandle&& other)
     {
-        this->reset(std::exchange(other.m_handle, nullptr));
+        this->resetInternal(std::exchange(other.m_handle, nullptr));
         return *this;
     }
 
@@ -158,7 +158,7 @@ public:
     UvHandle& operator=(UvHandle<U>&& other)
     {
         MY_DEBUG_ASSERT(Base::isAssignable(typeid(Handle), typeid(U)));
-        this->reset(std::exchange(other.m_handle, nullptr));
+        this->resetInternal(std::exchange(other.m_handle, nullptr));
         return *this;
     }
 
@@ -196,8 +196,8 @@ public:
         return reinterpret_cast<U*>(m_handle);
     }
 
-    template <typename X>
-    requires(IsKnownUvHandle<X>)
+
+    template <typename>
     friend class UvHandle;
 };
 

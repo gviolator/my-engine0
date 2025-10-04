@@ -1,22 +1,22 @@
 // #my_engine_source_file
 #pragma once
+
 #include <uv.h>
 
-#include <string>
+#include <string_view>
 
-#include "my/diag/assert.h"
-
-namespace my
-{
-    std::string getUVErrorMessage(int code);
-}
+namespace my {
+/**
+ */
+std::string_view getUVErrorMessage(int code);
+}  // namespace my
 
 #define UV_VERIFY(expression)                                                                                                                      \
     do                                                                                                                                             \
     {                                                                                                                                              \
         if (const int errCode = expression; errCode != 0) [[unlikely]]                                                                             \
         {                                                                                                                                          \
-            const std::string message = my::getUVErrorMessage(errCode);                                                                            \
+            const std::string_view message = my::getUVErrorMessage(errCode);                                                                       \
             const auto errorFlags = ::my::diag_detail::raiseFailure(my::diag::AssertionKind::Fatal, MY_INLINED_SOURCE_INFO, #expression, message); \
             if (errorFlags.has(::my::diag::FailureAction::DebugBreak) && ::my::debug::isRunningUnderDebugger())                                    \
             {                                                                                                                                      \
@@ -27,4 +27,5 @@ namespace my
                 MY_PLATFORM_ABORT;                                                                                                                 \
             }                                                                                                                                      \
         }                                                                                                                                          \
-    } while (0)
+    }                                                                                                                                              \
+    while (0)

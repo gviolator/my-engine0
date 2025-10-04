@@ -10,7 +10,7 @@
 
 namespace my {
 
-class KernelRuntimeImpl final : public KernelRuntime
+class KernelRuntimeImpl final : public IKernelRuntime
 {
     MY_DECLARE_SINGLETON_MEMOP(KernelRuntimeImpl)
 public:

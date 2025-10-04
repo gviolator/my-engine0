@@ -210,13 +210,13 @@ namespace my
 
         T& operator*() &
         {
-            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
+            MY_DEBUG_FATAL(m_value, "Result<T> is valueless: ({})", m_error ? m_error->getMessage(): "no error");
             return *m_value;
         }
 
         T&& operator*() &&
         {
-            MY_DEBUG_ASSERT(m_value, "Result<T> is valueless");
+            MY_DEBUG_FATAL(m_value, "Result<T> is valueless: ({})", m_error ? m_error->getMessage(): "no error");
             return std::move(*m_value);
         }
 
@@ -257,6 +257,7 @@ namespace my
         ErrorPtr m_error = nullptr;
         std::optional<T> m_value;
     };
+
 
     /**
      */

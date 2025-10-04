@@ -122,10 +122,15 @@ UvHandleBase::UvHandleBase(uv_handle_type type)
 
 UvHandleBase::~UvHandleBase()
 {
-    reset();
+    resetInternal();
 }
 
-void UvHandleBase::reset(uv_handle_t* newHandle)
+void UvHandleBase::reset()
+{
+    resetInternal(nullptr);
+}
+
+void UvHandleBase::resetInternal(uv_handle_t* newHandle)
 {
 #ifndef NDEBUG
     if (m_handle && newHandle)

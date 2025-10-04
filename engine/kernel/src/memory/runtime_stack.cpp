@@ -53,12 +53,12 @@ inline void notifyFree(void* mem)
 
 inline void checkNonFreedPointers(uintptr_t marker)
 {
-    const size_t nonFreedPointersCount = std::count_if(s_trackedAllocations.begin(), s_trackedAllocations.end(), [marker](const AllocationEntry& entry)
+    const size_t nonFreedAllocationsCount = std::erase_if(s_trackedAllocations, [marker](const AllocationEntry& entry)
     {
         return entry.marker == marker;
     });
 
-    MY_DEBUG_ASSERT(nonFreedPointersCount == 0, "There is ({}) non freed allocations", nonFreedPointersCount);
+    MY_DEBUG_ASSERT(nonFreedAllocationsCount == 0, "There is ({}) non freed allocations", nonFreedAllocationsCount);
 }
 
 // void

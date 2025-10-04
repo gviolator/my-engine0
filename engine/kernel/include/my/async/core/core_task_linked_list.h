@@ -21,7 +21,7 @@ namespace my::async_detail
             using value_type = async::CoreTask*;
             using difference_type = ptrdiff_t;
             using pointer = std::add_pointer_t<value_type>;
-            using reference = std::add_lvalue_reference<value_type>;
+            using reference = std::add_lvalue_reference_t<value_type>;
 
             iterator& operator++();
             iterator operator++(int);

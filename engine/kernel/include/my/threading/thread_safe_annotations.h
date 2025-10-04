@@ -1,15 +1,13 @@
 // #my_engine_source_file
 
-
 #pragma once
 
 #include "my/kernel/kernel_config.h"
 
-
-#if defined(MY_THREADS_ENABLED) && defined(__clang__) 
-#define THREAD_ANNOTATION_ATTRIBUTE(x) __attribute__((x))
+#if defined(MY_THREADS_ENABLED) && defined(__clang__)
+    #define THREAD_ANNOTATION_ATTRIBUTE(x) __attribute__((x))
 #else
-#define THREAD_ANNOTATION_ATTRIBUTE(x)
+    #define THREAD_ANNOTATION_ATTRIBUTE(x)
 #endif
 
 #define THREAD_ANNOTATION(x) THREAD_ANNOTATION_ATTRIBUTE(x)

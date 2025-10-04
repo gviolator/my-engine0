@@ -15,9 +15,9 @@ enum class RuntimePollMode
     NoWait
 };
 
-struct KernelRuntime
+struct IKernelRuntime
 {
-    virtual ~KernelRuntime() = default;
+    virtual ~IKernelRuntime() = default;
 
     virtual void bindToCurrentThread() = 0;
 
@@ -41,12 +41,12 @@ struct KernelRuntime
     }
 };
 
-using KernelRuntimePtr = std::unique_ptr<KernelRuntime>;
+using KernelRuntimePtr = std::unique_ptr<IKernelRuntime>;
 
 MY_KERNEL_EXPORT KernelRuntimePtr createKernelRuntime();
 
 MY_KERNEL_EXPORT bool kernelRuntimeExists();
 
-MY_KERNEL_EXPORT KernelRuntime* getKernalRuntime();
+MY_KERNEL_EXPORT IKernelRuntime& getKernelRuntime();
 
 }  // namespace my

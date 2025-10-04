@@ -1,162 +1,213 @@
 // #my_engine_source_file
 
-
 #pragma once
 
-#include <memory>
-#include <type_traits>
-
 #include "my/diag/assert.h"
+#include "my/memory/allocator.h"
+#include "my/memory/runtime_stack.h"
 #include "my/meta/function_info.h"
 #include "my/rtti/type_info.h"
-#include "my/utils/type_utility.h"
 
-namespace my
+#include <type_traits>
+
+namespace my {
+
+template <bool, typename R, typename P>
+struct IGenericInvokable;
+
+template <bool NoExcept, typename Result, typename... Parameters>
+struct MY_ABSTRACT_TYPE IGenericInvokable<NoExcept, Result, TypeList<Parameters...>>
 {
+    virtual ~IGenericInvokable() = default;
 
-    template <bool, typename R, typename P>
-    struct IGenericInvokable;
+    virtual Result operator()(Parameters...) noexcept(NoExcept) = 0;
+};
 
-    template <bool NoExcept, typename Result, typename... Parameters>
-    struct MY_ABSTRACT_TYPE IGenericInvokable<NoExcept, Result, TypeList<Parameters...>>
+namespace kernel_detail {
+
+template <typename Callable, bool NoExcept, typename Result, typename Parameters>
+class CallableImpl;
+
+template <typename Callable, bool NoExcept, typename Result, typename... Parameters>
+class CallableImpl<Callable, NoExcept, Result, TypeList<Parameters...>> final : public IGenericInvokable<NoExcept, Result, TypeList<Parameters...>>
+{
+public:
+    CallableImpl(Callable&& callable) :
+        m_callable(std::move(callable))
     {
-        virtual ~IGenericInvokable() = default;
+        static_assert(std::is_invocable_r_v<Result, Callable, Parameters...>, "Invalid functor argument");
+        static_assert(!NoExcept || noexcept(callable(std::declval<Parameters>()...)), "Functor must specify noexcept specification");
+    }
 
-        virtual Result operator()(Parameters...) noexcept(NoExcept) = 0;
-    };
-
-    namespace kernel_detail
+    Result operator()(Parameters... p) noexcept(NoExcept) override
     {
-        template <typename Callable, bool NoExcept, typename Result, typename Parameters>
-        class GenericInvokableImpl;
+        return m_callable(std::forward<Parameters>(p)...);
+    }
 
-        template <typename Callable, bool NoExcept, typename Result, typename... Parameters>
-        class GenericInvokableImpl<Callable, NoExcept, Result, TypeList<Parameters...>> final : public IGenericInvokable<NoExcept, Result, TypeList<Parameters...>>
-        {
-        public:
-            GenericInvokableImpl(Callable callable) :
-                m_callable(std::move(callable))
-            {
-                static_assert(std::is_invocable_r_v<Result, Callable, Parameters...>, "Invalid functor argument");
-                static_assert(!NoExcept || noexcept(callable(std::declval<Parameters>()...)), "Functor must specify noexcept specification");
-            }
+private:
+    Callable m_callable;
+};
 
-            Result operator()(Parameters... p) noexcept(NoExcept) override
-            {
-                return m_callable(std::forward<Parameters>(p)...);
-            }
+}  // namespace kernel_detail
 
-        private:
-            Callable m_callable;
-        };
+template <bool, typename, typename>
+struct FunctorImpl;
 
-    }  // namespace kernel_detail
+template <bool NoExcept, typename R, typename... P>
+struct FunctorImpl<NoExcept, R, TypeList<P...>>
+{
+    using InvokableItf = IGenericInvokable<NoExcept, R, TypeList<P...>>;
 
-    template <bool, typename, typename>
-    struct FunctorImpl;
+    InvokableItf* m_invocable = nullptr;
+    void* m_mem = nullptr;
+    IAllocator* m_allocator = nullptr;
 
-    template <bool NoExcept, typename R, typename... P>
-    struct FunctorImpl<NoExcept, R, TypeList<P...>>
+    FunctorImpl() = default;
+
+    FunctorImpl(std::nullptr_t) noexcept :
+        FunctorImpl()
     {
-        using InvokableItf = IGenericInvokable<NoExcept, R, TypeList<P...>>;
+    }
 
-        std::unique_ptr<InvokableItf> m_invocable;
-
-        FunctorImpl() = default;
-
-        FunctorImpl(std::nullptr_t) :
-            FunctorImpl()
-        {
-        }
-
-        template <typename Func>
-        FunctorImpl(Func f)
-        {
-            using InvokableImpl = kernel_detail::GenericInvokableImpl<Func, NoExcept, R, TypeList<P...>>;
-
-            static_assert(std::is_invocable_r_v<R, Func, P...>, "Functor has unacceptable parameters");
-            static_assert(std::is_assignable_v<InvokableItf&, InvokableImpl&>);
-
-            m_invocable = std::make_unique<InvokableImpl>(std::move(f));
-        }
-
-        FunctorImpl(FunctorImpl&&) = default;
-
-        FunctorImpl(const FunctorImpl&) = delete;
-
-        FunctorImpl& operator=(FunctorImpl&&) = default;
-
-        FunctorImpl& operator=(std::nullptr_t)
-        {
-            m_invocable.reset();
-            return *this;
-        }
-
-        R operator()(P... args) const noexcept(NoExcept)
-        {
-            MY_DEBUG_ASSERT(m_invocable);
-            return (*m_invocable)(std::forward<P>(args)...);
-        }
-
-        explicit operator bool() const noexcept
-        {
-            return static_cast<bool>(m_invocable);
-        }
-    };
-
-    template <typename F>
-    class Functor : public FunctorImpl<
-                        meta::GetCallableTypeInfo<F>::NoExcept,
-                        typename meta::GetCallableTypeInfo<F>::Result,
-                        typename meta::GetCallableTypeInfo<F>::ParametersList>
+    template <typename Func>
+    FunctorImpl(Func f, IAllocator* allocator) :
+        m_allocator(allocator)
     {
-        using Base = FunctorImpl<
-            meta::GetCallableTypeInfo<F>::NoExcept,
-            typename meta::GetCallableTypeInfo<F>::Result,
-            typename meta::GetCallableTypeInfo<F>::ParametersList>;
+        using CallableImpl = kernel_detail::CallableImpl<Func, NoExcept, R, TypeList<P...>>;
 
-    public:
-        Functor() = default;
+        static_assert(std::is_invocable_r_v<R, Func, P...>, "Functor has unacceptable parameters");
+        static_assert(std::is_assignable_v<InvokableItf&, CallableImpl&>);
 
-        Functor(F callable) :
-            Base(std::move(callable))
+        if (!m_allocator)
         {
+            m_allocator = getDefaultAllocatorPtr();
         }
-    };
 
-    template <typename R, typename... P>
-    class Functor<R(P...)> : public FunctorImpl<false, R, TypeList<P...>>
+        MY_DEBUG_FATAL(m_allocator);
+
+        m_mem = m_allocator->alloc(sizeof(CallableImpl));
+        m_invocable = new(m_mem) CallableImpl{std::move(f)};
+    }
+
+    FunctorImpl(FunctorImpl&& other) noexcept :
+        m_invocable(std::exchange(other.m_invocable, nullptr)),
+        m_allocator(std::exchange(other.m_allocator, nullptr))
     {
-    public:
-        Functor() = default;
+    }
 
-        template <typename Callable>
-        Functor(Callable callable) :
-            FunctorImpl<false, R, TypeList<P...>>(std::move(callable))
-        {
-        }
-    };
-
-    template <typename R, typename... P>
-    class Functor<R(P...) noexcept> : public FunctorImpl<true, R, TypeList<P...>>
+    FunctorImpl(const FunctorImpl&) = delete;
+    ~FunctorImpl()
     {
-    public:
-        Functor() = default;
+        reset();
+    }
 
-        template <typename Callable>
-        Functor(Callable callable) :
-            FunctorImpl<true, R, TypeList<P...>>(std::move(callable))
+    FunctorImpl& operator=(FunctorImpl&& other) noexcept
+    {
+        reset();
+        m_invocable = std::exchange(other.m_invocable, nullptr);
+        m_allocator = std::exchange(other.m_allocator, nullptr);
+
+        return *this;
+    }
+
+    FunctorImpl& operator=(std::nullptr_t)
+    {
+        reset();
+        return *this;
+    }
+
+    R operator()(P... args) const noexcept(NoExcept)
+    {
+        MY_DEBUG_ASSERT(m_invocable);
+        return (*m_invocable)(std::forward<P>(args)...);
+    }
+
+    explicit operator bool() const noexcept
+    {
+        return m_invocable != nullptr;
+    }
+
+private:
+    void reset()
+    {
+        if (m_invocable)
         {
+            auto* const ptr = std::exchange(m_invocable, nullptr);
+            IAllocator* const allocator = std::exchange(m_allocator, nullptr);
+            MY_DEBUG_FATAL(allocator);
+
+            std::destroy_at(ptr);
+            allocator->free(m_mem);
         }
-    };
+    }
+};
 
-    template <typename T>
-    Functor(T) -> Functor<T>;
-
-    template <typename F>
-    using IInvokable = IGenericInvokable<
+template <typename F>
+class Functor : public FunctorImpl<meta::GetCallableTypeInfo<F>::NoExcept, typename meta::GetCallableTypeInfo<F>::Result, typename meta::GetCallableTypeInfo<F>::ParametersList>
+{
+    using Base = FunctorImpl<
         meta::GetCallableTypeInfo<F>::NoExcept,
         typename meta::GetCallableTypeInfo<F>::Result,
         typename meta::GetCallableTypeInfo<F>::ParametersList>;
+
+public:
+    Functor() = default;
+
+    Functor(F callable, IAllocator* allocator = nullptr) :
+        Base(std::move(callable), allocator)
+    {
+    }
+};
+
+template <typename R, typename... P>
+class Functor<R(P...)> : public FunctorImpl<false, R, TypeList<P...>>
+{
+public:
+    Functor() = default;
+
+    template <typename Callable>
+    Functor(Callable callable, IAllocator* allocator = nullptr) :
+        FunctorImpl<false, R, TypeList<P...>>(std::move(callable), allocator)
+    {
+    }
+};
+
+template <typename R, typename... P>
+class Functor<R(P...) noexcept> : public FunctorImpl<true, R, TypeList<P...>>
+{
+public:
+    Functor() = default;
+
+    template <typename Callable>
+    Functor(Callable callable, IAllocator* allocator = nullptr) :
+        FunctorImpl<true, R, TypeList<P...>>(std::move(callable), allocator)
+    {
+    }
+};
+
+template <typename T>
+Functor(T) -> Functor<T>;
+
+template <typename F>
+using IInvokable = IGenericInvokable<
+    meta::GetCallableTypeInfo<F>::NoExcept,
+    typename meta::GetCallableTypeInfo<F>::Result,
+    typename meta::GetCallableTypeInfo<F>::ParametersList>;
+
+template <typename F>
+class InplaceFunctor : public Functor<F>
+{
+public:
+    InplaceFunctor() = default;
+
+    template <typename Callable>
+    InplaceFunctor(Callable callable) :
+        Functor<F>{std::move(callable), getRtStackAllocatorPtr()}
+    {
+    }
+};
+
+template <typename T>
+InplaceFunctor(T) -> InplaceFunctor<T>;
 
 }  // namespace my

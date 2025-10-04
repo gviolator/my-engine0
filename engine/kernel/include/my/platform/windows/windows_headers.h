@@ -15,6 +15,7 @@
 #endif
 
 #include <Windows.h>
+#include <WinSock2.h>
 
 #ifndef __FUNCTION_NAME__
     #ifdef WIN32  // WINDOWS

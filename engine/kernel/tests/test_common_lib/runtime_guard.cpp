@@ -26,11 +26,13 @@ public:
 
         m_runtimeThread = std::thread([this, &signal]
         {
+            m_runtimeThreadCompleted.store(false, std::memory_order_relaxed);
             threading::setThisThreadName("Runtime thread");
             m_runtime = createKernelRuntime();
             scope_on_leave
             {
                 m_runtime.reset();
+                m_runtimeThreadCompleted.store(true, std::memory_order_relaxed);
             };
 
             m_runtime->bindToCurrentThread();
@@ -53,7 +55,7 @@ public:
         resetInternal();
     }
 
-    KernelRuntime& getKRuntime() override
+    IKernelRuntime& getKRuntime() override
     {
         return *m_runtime;
     }
@@ -134,7 +136,7 @@ private:
     // async::ExecutorPtr m_defaultExecutor;
     KernelRuntimePtr m_runtime;
     std::thread m_runtimeThread;
-    // std::atomic<bool> m_doShutdown = false;
+    std::atomic<bool> m_runtimeThreadCompleted = false;
 };
 
 RuntimeGuard::Ptr RuntimeGuard::create()

@@ -8,7 +8,11 @@ void* CrtAllocator::alloc(size_t size, [[maybe_unused]] size_t alignment)
     static_assert(DefaultAlignment <= alignof(std::max_align_t));
 
     MY_DEBUG_FATAL(alignment != 0 && isPowerOf2(alignment) && alignment <= DefaultAlignment);
-    return ::malloc(size);
+
+    void* const ptr = ::malloc(size);
+    MY_DEBUG_FATAL(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+
+    return ptr;
 }
 
 void* CrtAllocator::realloc(void* oldPtr, size_t size, [[maybe_unused]] size_t alignment)

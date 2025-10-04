@@ -47,7 +47,7 @@ namespace my::async
             {
                 m_threads.emplace_back([](ThreadPoolExecutor& executor, size_t threadIndex)
                 {
-                    threading::setThisThreadName(std::format("Nau Pool-{}", threadIndex + 1));
+                    threading::setThisThreadName(std::format("Pool thread ({})", threadIndex + 1));
                     executor.threadWork();
                 }, std::ref(*this), i);
             }

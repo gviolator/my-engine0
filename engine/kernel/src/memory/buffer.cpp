@@ -1,324 +1,339 @@
 // #my_engine_source_file
 
-#include "my/memory/buffer.h"
-
 #include "my/diag/assert.h"
-#include "my/memory/fixed_size_block_allocator.h"
 #include "my/memory/allocator.h"
+#include "my/memory/buffer.h"
+#include "my/memory/fixed_size_block_allocator.h"
 #include "my/utils/scope_guard.h"
 
 // #define TRACK_BUFFER_ALLOCATIONS
 
-namespace my
+using namespace my::my_literals;
+
+namespace my {
+/**
+ */
+struct BufferBase::Header
 {
-    /**
-     */
-    struct BufferBase::Header
-    {
-        inline static constexpr uint32_t BufferToken = 0x11AA22BBu;
+    inline static constexpr uint32_t BufferToken = 0x11AA22BBu;
 
-        std::atomic<uint32_t> refs{1u};
-        uint32_t capacity;
-        uint32_t size;
-        uint32_t token = BufferToken;
-    };
+    std::atomic<uint32_t> refs{1u};
+    uint32_t capacity;
+    uint32_t size;
+    uint32_t token = BufferToken;
+};
 
-    namespace
-    {
-        using BufferHeader = BufferBase::Header;
+namespace {
+using BufferHeader = BufferBase::Header;
 
-        constexpr size_t HeaderAlignment = sizeof(ptrdiff_t);
-        constexpr size_t AllocationGranularity = 256;
-        constexpr size_t BigAllocationGranularity = 1024;
-        constexpr size_t BigAllocationThreshold = 4096;
+constexpr size_t HeaderAlignment = sizeof(ptrdiff_t);
+constexpr size_t AllocationGranularity = 128;
+constexpr size_t BigAllocationGranularity = 1024;
+constexpr size_t BigAllocationThreshold = 4096;
+constexpr Byte BufferMemoryAllocateMax = 10_Mb;
 
-        constexpr size_t HeaderSize = sizeof(std::aligned_storage_t<sizeof(BufferHeader), alignof(BufferHeader)>);
-        constexpr ptrdiff_t ClientDataOffset = HeaderSize;
+constexpr size_t HeaderSize = sizeof(std::aligned_storage_t<sizeof(BufferHeader), alignof(BufferHeader)>);
+constexpr ptrdiff_t ClientDataOffset = HeaderSize;
 
 #ifdef TRACK_BUFFER_ALLOCATIONS
-        class BufferAllocationTracker
-        {
-        public:
-            ~BufferAllocationTracker()
-            {
-            }
-
-            void notifyAllocated(size_t size)
-            {
-            }
-
-            void notifyFree(size_t size)
-            {
-            }
-
-        private:
-            std::mutex m_mutex;
-            size_t m_currentAllocationSize = 0;
-        };
-#endif
-
-        /**
-         */
-        class BufferAllocatorHolder
-        {
-        public:
-            BufferAllocatorHolder() :
-                m_hostMemory(createHostVirtualMemory(my::Megabyte(5), true))
-            {
-                const auto createAlloc = [&](size_t blockSize)
-                {
-                    return AllocatorEntry{blockSize, createFixedSizeBlockAllocator(m_hostMemory, blockSize, true)};
-                };
-
-                m_blockAllocators[0] = createAlloc(256);
-                m_blockAllocators[1] = createAlloc(512);
-                m_blockAllocators[2] = createAlloc(1024);
-                m_blockAllocators[3] = createAlloc(2048);
-            }
-
-            IAllocator& getAllocator(size_t size)
-            {
-                for (auto& [blockSize, allocator] : m_blockAllocators)
-                {
-                    if (size <= blockSize)
-                    {
-                        return *allocator;
-                    }
-                }
-
-                return getDefaultAllocator();
-            }
-
-        private:
-            using AllocatorEntry = std::tuple<size_t, AllocatorPtr>;
-
-            HostMemoryPtr m_hostMemory;
-            std::array<AllocatorEntry, 4> m_blockAllocators;
-        };
-
-
-        uint32_t refsCount(const BufferHeader* header)
-        {
-            return header == nullptr ? 0 : header->refs.load(std::memory_order_relaxed);
-        }
-
-        std::byte* clientData(const BufferHeader* header)
-        {
-            if (!header || header->size == 0)
-            {
-                return nullptr;
-            }
-
-            MY_FATAL(header->capacity > 0);
-
-            BufferHeader* const mutableHeader = const_cast<BufferHeader*>(header);
-            return reinterpret_cast<std::byte*>(mutableHeader) + ClientDataOffset;
-        }
-
-        IAllocator& getBufferAllocator(size_t storageSize)
-        {
-            static BufferAllocatorHolder g_bufferAllocatorHolder;
-            return g_bufferAllocatorHolder.getAllocator(storageSize);
-        }
-
-        IAllocator& getBufferAllocator(const BufferBase::Header& header)
-        {
-            MY_DEBUG_FATAL(header.capacity > 0);
-
-            const size_t storageSize = HeaderSize + header.capacity;
-            return getBufferAllocator(storageSize);
-        }
-
-
-    }  // namespace
-
-    BufferHandle BufferStorage::allocate(size_t clientSize)
+class BufferAllocationTracker
+{
+public:
+    ~BufferAllocationTracker()
     {
-        const size_t granuleSize = (clientSize < BigAllocationThreshold) ? AllocationGranularity : BigAllocationGranularity;
-        const size_t storageSize = alignedSize(HeaderSize + clientSize, granuleSize);
-        const size_t capacity = storageSize - HeaderSize;
-
-        IAllocator& allocator = getBufferAllocator(storageSize);
-        void* const storage = allocator.alloc(storageSize);
-        MY_FATAL(storage);
-        MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);
-
-        BufferHeader* header = new(storage) BufferHeader;
-        header->capacity = capacity;
-        header->size = clientSize;
-
-        return header;
     }
 
-    BufferHandle BufferStorage::reallocate(BufferHandle buffer, size_t newSize)
+    void notifyAllocated(size_t size)
     {
-        if (buffer == nullptr)
+    }
+
+    void notifyFree(size_t size)
+    {
+    }
+
+private:
+    std::mutex m_mutex;
+    size_t m_currentAllocationSize = 0;
+};
+#endif
+
+/**
+ */
+class BufferAllocatorHolder
+{
+public:
+    BufferAllocatorHolder() :
+        m_hostMemory(createHostVirtualMemory(BufferMemoryAllocateMax, true))
+    {
+        const auto createAlloc = [&](size_t blockSize)
         {
-            return BufferStorage::allocate(newSize);
+            return AllocatorEntry{blockSize, createFixedSizeBlockAllocator(m_hostMemory, blockSize, true)};
+        };
+
+        m_allocators[0] = createAlloc(256);
+        m_allocators[1] = createAlloc(512);
+        m_allocators[2] = createAlloc(1024);
+        m_allocators[3] = createAlloc(1280);
+        m_allocators[4] = createAlloc(1536);
+        m_allocators[5] = createAlloc(1792);
+        m_allocators[6] = createAlloc(2048);
+    }
+
+    IAllocator& getAllocator(size_t size)
+    {
+        auto iter = std::lower_bound(m_allocators.begin(), m_allocators.end(), size, [](const AllocatorEntry& entry, size_t size)
+        {
+            return std::get<0>(entry) < size;
+        });
+
+        if (iter == m_allocators.end())
+        {
+            return getDefaultAllocator();
         }
 
-        BufferHeader* const header = reinterpret_cast<BufferHeader*>(buffer);
-        MY_DEBUG_FATAL(header->refs.load(std::memory_order_relaxed) == 1);
-        MY_DEBUG_FATAL(header->capacity > 0);
+        return *std::get<1>(*iter);
 
-        if (header->capacity >= newSize)
-        {
-            header->size = newSize;
-            return buffer;
-        }
+        // for (auto& [blockSize, allocator] : m_allocators)
+        // {
+        //     if (size <= blockSize)
+        //     {
+        //         return *allocator;
+        //     }
+        // }
 
-        getBufferAllocator(*header).free(buffer);
+        // return getDefaultAllocator();
+    }
+
+private:
+    using AllocatorEntry = std::tuple<size_t, AllocatorPtr>;
+
+    HostMemoryPtr m_hostMemory;
+    std::array<AllocatorEntry, 7> m_allocators;
+};
+
+uint32_t refsCount(const BufferHeader* header)
+{
+    return header == nullptr ? 0 : header->refs.load(std::memory_order_relaxed);
+}
+
+std::byte* clientData(const BufferHeader* header)
+{
+    if (!header || header->size == 0)
+    {
+        return nullptr;
+    }
+
+    MY_FATAL(header->capacity > 0);
+
+    BufferHeader* const mutableHeader = const_cast<BufferHeader*>(header);
+    return reinterpret_cast<std::byte*>(mutableHeader) + ClientDataOffset;
+}
+
+IAllocator& getBufferAllocator(size_t storageSize)
+{
+    static BufferAllocatorHolder g_bufferAllocatorHolder;
+    return g_bufferAllocatorHolder.getAllocator(storageSize);
+}
+
+IAllocator& getBufferAllocator(const BufferBase::Header& header)
+{
+    MY_DEBUG_FATAL(header.capacity > 0);
+
+    const size_t storageSize = HeaderSize + header.capacity;
+    return getBufferAllocator(storageSize);
+}
+
+}  // namespace
+
+BufferHandle BufferStorage::allocate(size_t clientSize)
+{
+    const size_t granuleSize = (clientSize < BigAllocationThreshold) ? AllocationGranularity : BigAllocationGranularity;
+    const size_t storageSize = alignedSize(HeaderSize + clientSize, granuleSize);
+    const size_t capacity = storageSize - HeaderSize;
+
+    IAllocator& allocator = getBufferAllocator(storageSize);
+    void* const storage = allocator.alloc(storageSize);
+    MY_FATAL(storage);
+    MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);
+
+    BufferHeader* header = new(storage) BufferHeader;
+    header->capacity = capacity;
+    header->size = clientSize;
+
+    return header;
+}
+
+BufferHandle BufferStorage::reallocate(BufferHandle buffer, size_t newSize)
+{
+    if (buffer == nullptr)
+    {
         return BufferStorage::allocate(newSize);
     }
 
-    void BufferStorage::release(BufferHandle& buffer)
-    {
-        if (!buffer)
-        {
-            return;
-        }
+    BufferHeader* const header = reinterpret_cast<BufferHeader*>(buffer);
+    MY_DEBUG_FATAL(header->refs.load(std::memory_order_relaxed) == 1);
+    MY_DEBUG_FATAL(header->capacity > 0);
 
-        BufferHeader* const header = buffer;
+    if (header->capacity >= newSize)
+    {
+        header->size = newSize;
+        return buffer;
+    }
+
+    BufferHandle newHandle = BufferStorage::allocate(newSize);
+    memcpy(clientData(newHandle), clientData(buffer), header->size);
+    getBufferAllocator(*header).free(buffer);
+    return newHandle;
+}
+
+void BufferStorage::release(BufferHandle& buffer)
+{
+    if (!buffer)
+    {
+        return;
+    }
+
+    BufferHeader* const header = buffer;
+    if (header->refs.fetch_sub(1) == 1)
+    {
+        getBufferAllocator(*header).free(header);
+    }
+
+    buffer = nullptr;
+}
+
+BufferHandle BufferStorage::takeOut(BufferBase&& buffer)
+{
+    if (!buffer.m_storage)
+    {
+        return nullptr;
+    }
+
+    MY_DEBUG_FATAL(refsCount(buffer.m_storage) == 1);
+
+    BufferHeader* const storage = std::exchange(buffer.m_storage, nullptr);
+    return storage;
+}
+
+std::byte* BufferStorage::getClientData(BufferHandle handle)
+{
+    return my::clientData(handle);
+}
+
+size_t BufferStorage::getClientSize(BufferHandle handle)
+{
+    return handle == nullptr ? 0 : handle->size;
+}
+
+Buffer BufferStorage::bufferFromHandle(BufferHandle handle)
+{
+    MY_DEBUG_ASSERT(handle);
+    return Buffer(handle);
+}
+
+Buffer BufferStorage::bufferFromClientData(std::byte* ptr, std::optional<size_t> size)
+{
+    MY_FATAL(ptr);
+
+    BufferHeader* const header = reinterpret_cast<BufferHeader*>(ptr) - ClientDataOffset;
+    Buffer buffer{header};
+    if (size)
+    {
+        MY_DEBUG_FATAL(*size <= header->capacity, "Size ({}) does not fit to the buffer with capacity ({})", *size, header->capacity);
+        buffer.resize(*size);
+    }
+
+    return buffer;
+}
+
+BufferBase::BufferBase() :
+    m_storage(nullptr)
+{
+}
+
+BufferBase::BufferBase(BufferHeader* header) :
+    m_storage(header)
+{
+    MY_FATAL(!m_storage || refsCount(m_storage) > 0);
+}
+
+BufferBase::~BufferBase()
+{
+    release();
+}
+
+size_t BufferBase::size() const
+{
+    return m_storage ? m_storage->size : 0;
+}
+
+bool BufferBase::empty() const
+{
+    return !m_storage || m_storage->size == 0;
+}
+
+BufferBase::operator bool() const
+{
+    return m_storage != nullptr;
+}
+
+void BufferBase::release()
+{
+    if (auto header = std::exchange(m_storage, nullptr))
+    {
         if (header->refs.fetch_sub(1) == 1)
         {
             getBufferAllocator(*header).free(header);
         }
-
-        buffer = nullptr;
     }
+}
 
-    BufferHandle BufferStorage::takeOut(BufferBase&& buffer)
-    {
-        if (!buffer.m_storage)
-        {
-            return nullptr;
-        }
+bool BufferBase::sameBufferObject(const BufferBase& buffer_) const
+{
+    return buffer_.m_storage && this->m_storage && (buffer_.m_storage == m_storage);
+}
 
-        MY_DEBUG_FATAL(refsCount(buffer.m_storage) == 1);
+// bool BufferBase::sameBufferObject(const BufferView& view) const
+// {
+//     return view && sameBufferObject(view.underlyingBuffer());
+// }
 
-        BufferHeader* const storage = std::exchange(buffer.m_storage, nullptr);
-        return storage;
-    }
+BufferBase::Header& BufferBase::header()
+{
+    MY_DEBUG_ASSERT(m_storage != nullptr);
+    return *m_storage;
+}
 
-    std::byte* BufferStorage::getClientData(BufferHandle handle)
-    {
-        return my::clientData(handle);
-    }
+const BufferBase::Header& BufferBase::header() const
+{
+    MY_DEBUG_ASSERT(m_storage != nullptr);
+    return *m_storage;
+}
 
-    size_t BufferStorage::getClientSize(const BufferHandle handle)
-    {
-        return handle == nullptr ? 0 : handle->size;
-    }
+Buffer::Buffer() = default;
 
-    Buffer BufferStorage::bufferFromHandle(BufferHandle handle)
-    {
-        MY_DEBUG_ASSERT(handle);
-        return Buffer(handle);
-    }
+Buffer::Buffer(size_t size)
+{
+    m_storage = BufferStorage::allocate(size);
+}
 
-    Buffer BufferStorage::bufferFromClientData(std::byte* ptr, std::optional<size_t> size)
-    {
-        MY_FATAL(ptr);
+Buffer::Buffer(Buffer&& buffer) noexcept :
+    BufferBase(buffer.m_storage)
+{
+    buffer.m_storage = nullptr;
+}
 
-        BufferHeader* const header = reinterpret_cast<BufferHeader*>(ptr) - ClientDataOffset;
-        Buffer buffer{header};
-        if (size)
-        {
-            MY_DEBUG_FATAL(*size <= header->capacity, "Size ({}) does not fit to the buffer with capacity ({})", *size, header->capacity);
-            buffer.resize(*size);
-        }
+// Buffer::Buffer(BufferView&& buffer) noexcept
+// {
+//     this->operator=(std::move(buffer));
+// }
 
-        return buffer;
-    }
-
-    BufferBase::BufferBase() :
-        m_storage(nullptr)
-    {
-    }
-
-    BufferBase::BufferBase(BufferHeader* header) :
-        m_storage(header)
-    {
-        MY_FATAL(!m_storage || refsCount(m_storage) > 0);
-    }
-
-    BufferBase::~BufferBase()
-    {
-        release();
-    }
-
-    size_t BufferBase::size() const
-    {
-        return m_storage ? m_storage->size : 0;
-    }
-
-    bool BufferBase::empty() const
-    {
-        return !m_storage || m_storage->size == 0;
-    }
-
-    BufferBase::operator bool() const
-    {
-        return m_storage != nullptr;
-    }
-
-    void BufferBase::release()
-    {
-        if (auto header = std::exchange(m_storage, nullptr))
-        {
-            if (header->refs.fetch_sub(1) == 1)
-            {
-                getBufferAllocator(*header).free(header);
-            }
-        }
-    }
-
-    bool BufferBase::sameBufferObject(const BufferBase& buffer_) const
-    {
-        return buffer_.m_storage && this->m_storage && (buffer_.m_storage == m_storage);
-    }
-
-    // bool BufferBase::sameBufferObject(const BufferView& view) const
-    // {
-    //     return view && sameBufferObject(view.underlyingBuffer());
-    // }
-
-    BufferBase::Header& BufferBase::header()
-    {
-        MY_DEBUG_ASSERT(m_storage != nullptr);
-        return *m_storage;
-    }
-
-    const BufferBase::Header& BufferBase::header() const
-    {
-        MY_DEBUG_ASSERT(m_storage != nullptr);
-        return *m_storage;
-    }
-
-    Buffer::Buffer() = default;
-
-    Buffer::Buffer(size_t size)
-    {
-        m_storage = BufferStorage::allocate(size);
-    }
-
-    Buffer::Buffer(Buffer&& buffer) noexcept :
-        BufferBase(buffer.m_storage)
-    {
-        buffer.m_storage = nullptr;
-    }
-
-    // Buffer::Buffer(BufferView&& buffer) noexcept
-    // {
-    //     this->operator=(std::move(buffer));
-    // }
-
-    Buffer& Buffer::operator=(Buffer&& buffer) noexcept
-    {
-        release();
-        std::swap(buffer.m_storage, m_storage);
-        return *this;
-    }
+Buffer& Buffer::operator=(Buffer&& buffer) noexcept
+{
+    release();
+    std::swap(buffer.m_storage, m_storage);
+    return *this;
+}
 
 #if 0
     Buffer& Buffer::operator=(BufferView&& bufferView) noexcept
@@ -347,58 +362,56 @@ namespace my
         return *this;
     }
 #endif
-    Buffer& Buffer::operator=(std::nullptr_t) noexcept
+Buffer& Buffer::operator=(std::nullptr_t) noexcept
+{
+    release();
+    return *this;
+}
+
+std::byte* Buffer::data() const
+{
+    return clientData(m_storage);
+}
+
+std::byte* Buffer::append(size_t count)
+{
+    const size_t offset = size();
+    resize(offset + count);
+    return reinterpret_cast<std::byte*>(data()) + offset;
+}
+
+void Buffer::resize(size_t newSize)
+{
+    if (m_storage == nullptr)
     {
-        release();
-        return *this;
+        m_storage = BufferStorage::allocate(newSize);
+        return;
     }
 
-    std::byte* Buffer::data() const
-    {
-        return clientData(m_storage);
-    }
+    MY_DEBUG_FATAL(refsCount(m_storage) == 1);
+    m_storage = BufferStorage::reallocate(m_storage, newSize);
 
-    std::byte* Buffer::append(size_t count)
-    {
-        const size_t offset = size();
-        resize(offset + count);
-        return reinterpret_cast<std::byte*>(data()) + offset;
-    }
+    // auto handle = BufferStorage::allocate(newSize);
+    // MY_DEBUG_FATAL(handle);
 
-    void Buffer::resize(size_t newSize)
-    {
-        if (m_storage == nullptr)
-        {
-            m_storage = BufferStorage::allocate(newSize);
-            return;
-        }
+    // if (const void* const ptr = data())
+    // {
+    //     //MY_DEBUG_ASSERT(m_storage->size > 0);
 
-        MY_DEBUG_FATAL(refsCount(m_storage) == 1);
-        m_storage = BufferStorage::reallocate(m_storage, newSize);
-        
+    //     const size_t copySize = std::min(header().size, newSize);
+    //     memcpy(clientData(storage), ptr, copySize);
+    // }
 
-        // auto handle = BufferStorage::allocate(newSize);
-        // MY_DEBUG_FATAL(handle);
+    // this->release();
+    // m_storage = storage;
 
+    // //MY_DEBUG_ASSERT(header().size == newSize);
+}
 
-        // if (const void* const ptr = data())
-        // {
-        //     //MY_DEBUG_ASSERT(m_storage->size > 0);
-
-        //     const size_t copySize = std::min(header().size, newSize);
-        //     memcpy(clientData(storage), ptr, copySize);
-        // }
-
-        // this->release();
-        // m_storage = storage;
-
-        // //MY_DEBUG_ASSERT(header().size == newSize);
-    }
-
-    ReadOnlyBuffer Buffer::toReadOnly()
-    {
-        return ReadOnlyBuffer{std::move(*this)};
-    }
+ReadOnlyBuffer Buffer::toReadOnly()
+{
+    return ReadOnlyBuffer{std::move(*this)};
+}
 
 #if 0
     void Buffer::operator+=(BufferView&& source) noexcept
@@ -426,83 +439,83 @@ namespace my
     }
 #endif
 
-    ReadOnlyBuffer::ReadOnlyBuffer() = default;
+ReadOnlyBuffer::ReadOnlyBuffer() = default;
 
-    ReadOnlyBuffer::ReadOnlyBuffer(Buffer&& buffer) noexcept
+ReadOnlyBuffer::ReadOnlyBuffer(Buffer&& buffer) noexcept
+{
+    MY_DEBUG_ASSERT(!buffer || BufferUtils::refsCount(buffer) == 1);
+    *this = std::move(buffer);
+}
+
+ReadOnlyBuffer::ReadOnlyBuffer(const ReadOnlyBuffer& other) :
+    BufferBase(other.m_storage)
+{
+    if (m_storage)
     {
-        MY_DEBUG_ASSERT(!buffer || BufferUtils::refsCount(buffer) == 1);
-        *this = std::move(buffer);
+        MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
+    }
+}
+
+ReadOnlyBuffer::ReadOnlyBuffer(ReadOnlyBuffer&& other) noexcept :
+    BufferBase(other.m_storage)
+{
+    other.m_storage = nullptr;
+}
+
+ReadOnlyBuffer& ReadOnlyBuffer::operator=(Buffer&& other) noexcept
+{
+    this->release();
+    std::swap(this->m_storage, other.m_storage);
+
+    return *this;
+}
+
+ReadOnlyBuffer& ReadOnlyBuffer::operator=(const ReadOnlyBuffer& other)
+{
+    release();
+    if (m_storage = other.m_storage; m_storage)
+    {
+        MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
     }
 
-    ReadOnlyBuffer::ReadOnlyBuffer(const ReadOnlyBuffer& other) :
-        BufferBase(other.m_storage)
+    return *this;
+}
+
+ReadOnlyBuffer& ReadOnlyBuffer::operator=(ReadOnlyBuffer&& other) noexcept
+{
+    this->release();
+    std::swap(this->m_storage, other.m_storage);
+    return *this;
+}
+
+ReadOnlyBuffer& ReadOnlyBuffer::operator=(std::nullptr_t) noexcept
+{
+    this->release();
+    return *this;
+}
+
+const std::byte* ReadOnlyBuffer::data() const
+{
+    return clientData(m_storage);
+}
+
+Buffer ReadOnlyBuffer::toBuffer()
+{
+    if (!m_storage)
     {
-        if (m_storage)
-        {
-            MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
-        }
+        return {};
     }
 
-    ReadOnlyBuffer::ReadOnlyBuffer(ReadOnlyBuffer&& other) noexcept :
-        BufferBase(other.m_storage)
+    if (refsCount(m_storage) == 1)
     {
-        other.m_storage = nullptr;
+        BufferHeader* const storage = std::exchange(m_storage, nullptr);
+        return Buffer{storage};
     }
 
-    ReadOnlyBuffer& ReadOnlyBuffer::operator=(Buffer&& other) noexcept
-    {
-        this->release();
-        std::swap(this->m_storage, other.m_storage);
-
-        return *this;
-    }
-
-    ReadOnlyBuffer& ReadOnlyBuffer::operator=(const ReadOnlyBuffer& other)
-    {
-        release();
-        if (m_storage = other.m_storage; m_storage)
-        {
-            MY_ASSERT(m_storage->refs.fetch_add(1) > 0);
-        }
-
-        return *this;
-    }
-
-    ReadOnlyBuffer& ReadOnlyBuffer::operator=(ReadOnlyBuffer&& other) noexcept
-    {
-        this->release();
-        std::swap(this->m_storage, other.m_storage);
-        return *this;
-    }
-
-    ReadOnlyBuffer& ReadOnlyBuffer::operator=(std::nullptr_t) noexcept
-    {
-        this->release();
-        return *this;
-    }
-
-    const std::byte* ReadOnlyBuffer::data() const
-    {
-        return clientData(m_storage);
-    }
-
-    Buffer ReadOnlyBuffer::toBuffer()
-    {
-        if (!m_storage)
-        {
-            return {};
-        }
-
-        if (refsCount(m_storage) == 1)
-        {
-            BufferHeader* const storage = std::exchange(m_storage, nullptr);
-            return Buffer{storage};
-        }
-
-        Buffer buffer = BufferUtils::copy(*this);
-        release();
-        return buffer;
-    }
+    Buffer buffer = BufferUtils::copy(*this);
+    release();
+    return buffer;
+}
 #if 0
     BufferView::BufferView() :
         m_offset(0),
@@ -661,62 +674,62 @@ namespace my
     }
 #endif
 
-    // BufferView BufferView::merge(const BufferView& buffer) const
-    //{
-    //	return {};
-    // }
-    //
-    // BufferView BufferView::merge(const BufferView& buffer1, const BufferView& buffer2)
-    //{
-    //	return {};
-    // }
+// BufferView BufferView::merge(const BufferView& buffer) const
+//{
+//	return {};
+// }
+//
+// BufferView BufferView::merge(const BufferView& buffer1, const BufferView& buffer2)
+//{
+//	return {};
+// }
 
-    uint32_t BufferUtils::refsCount(const BufferBase& buffer)
+uint32_t BufferUtils::refsCount(const BufferBase& buffer)
+{
+    // return my::refsCount(buffer.m_storage);
+    return my::refsCount(buffer.m_storage);
+}
+
+// uint32_t BufferUtils::refsCount(const BufferView& buffer)
+// {
+//     return BufferUtils::refsCount(buffer.m_buffer);
+// }
+
+Buffer BufferUtils::copy(const BufferBase& source, size_t offset, std::optional<size_t> size)
+{
+    MY_DEBUG_ASSERT(offset <= source.size());
+    MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
+    if (!source)
     {
-        //return my::refsCount(buffer.m_storage);
-        return my::refsCount(buffer.m_storage);
+        return {};
     }
 
-    // uint32_t BufferUtils::refsCount(const BufferView& buffer)
-    // {
-    //     return BufferUtils::refsCount(buffer.m_buffer);
-    // }
+    const size_t copySize = size.value_or(source.size() - offset);
+    Buffer buffer{copySize};
 
-    Buffer BufferUtils::copy(const BufferBase& source, size_t offset, std::optional<size_t> size)
-    {
-        MY_DEBUG_ASSERT(offset <= source.size());
-        MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
-        if (!source)
-        {
-            return {};
-        }
+    const std::byte* const src = clientData(source.m_storage);
+    memcpy(buffer.data(), src + offset, copySize);
+    return buffer;
+}
 
-        const size_t copySize = size.value_or(source.size() - offset);
-        Buffer buffer{copySize};
+// Buffer BufferUtils::copy(const BufferView& source, size_t offset, std::optional<size_t> size)
+// {
+//     MY_DEBUG_ASSERT(offset <= source.size());
+//     MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
 
-        const std::byte* const src = clientData(source.m_storage);
-        memcpy(buffer.data(), src + offset, copySize);
-        return buffer;
-    }
+//     if (!source)
+//     {
+//         return {};
+//     }
 
-    // Buffer BufferUtils::copy(const BufferView& source, size_t offset, std::optional<size_t> size)
-    // {
-    //     MY_DEBUG_ASSERT(offset <= source.size());
-    //     MY_DEBUG_ASSERT(!size || offset + *size <= source.size());
+//     const ReadOnlyBuffer& sourceBuffer = source.m_buffer;
 
-    //     if (!source)
-    //     {
-    //         return {};
-    //     }
+//     const size_t targetSize = size ? *size : (source.size() - offset);
+//     std::byte* const targetStorage = BufferStorage::allocate(targetSize, sourceBuffer.header().allocator);
+//     Buffer buffer{targetStorage};
 
-    //     const ReadOnlyBuffer& sourceBuffer = source.m_buffer;
-
-    //     const size_t targetSize = size ? *size : (source.size() - offset);
-    //     std::byte* const targetStorage = BufferStorage::allocate(targetSize, sourceBuffer.header().allocator);
-    //     Buffer buffer{targetStorage};
-
-    //     memcpy(buffer.data(), source.data() + offset, targetSize);
-    //     return buffer;
-    // }
+//     memcpy(buffer.data(), source.data() + offset, targetSize);
+//     return buffer;
+// }
 
 }  // namespace my

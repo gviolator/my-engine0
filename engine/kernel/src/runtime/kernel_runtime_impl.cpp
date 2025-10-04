@@ -319,4 +319,11 @@ KernelRuntimeImpl& getKernelRuntimeImpl()
     MY_DEBUG_FATAL(s_kernelRuntime);
     return *s_kernelRuntime;
 }
+
+IKernelRuntime& getKernelRuntime()
+{
+    MY_DEBUG_FATAL(s_kernelRuntime);
+    return *s_kernelRuntime;
+}
+
 }  // namespace my

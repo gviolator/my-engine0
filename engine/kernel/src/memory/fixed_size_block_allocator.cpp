@@ -82,7 +82,14 @@ private:
         MemRegionEntry* region = &m_pages.back();
         if (const size_t availSize = region->pages.size() - region->offset; availSize < m_blockSize)
         {
-            region = &m_pages.emplace_back(m_memory.allocPages(m_blockSize));
+            IHostMemory::MemRegion memPages = m_memory.allocPages(m_blockSize);
+            MY_DEBUG_FATAL(memPages, "Fail to allocate more pages");
+            if (!memPages)
+            {
+                return nullptr;
+            }
+
+            region = &m_pages.emplace_back(std::move(memPages));
         }
 
         MY_DEBUG_FATAL(region->pages.size() >= m_blockSize);

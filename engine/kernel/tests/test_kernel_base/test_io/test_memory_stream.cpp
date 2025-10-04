@@ -66,7 +66,7 @@ namespace my::test
         std::string_view testData = "test data";
         io::MemoryStreamPtr memoryStream = createMemoryStream(testData);
 
-        constexpr size_t offset = 4;
+        constexpr int64_t offset = 4;
         memoryStream->setPosition(io::OffsetOrigin::End, -offset);
 
         Buffer resultBuffer;
