@@ -9,15 +9,32 @@
 #include <thread>
 
 namespace my {
+
+/**
+ * Polling mode for IKernelRuntime::poll()
+ */
 enum class RuntimePollMode
 {
     Default,
     NoWait
 };
 
+/**
+ */
+enum class RuntimeState
+{
+    NotInitialized,          // Initial state, runtime is not bound to any thread yet.
+    Operable,                // Runtime is bound to a thread, initialized and can be used.
+    ShutdownProcessed,       // Shutdown() was called, runtime is shutting down, but still has references.
+    ShutdownNeedCompletion,  // Runtime is ready to be completed, all references are released.
+    ShutdownCompleted        // Runtime is completely shut down.
+};
+
 struct IKernelRuntime
 {
     virtual ~IKernelRuntime() = default;
+
+    virtual RuntimeState getState() const = 0;
 
     virtual void bindToCurrentThread() = 0;
 
@@ -27,12 +44,6 @@ struct IKernelRuntime
 
     virtual bool poll(RuntimePollMode mode) = 0;
 
-    /**
-        @p resetKernelServices
-            if true then shutdown will reset kernel services
-            in other case reset will be performed within KernelRuntime's destructor.
-    */
-    // virtual Functor<bool()> shutdown(bool resetKernelServices = true) = 0;
     virtual void shutdown() = 0;
 
     inline bool isRuntimeThread() const

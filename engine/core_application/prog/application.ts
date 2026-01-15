@@ -1,4 +1,5 @@
-//import * as app from 'decl';
+//import type * as My from 'my';
+import {} from './interop';
 
 class MyApplication implements IMyApplication {
     mTimeAccum = 0;
@@ -9,9 +10,9 @@ class MyApplication implements IMyApplication {
     step(dt: number): boolean {
         
         this.mTimeAccum += dt;
-        print(`[Embedded logic App]: step dt:(${dt})sec, passed:(${this.mTimeAccum})sec`);
+        mylog(`[Embedded logic App]: step dt:(${dt})sec, passed:(${this.mTimeAccum})sec`);
         const ret = this.mTimeAccum <= 2.0;
-        print(`Will returns: (${ret})`);
+        mylog(`Will returns: (${ret})`);
 
         return ret;
     }
@@ -19,7 +20,7 @@ class MyApplication implements IMyApplication {
 
 const g_application = new MyApplication();
 
-declare function print(this: void, ...args: any[]): void;
+
 
 export function getApplication(): IMyApplication
 {

@@ -1,246 +1,244 @@
 // #my_engine_source_file
 
-
 #pragma once
-#include <EASTL/vector.h>
-
-#include <type_traits>
-
 #include "my/async/task_base.h"
 #include "my/threading/lock_guard.h"
 #include "my/threading/spin_lock.h"
 
-namespace my::async
+#include <type_traits>
+#include <vector>
+
+
+namespace my::async {
+
+/**
+ */
+template <typename T = void>
+class MultiTaskSource : public CoreTaskPtr
 {
+    static constexpr bool IsVoid = std::is_same_v<void, T>;
+    static_assert(IsVoid || std::is_copy_constructible_v<T>, "Type expected to be void or copy constructible");
 
-    /**
-     */
-    template <typename T = void>
-    class MultiTaskSource : public CoreTaskPtr
+    using TaskClientData = async_detail::TaskClientData<T>;
+
+public:
+    MultiTaskSource() :
+        CoreTaskPtr(createCoreTask<TaskClientData>(nullptr))
     {
-        static constexpr bool IsVoid = std::is_same_v<void, T>;
-        static_assert(IsVoid || std::is_copy_constructible_v<T>, "Type expected to be void or copy constructible");
+    }
 
-        using TaskClientData = async_detail::TaskClientData<T>;
+    MultiTaskSource(std::nullptr_t) :
+        CoreTaskPtr(nullptr)
+    {
+    }
 
-    public:
-        MultiTaskSource() :
-            CoreTaskPtr(createCoreTask<TaskClientData>(nullptr))
+    MultiTaskSource(const MultiTaskSource&) = delete;
+
+    MultiTaskSource& operator=(std::nullptr_t)
+    {
+        reset();
+        return *this;
+    }
+
+    MultiTaskSource& operator=(const MultiTaskSource&) = delete;
+
+    void reset()
+    {
+        const std::lock_guard lock(m_mutex);
+        m_awaiters.clear();
+        static_cast<CoreTaskPtr&>(*this) = nullptr;
+    }
+
+    void emplace()
+    {
+        const std::lock_guard lock(m_mutex);
+        m_awaiters.clear();
+        static_cast<CoreTaskPtr&>(*this) = createCoreTask<TaskClientData>(nullptr);
+    }
+
+    bool isReady() const
+    {
+        const std::lock_guard lock(m_mutex);
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
+        if (!static_cast<bool>(*this))
         {
+            return false;
         }
 
-        MultiTaskSource(std::nullptr_t) :
-            CoreTaskPtr(nullptr)
+        return getCoreTask().isReady();
+    }
+
+    template <typename... Args>
+    requires(IsVoid || std::is_constructible_v<T, Args...>)
+    bool resolve(Args&&... args)
+    {
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
+        if (!static_cast<bool>(*this))
         {
+            return false;
         }
 
-        MultiTaskSource(const MultiTaskSource&) = delete;
+        static_assert(!IsVoid || sizeof...(args) == 0);
 
-        MultiTaskSource& operator=(std::nullptr_t)
+        bool resolved = false;
+
+        if constexpr (IsVoid)
         {
-            reset();
-            return *this;
+            resolved = getCoreTask().tryResolve();
         }
-
-        MultiTaskSource& operator=(const MultiTaskSource&) = delete;
-
-        void reset()
+        else
         {
-            lock_(m_mutex);
-            m_awaiters.clear();
-            static_cast<CoreTaskPtr&>(*this) = nullptr;
-        }
-
-        void emplace()
-        {
-            lock_(m_mutex);
-            m_awaiters.clear();
-            static_cast<CoreTaskPtr&>(*this) = createCoreTask<TaskClientData>(nullptr);
-        }
-
-        bool isReady() const
-        {
-            lock_(m_mutex);
-            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
-            if(!static_cast<bool>(*this))
+            resolved = getCoreTask().tryResolve([&](CoreTask::Rejector&) noexcept
             {
-                return false;
+                MY_DEBUG_ASSERT(!getClientData().result);
+                getClientData().result.emplace(std::forward<Args>(args)...);
+            });
+        }
+
+        if (!resolved)
+        {
+            return false;
+        }
+
+        const std::lock_guard lock(m_mutex);
+
+        scope_on_leave
+        {
+            if (m_autoResetOnReady)
+            {
+                static_cast<CoreTaskPtr&>(*this) = nullptr;
             }
+        };
 
-            return getCoreTask().isReady();
-        }
-
-        template <typename... Args>
-        requires(IsVoid || std::is_constructible_v<T, Args...>)
-        bool resolve(Args&&... args)
+        [[maybe_unused]] TaskClientData& data = getClientData();
+        if constexpr (IsVoid)
         {
-            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
-            if(!static_cast<bool>(*this))
+            for (TaskSource<T>& awaiter : m_awaiters)
             {
-                return false;
+                awaiter.resolve();
             }
-
-            static_assert(!IsVoid || sizeof...(args) == 0);
-
-            bool resolved = false;
-
-            if constexpr(IsVoid)
+        }
+        else
+        {
+            if (!m_awaiters.empty())
             {
-                resolved = getCoreTask().tryResolve();
-            }
-            else
-            {
-                resolved = getCoreTask().tryResolve([&](CoreTask::Rejector&) noexcept
+                // In the case when the result no longer needs to be kept inside MultiTaskSource<>, its value can be given via move.
+                // But move can be applied only for last awaiter. In cases where there is only single awaiter, the move assignment (instead copy) becomes especially relevant.
+
+                const size_t lastIndex = m_awaiters.size() - 1;
+                for (size_t i = 0; i < lastIndex; ++i)
                 {
-                    MY_DEBUG_ASSERT(!getClientData().result);
-                    getClientData().result.emplace(std::forward<Args>(args)...);
-                });
+                    auto& awaiter = m_awaiters[i];
+                    awaiter.resolve(*data.result);
+                }
+
+                auto& lastAwaiter = m_awaiters[lastIndex];
+                if (m_autoResetOnReady)
+                {
+                    lastAwaiter.resolve(std::move(*data.result));
+                }
+                else
+                {
+                    lastAwaiter.resolve(*data.result);
+                }
             }
+        }
 
-            if(!resolved)
-            {
-                return false;
-            }
+        m_awaiters.clear();
 
-            lock_(m_mutex);
+        return resolved;
+    }
 
+    bool reject(ErrorPtr error)
+    {
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
+        if (!static_cast<bool>(*this))
+        {
+            return false;
+        }
+
+        const bool rejected = getCoreTask().tryRejectWithError(error);
+        if (rejected)
+        {
+            const std::lock_guard lock(m_mutex);
             scope_on_leave
             {
-                if(m_autoResetOnReady)
+                if (m_autoResetOnReady)
                 {
                     static_cast<CoreTaskPtr&>(*this) = nullptr;
                 }
             };
 
-            [[maybe_unused]] TaskClientData& data = getClientData();
-            if constexpr(IsVoid)
+            for (TaskSource<T>& taskSource : m_awaiters)
             {
-                for(TaskSource<T>& awaiter : m_awaiters)
-                {
-                    awaiter.resolve();
-                }
-            }
-            else
-            {
-                if(!m_awaiters.empty())
-                {
-                    // In the case when the result no longer needs to be kept inside MultiTaskSource<>, its value can be given via move.
-                    // But move can be applied only for last awaiter. In cases where there is only single awaiter, the move assignment (instead copy) becomes especially relevant.
-
-                    const size_t lastIndex = m_awaiters.size() - 1;
-                    for(size_t i = 0; i < lastIndex; ++i)
-                    {
-                        auto& awaiter = m_awaiters[i];
-                        awaiter.resolve(*data.result);
-                    }
-
-                    auto& lastAwaiter = m_awaiters[lastIndex];
-                    if(m_autoResetOnReady)
-                    {
-                        lastAwaiter.resolve(std::move(*data.result));
-                    }
-                    else
-                    {
-                        lastAwaiter.resolve(*data.result);
-                    }
-                }
+                taskSource.reject(error);
             }
 
             m_awaiters.clear();
-
-            return resolved;
         }
 
-        bool reject(ErrorPtr error)
+        return rejected;
+    }
+
+    Task<T> getNextTask()
+    {
+        const std::lock_guard lock(m_mutex);
+
+        MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
+        if (!static_cast<bool>(*this))
         {
-            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
-            if(!static_cast<bool>(*this))
-            {
-                return false;
-            }
-
-            const bool rejected = getCoreTask().tryRejectWithError(error);
-            if(rejected)
-            {
-                lock_(m_mutex);
-                scope_on_leave
-                {
-                    if(m_autoResetOnReady)
-                    {
-                        static_cast<CoreTaskPtr&>(*this) = nullptr;
-                    }
-                };
-
-                for(TaskSource<T>& taskSource : m_awaiters)
-                {
-                    taskSource.reject(error);
-                }
-
-                m_awaiters.clear();
-            }
-
-            return rejected;
+            return Task<T>::makeRejected(MakeError("Task source invalid state"));
         }
 
-        Task<T> getNextTask()
+        if (!getCoreTask().isReady())
         {
-            lock_(m_mutex);
-
-            MY_DEBUG_ASSERT(static_cast<bool>(*this), "Invalid state");
-            if(!static_cast<bool>(*this))
-            {
-                return Task<T>::makeRejected(MakeError("Task source invalid state"));
-            }
-
-            if(!getCoreTask().isReady())
-            {
-                TaskSource<T>& awaiter = m_awaiters.emplace_back();
-                return awaiter.getTask();
-            }
-
-            // inner task is ready:
-            // just returns result (value or error).
-            if(auto error = getCoreTask().getError())
-            {
-                return Task<T>::makeRejected(std::move(error));
-            }
-
-            if constexpr(IsVoid)
-            {
-                return Task<>::makeResolved();
-            }
-            else
-            {
-                TaskClientData& data = getClientData();
-                MY_DEBUG_FATAL(data.result);
-                return Task<T>::makeResolved(*data.result);
-            }
+            TaskSource<T>& awaiter = m_awaiters.emplace_back();
+            return awaiter.getTask();
         }
 
-        void setAutoResetOnReady(bool resetOnReady)
+        // inner task is ready:
+        // just returns result (value or error).
+        if (auto error = getCoreTask().getError())
         {
-            lock_(m_mutex);
-            m_autoResetOnReady = resetOnReady;
+            return Task<T>::makeRejected(std::move(error));
         }
 
-    private:
-        using Mutex = threading::SpinLock;
-
-        decltype(auto) getClientData()
+        if constexpr (IsVoid)
         {
-            void* const ptr = getCoreTask().getData();
-            return *reinterpret_cast<TaskClientData*>(ptr);
+            return Task<>::makeResolved();
         }
-
-        decltype(auto) getClientData() const
+        else
         {
-            const void* const ptr = getCoreTask().getData();
-            return *reinterpret_cast<const TaskClientData*>(ptr);
+            TaskClientData& data = getClientData();
+            MY_DEBUG_FATAL(data.result);
+            return Task<T>::makeResolved(*data.result);
         }
+    }
 
-        std::vector<TaskSource<T>> m_awaiters;
-        bool m_autoResetOnReady = false;
-        mutable Mutex m_mutex;
-    };
+    void setAutoResetOnReady(bool resetOnReady)
+    {
+        const std::lock_guard lock(m_mutex);
+        m_autoResetOnReady = resetOnReady;
+    }
+
+private:
+    using Mutex = threading::SpinLock;
+
+    decltype(auto) getClientData()
+    {
+        void* const ptr = getCoreTask().getData();
+        return *reinterpret_cast<TaskClientData*>(ptr);
+    }
+
+    decltype(auto) getClientData() const
+    {
+        const void* const ptr = getCoreTask().getData();
+        return *reinterpret_cast<const TaskClientData*>(ptr);
+    }
+
+    std::vector<TaskSource<T>> m_awaiters;
+    bool m_autoResetOnReady = false;
+    mutable Mutex m_mutex;
+};
 
 }  // namespace my::async

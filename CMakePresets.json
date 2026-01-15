@@ -20,10 +20,10 @@
         },
 
         {
-            "name": "vs_2022_x64_base",
+            "name": "vs_2026_x64_base",
             "inherits": ["config_base"],
             "hidden": true,
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
 
             "toolset": {
                 "strategy": "set",
@@ -47,27 +47,27 @@
         },
      
         {
-            "name": "win_vs2022_x64",
-            "inherits": ["vs_2022_x64_base"],
-            "displayName": "VS 2022 x64",
-            "description": "Configure for Visual Studio 17 2022",
+            "name": "win_vs2026_x64",
+            "inherits": ["vs_2026_x64_base"],
+            "displayName": "VS 2026 x64",
+            "description": "Configure for Visual Studio 17 2026",
             "hidden": false
         },
         {
-            "name": "win_vs2022_x64_dll",
-            "inherits": ["win_vs2022_x64"],
-            "displayName": "VS 2022 x64 DLL",
-            "description": "Configure DLL for Visual Studio 17 2022",
+            "name": "win_vs2026_x64_dll",
+            "inherits": ["win_vs2026_x64"],
+            "displayName": "VS 2026 x64 DLL",
+            "description": "Configure DLL for Visual Studio 17 2026",
             "hidden": false,
             "cacheVariables": {
                 "BUILD_SHARED_LIBS": true
             }
         },
         {
-            "name": "win_vs2022_x64_dll_asan",
-            "inherits": ["win_vs2022_x64"],
-            "displayName": "VS 2022 x64 DLL Asan",
-            "description": "Configure DLL Asan for Visual Studio 17 2022",
+            "name": "win_vs2026_x64_dll_asan",
+            "inherits": ["win_vs2026_x64"],
+            "displayName": "VS 2026 x64 DLL Asan",
+            "description": "Configure DLL Asan for Visual Studio 17 2026",
             "hidden": false,
             "cacheVariables": {
                 "BUILD_SHARED_LIBS": true,
@@ -118,44 +118,44 @@
     "buildPresets": [
         {
             "name": "VS Debug",
-            "displayName": "VS 2022 x64 Debug",
-            "configurePreset": "win_vs2022_x64",
+            "displayName": "VS 2026 x64 Debug",
+            "configurePreset": "win_vs2026_x64",
             "configuration": "Debug"
         },
         {
             "name": "VS Debug DLL",
-            "displayName": "VS 2022 x64 Debug DLL",
-            "configurePreset": "win_vs2022_x64_dll",
+            "displayName": "VS 2026 x64 Debug DLL",
+            "configurePreset": "win_vs2026_x64_dll",
             "configuration": "Debug"
         },
         {
             "name": "VS Debug DLL Asan",
-            "displayName": "VS 2022 x64 Debug DLL Asan",
-            "configurePreset": "win_vs2022_x64_dll_asan",
+            "displayName": "VS 2026 x64 Debug DLL Asan",
+            "configurePreset": "win_vs2026_x64_dll_asan",
             "configuration": "Debug"
         },
         {
             "name": "VS Release",
-            "displayName": "VS 2022 x64 Release",
-            "configurePreset": "win_vs2022_x64",
+            "displayName": "VS 2026 x64 Release",
+            "configurePreset": "win_vs2026_x64",
             "configuration": "Release"
         },
         {
             "name": "VS RelWithDebugInfo",
-            "displayName": "VS 2022 x64 RelWithDebInfo",
-            "configurePreset": "win_vs2022_x64",
+            "displayName": "VS 2026 x64 RelWithDebInfo",
+            "configurePreset": "win_vs2026_x64",
             "configuration": "RelWithDebInfo"
         },
         {
             "name": "VS Release DLL",
-            "displayName": "VS 2022 x64 Release DLL",
-            "configurePreset": "win_vs2022_x64_dll",
+            "displayName": "VS 2026 x64 Release DLL",
+            "configurePreset": "win_vs2026_x64_dll",
             "configuration": "Release"
         },
         {
             "name": "VS RelWithDebugInfo DLL",
-            "displayName": "VS 2022 x64 RelWithDebInfo DLL",
-            "configurePreset": "win_vs2022_x64_dll",
+            "displayName": "VS 2026 x64 RelWithDebInfo DLL",
+            "configurePreset": "win_vs2026_x64_dll",
             "configuration": "RelWithDebInfo"
         },
         {

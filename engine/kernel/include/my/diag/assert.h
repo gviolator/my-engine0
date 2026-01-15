@@ -10,8 +10,8 @@
 #include "my/utils/typed_flag.h"
 
 #include <format>
+#include <string_view>
 #include <type_traits>
-
 
 namespace my::diag {
 enum class AssertionKind

@@ -80,7 +80,7 @@ namespace my
     {
         using namespace my::async;
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         MY_DEBUG_ASSERT(!m_isPolled);
 
         if (!m_invocations.empty())
@@ -127,7 +127,7 @@ namespace my
 
         auto takeInvocations = [this](std::vector<Executor::Invocation>& invocations) mutable
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             if (m_signal && m_signal.isReady())
             {
                 m_signal = nullptr;
@@ -188,14 +188,14 @@ namespace my
 
     void WorkQueueImpl::notify()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         m_isNotified = true;
         notifyInternal();
     }
 
     bool WorkQueueImpl::hasWorks()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         return !m_invocations.empty() || m_isPolled;
     }
 
@@ -205,7 +205,7 @@ namespace my
 
     void WorkQueueImpl::scheduleInvocation(Invocation invocation) noexcept
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         m_invocations.emplace_back(std::move(invocation));
 
         notifyInternal();

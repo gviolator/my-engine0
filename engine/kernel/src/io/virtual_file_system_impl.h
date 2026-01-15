@@ -7,9 +7,9 @@
 
 namespace my::io
 {
-    class VirtualFileSystemImpl final : public VirtualFileSystem
+    class VirtualFileSystemImpl final : public IVirtualFileSystem
     {
-        MY_REFCOUNTED_CLASS(my::io::VirtualFileSystemImpl, VirtualFileSystem)
+        MY_REFCOUNTED_CLASS(my::io::VirtualFileSystemImpl, IVirtualFileSystem)
         
     private:
         struct FileSystemEntry

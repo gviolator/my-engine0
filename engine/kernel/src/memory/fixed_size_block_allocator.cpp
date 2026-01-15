@@ -138,7 +138,7 @@ public:
         MY_DEBUG_FATAL(size <= m_pool.getBlockSize());
         MY_DEBUG_FATAL(checkAllocAlignment(align,Pool::BlockAlignment), "Invalid alignment ({})", align);
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         void* const ptr = m_pool.allocate();
         MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % Pool::BlockAlignment == 0);
@@ -157,7 +157,7 @@ public:
             return oldPtr;
         }
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         void* const ptr = m_pool.allocate();
         MY_DEBUG_ASSERT(reinterpret_cast<uintptr_t>(ptr) % Pool::BlockAlignment == 0);
 
@@ -187,7 +187,7 @@ public:
 
         if (ptr)
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             m_pool.free(ptr);
         }
     }

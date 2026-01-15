@@ -25,7 +25,7 @@ void fastRemoveObjectAt(std::vector<T, U...>& container, size_t index)
 
 class RuntimeObjectRegistryImpl final : public RuntimeObjectRegistry
 {
-    MY_DECLARE_SINGLETON_MEMOP(RuntimeObjectRegistryImpl)
+    MY_SINGLETON_MEMOPS(RuntimeObjectRegistryImpl)
 public:
     RuntimeObjectRegistryImpl() = default;
 
@@ -184,7 +184,7 @@ RuntimeObjectRegistryImpl::~RuntimeObjectRegistryImpl()
 
 void RuntimeObjectRegistryImpl::visitObjects(VisitObjectsCallback callback, const rtti::TypeInfo type, void* callbackData)
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     if (m_objects.empty())
     {
@@ -238,7 +238,7 @@ void RuntimeObjectRegistryImpl::visitObjects(VisitObjectsCallback callback, cons
 
 RuntimeObjectRegistry::ObjectId RuntimeObjectRegistryImpl::addObject(Ptr<> ptr)
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     MY_DEBUG_ASSERT(ptr);
 
@@ -250,7 +250,7 @@ RuntimeObjectRegistry::ObjectId RuntimeObjectRegistryImpl::addObject(Ptr<> ptr)
 
 RuntimeObjectRegistry::ObjectId RuntimeObjectRegistryImpl::addObject(IRttiObject& object)
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     const auto id = ++m_objectId;
     m_objects.emplace_back(id, std::ref(object));
@@ -268,7 +268,7 @@ void RuntimeObjectRegistryImpl::removeExpiredEntries()
 
 void RuntimeObjectRegistryImpl::removeObject(ObjectId id)
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     for (size_t i = 0, size = m_objects.size(); i < size; ++i)
     {
@@ -282,7 +282,7 @@ void RuntimeObjectRegistryImpl::removeObject(ObjectId id)
 
 bool RuntimeObjectRegistryImpl::isAutoRemovable(ObjectId objectId)
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     auto iter = std::find_if(m_objects.begin(), m_objects.end(), [objectId](const ObjectEntry& entry)
     {

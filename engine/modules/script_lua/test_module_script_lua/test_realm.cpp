@@ -51,7 +51,7 @@ namespace my::test
             m_app = createApplication(rtti::createInstance<AppDelegate>());
             m_app->startupOnCurrentThread().ignore();
 
-            getServiceProvider().get<io::VirtualFileSystem>().mount("/prog", m_contentFs).ignore();
+            getServiceProvider().get<io::IVirtualFileSystem>().mount("/prog", m_contentFs).ignore();
             getServiceProvider().get<ScriptManager>().addScriptSearchPath("/prog");
             getServiceProvider().get<ScriptManager>().addScriptFileExtension(".lua");
 

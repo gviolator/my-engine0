@@ -10,3 +10,9 @@
 [submodule "engine/3rdparty/googlebench"]
 	path = engine/3rdparty/googlebench
 	url = https://github.com/google/benchmark.git
+[submodule "engine/3rdparty/fmt"]
+	path = engine/3rdparty/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "engine/3rdparty/concurrentqueue"]
+	path = engine/3rdparty/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git

@@ -36,7 +36,6 @@ KernelRuntimeImpl::KernelRuntimeImpl()
     s_kernelRuntime = this;
 
     setDefaultRuntimeObjectRegistryInstance();
-    ITimerManager::setDefaultInstance();
     m_defaultExecutor = createThreadPoolExecutor();
     Executor::setDefault(m_defaultExecutor);
 
@@ -51,15 +50,21 @@ KernelRuntimeImpl::~KernelRuntimeImpl()
         s_kernelRuntime = nullptr;
     };
 
-    MY_DEBUG_ASSERT(m_state == State::ShutdownCompleted || m_state == State::ShutdownNeedCompletion, "RuntimeState::shutdown() is not completely processed");
-    if (m_state == State::ShutdownNeedCompletion)
+    MY_DEBUG_ASSERT(m_state == RuntimeState::ShutdownCompleted || m_state == RuntimeState::ShutdownNeedCompletion, "RuntimeRuntimeState::shutdown() is not completely processed");
+    if (m_state == RuntimeState::ShutdownNeedCompletion)
     {
         completeShutdown();
     }
 }
 
+RuntimeState KernelRuntimeImpl::getState() const
+{
+    return m_state.load(std::memory_order_relaxed);
+}
+
 void KernelRuntimeImpl::bindToCurrentThread()
 {
+    MY_DEBUG_ASSERT(getState() == RuntimeState::NotInitialized, "Runtime already initialized");
     MY_DEBUG_ASSERT(m_threadId == std::thread::id{});
     m_threadId = std::this_thread::get_id();
 
@@ -68,8 +73,12 @@ void KernelRuntimeImpl::bindToCurrentThread()
     m_uvHandleAllocator = createFixedSizeBlockAllocator(m_runtimeMemory, uvHandleBlockSize, false);
     m_internalHandles = decltype(m_internalHandles){m_uvHandleAllocator->getMemoryResource()};
 
+    ITimerManager::setDefaultInstance();
+
+
     m_runtimeExecutor = rtti::createInstance<RuntimeThreadExecutor>();
     RuntimeObjectRegistration{m_runtimeExecutor}.setAutoRemove();
+    m_state = RuntimeState::Operable;
 }
 
 std::thread::id KernelRuntimeImpl::getRuntimeThreadId() const
@@ -87,20 +96,19 @@ async::ExecutorPtr KernelRuntimeImpl::getRuntimeExecutor()
 bool KernelRuntimeImpl::poll(RuntimePollMode mode)
 {
     MY_DEBUG_ASSERT(isRuntimeThread());
-    if (!(m_state == State::Operable || m_state == State::ShutdownProcessed))
+    if (!(m_state == RuntimeState::Operable || m_state == RuntimeState::ShutdownProcessed))
     {
         return false;
     }
 
     const uv_run_mode runMode =
-        (m_state == State::Operable && mode == RuntimePollMode::Default) ? UV_RUN_DEFAULT : UV_RUN_NOWAIT;
-
+        (m_state == RuntimeState::Operable && mode == RuntimePollMode::Default) ? UV_RUN_DEFAULT : UV_RUN_NOWAIT;
 
     [[maybe_unused]] const bool hasReferences = uv_run(&m_uv, runMode) != 0;
-    if (m_state == State::ShutdownProcessed)
+    if (m_state == RuntimeState::ShutdownProcessed)
     {
-        const bool steelHasRuntimeReferences = shutdownStep(true);
-        if (!steelHasRuntimeReferences)
+        const bool stillHasRuntimeReferences = shutdownStep(true);
+        if (!stillHasRuntimeReferences)
         {
         }
     }
@@ -111,7 +119,7 @@ bool KernelRuntimeImpl::poll(RuntimePollMode mode)
 #if 0
 Functor<bool()> KernelRuntimeImpl::shutdown(bool doCompleteShutdown)
 {
-    if (m_state != State::Operable)
+    if (m_state != RuntimeState::Operable)
     {
         mylog_warn("KernelRuntime::shutdown() called multiple times");
         return []
@@ -120,7 +128,7 @@ Functor<bool()> KernelRuntimeImpl::shutdown(bool doCompleteShutdown)
         };
     }
 
-    m_state = State::ShutdownProcessed;
+    m_state = RuntimeState::ShutdownProcessed;
 
     getRuntimeObjectRegistry().visitObjects<IDisposable>([](std::span<IRttiObject*> objects)
     {
@@ -141,13 +149,13 @@ Functor<bool()> KernelRuntimeImpl::shutdown(bool doCompleteShutdown)
 #endif
 void KernelRuntimeImpl::shutdown()
 {
-    if (m_state != State::Operable)
+    if (m_state != RuntimeState::Operable)
     {
         mylog_warn("shutdown() called while runtime is not operable");
         return;
     }
 
-    m_state = State::ShutdownProcessed;
+    m_state = RuntimeState::ShutdownProcessed;
 
     getRuntimeObjectRegistry().visitObjects<IDisposable>([](std::span<IRttiObject*> objects)
     {
@@ -171,7 +179,7 @@ bool KernelRuntimeImpl::shutdownStep(bool doCompleteShutdown)
     namespace chrono = std::chrono;
     using namespace std::chrono_literals;
 
-    if (m_state != State::ShutdownProcessed)
+    if (m_state != RuntimeState::ShutdownProcessed)
     {
         return false;
     }
@@ -231,7 +239,6 @@ bool KernelRuntimeImpl::shutdownStep(bool doCompleteShutdown)
         }
     }, &walkState);
 
-
     bool canCompleteShutdown = !(hasPendingWorks || hasReferencedExecutors || hasReferencedNonExecutors || externalUvHandlesCount > 0);
     if (!canCompleteShutdown && (!hasPendingWorks && !hasReferencedNonExecutors))
     {
@@ -244,7 +251,7 @@ bool KernelRuntimeImpl::shutdownStep(bool doCompleteShutdown)
 
     if (canCompleteShutdown)
     {
-        m_state = State::ShutdownNeedCompletion;
+        m_state = RuntimeState::ShutdownNeedCompletion;
         if (doCompleteShutdown)
         {
             completeShutdown();
@@ -266,10 +273,10 @@ bool KernelRuntimeImpl::shutdownStep(bool doCompleteShutdown)
 void KernelRuntimeImpl::completeShutdown()
 {
     MY_DEBUG_ASSERT(isRuntimeThread());
-    MY_DEBUG_ASSERT(m_state == State::ShutdownNeedCompletion);
+    MY_DEBUG_ASSERT(m_state == RuntimeState::ShutdownNeedCompletion);
     scope_on_leave
     {
-        m_state = State::ShutdownCompleted;
+        m_state = RuntimeState::ShutdownCompleted;
     };
 
     m_runtimeExecutor.reset();
@@ -283,7 +290,6 @@ void KernelRuntimeImpl::completeShutdown()
     }
 
     [[maybe_unused]] const int res = uv_loop_close(&m_uv);
-
 
     Executor::setDefault(nullptr);
     m_defaultExecutor.reset();

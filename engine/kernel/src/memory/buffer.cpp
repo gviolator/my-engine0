@@ -5,6 +5,7 @@
 #include "my/memory/buffer.h"
 #include "my/memory/fixed_size_block_allocator.h"
 #include "my/utils/scope_guard.h"
+#include "my/utils/tuple_utility.h"
 
 // #define TRACK_BUFFER_ALLOCATIONS
 
@@ -18,8 +19,8 @@ struct BufferBase::Header
     inline static constexpr uint32_t BufferToken = 0x11AA22BBu;
 
     std::atomic<uint32_t> refs{1u};
-    uint32_t capacity;
-    uint32_t size;
+    uint32_t capacity = 0;
+    uint32_t size = 0;
     uint32_t token = BufferToken;
 };
 
@@ -32,7 +33,7 @@ constexpr size_t BigAllocationGranularity = 1024;
 constexpr size_t BigAllocationThreshold = 4096;
 constexpr Byte BufferMemoryAllocateMax = 10_Mb;
 
-constexpr size_t HeaderSize = sizeof(std::aligned_storage_t<sizeof(BufferHeader), alignof(BufferHeader)>);
+constexpr size_t HeaderSize = sizeof(AlignedStorage<sizeof(BufferHeader), alignof(BufferHeader)>);
 constexpr ptrdiff_t ClientDataOffset = HeaderSize;
 
 #ifdef TRACK_BUFFER_ALLOCATIONS
@@ -157,8 +158,8 @@ BufferHandle BufferStorage::allocate(size_t clientSize)
     MY_FATAL(reinterpret_cast<ptrdiff_t>(storage) % HeaderAlignment == 0);
 
     BufferHeader* header = new(storage) BufferHeader;
-    header->capacity = capacity;
-    header->size = clientSize;
+    header->capacity = static_cast<uint32_t>(capacity);
+    header->size = static_cast<uint32_t>(clientSize);
 
     return header;
 }
@@ -176,7 +177,7 @@ BufferHandle BufferStorage::reallocate(BufferHandle buffer, size_t newSize)
 
     if (header->capacity >= newSize)
     {
-        header->size = newSize;
+        header->size = static_cast<uint32_t>(newSize);
         return buffer;
     }
 
@@ -235,7 +236,7 @@ Buffer BufferStorage::bufferFromClientData(std::byte* ptr, std::optional<size_t>
 {
     MY_FATAL(ptr);
 
-    BufferHeader* const header = reinterpret_cast<BufferHeader*>(ptr) - ClientDataOffset;
+    BufferHeader* const header = reinterpret_cast<BufferHeader*>(ptr - ClientDataOffset);
     Buffer buffer{header};
     if (size)
     {
@@ -331,7 +332,7 @@ Buffer::Buffer(Buffer&& buffer) noexcept :
 Buffer& Buffer::operator=(Buffer&& buffer) noexcept
 {
     release();
-    std::swap(buffer.m_storage, m_storage);
+    m_storage = std::exchange(buffer.m_storage, nullptr);
     return *this;
 }
 
@@ -377,7 +378,20 @@ std::byte* Buffer::append(size_t count)
 {
     const size_t offset = size();
     resize(offset + count);
-    return reinterpret_cast<std::byte*>(data()) + offset;
+    return data() + offset;
+}
+
+Buffer& Buffer::concat(Buffer&& buffer)
+{
+    if (!*this)
+    {
+        return *this = std::move(buffer);
+    }
+
+    std::byte* const ptr = append(buffer.size());
+    memcpy(ptr, buffer.data(), buffer.size());
+    buffer = nullptr;
+    return *this;
 }
 
 void Buffer::resize(size_t newSize)

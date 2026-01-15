@@ -51,7 +51,7 @@ namespace my
 
 #if !MY_STATIC_RUNTIME
         // For runtime module loading
-        virtual Result<> loadModule(const my::string& name, const my::string& dllPath) = 0;
+        virtual Result<> loadModule(const std::string& name, const std::string& dllPath) = 0;
 #endif
     };
 

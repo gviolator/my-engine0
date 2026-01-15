@@ -123,7 +123,7 @@ namespace my::lua_detail
                 return tblIndex;
             }
 
-            childKey.push(l);
+            childKey.Push(l);
             [[maybe_unused]] const int t = lua_gettable(l, tblIndex);
             if (t == LUA_TNIL)
             {
@@ -139,14 +139,14 @@ namespace my::lua_detail
             const int selfIdx = pushSelf();
             MY_DEBUG_ASSERT(lua_type(l, selfIdx) == LUA_TTABLE);
 
-            childKey.push(l);
+            childKey.Push(l);
             lua_gettable(l, selfIdx);
 
             const auto fieldType = lua_type(l, -1);
             if (isValueType(fieldType))
             {
                 lua_pop(l, 1);
-                childKey.push(l);
+                childKey.Push(l);
                 CheckResult(lua::pushRuntimeValue(l, value))
                 lua_settable(l, selfIdx);
 
@@ -394,7 +394,7 @@ namespace my::lua_detail
         std::string_view getKey(size_t index) const override
         {
             MY_DEBUG_ASSERT(index < getSize());
-            return m_keys[index].asString();
+            return m_keys[index].AsString();
         }
 
         RuntimeValuePtr getValue(std::string_view keyName) override
@@ -569,12 +569,12 @@ namespace my::lua
 
                 for (auto [childKeyIndex, _] : fields)
                 {
-                    lua::ChildVariableKey& childKey = childKeys.emplace_back(lua::ChildVariableKey::makeFromStack(l, childKeyIndex));
+                    lua::ChildVariableKey& childKey = childKeys.emplace_back(lua::ChildVariableKey::MakeFromStack(l, childKeyIndex));
 
                     if (isArray)
                     {
                         // array if all keys are integers + each key must be greater than the previous one (monotonicity is not taken into account).
-                        if (!childKey.isIndexed() || (lastChildIndex != lua::InvalidLuaIndex && childKey < lastChildIndex))
+                        if (!childKey.IsIndexed() || (lastChildIndex != lua::InvalidLuaIndex && childKey < lastChildIndex))
                         {
                             isArray = false;
                         }

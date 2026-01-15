@@ -121,7 +121,7 @@ namespace my::diag
 
         void processMessage(const LoggerMessage& message) override
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             // TODO: at this moment processMessage can be called while services system is gone.
             if (!hasServiceProvider() || !getServiceProvider().has<io::FileSystem>() || !getApplication().hasExecutor())

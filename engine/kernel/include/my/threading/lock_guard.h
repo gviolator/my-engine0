@@ -30,11 +30,11 @@ namespace my::threading
 
 }  // namespace my::threading
 
-// clang-format off
-#define lock_(Mutex) \
-    ::my::threading::LockGuard ANONYMOUS_VAR(lock_mutex_) {Mutex}
+// // clang-format off
+// #define const std::lock_guard lock(Mutex) \
+//     ::my::threading::LockGuard ANONYMOUS_VAR(lock_mutex_) {Mutex}
 
-#define shared_lock_(Mutex) \
-    ::std::shared_lock ANONYMOUS_VAR(lock_mutex_) {Mutex}
+// #define shared_lock_(Mutex) \
+//     ::std::shared_lock ANONYMOUS_VAR(lock_mutex_) {Mutex}
 
 // clang-format on

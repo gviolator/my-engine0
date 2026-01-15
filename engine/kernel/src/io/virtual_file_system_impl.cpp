@@ -176,7 +176,7 @@ namespace my::io
 
     Result<VirtualFileSystemImpl::FsNode*> VirtualFileSystemImpl::FsNode::getChild(std::string_view name)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         auto iter = findChildIter(name);
         if(iter != m_children.end())
@@ -197,7 +197,7 @@ namespace my::io
 
     VirtualFileSystemImpl::FsNode* VirtualFileSystemImpl::FsNode::findChild(std::string_view name)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         auto iter = findChildIter(name);
 
@@ -206,7 +206,7 @@ namespace my::io
 
     VirtualFileSystemImpl::FsNode* VirtualFileSystemImpl::FsNode::getNextChild(const FsNode* current)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         if(current == nullptr)
         {
             return !m_children.empty() ? &m_children.front() : nullptr;
@@ -228,7 +228,7 @@ namespace my::io
 
     FileSystemPtr VirtualFileSystemImpl::FsNode::getNextMountedFs(FileSystem* current)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         if(current == nullptr)
         {
@@ -250,7 +250,7 @@ namespace my::io
 
     Result<> VirtualFileSystemImpl::FsNode::mount(FileSystemPtr&& fileSystem, unsigned priority)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         MY_DEBUG_ASSERT(m_children.empty());
         if(!m_children.empty())
         {
@@ -280,13 +280,13 @@ namespace my::io
 
     std::vector<VirtualFileSystemImpl::FileSystemEntry> VirtualFileSystemImpl::FsNode::getMountedFs()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         return m_mountedFs;
     }
 
     bool VirtualFileSystemImpl::FsNode::hasMounts()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         return !m_mountedFs.empty();
     }
 

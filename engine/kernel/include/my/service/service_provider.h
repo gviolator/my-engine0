@@ -224,7 +224,7 @@ namespace my::core_detail
             }
 
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
 
                 if (!m_instance)
                 {
@@ -292,7 +292,7 @@ namespace my::core_detail
             }
 
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
 
                 if (!m_instance)
                 {

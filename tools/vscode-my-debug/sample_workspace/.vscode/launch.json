@@ -9,7 +9,7 @@
       "name": "MyEmbedded",
       "type": "my-embedded",
       "request": "attach",
-      "endpoint": "localhpst:7755"
+      "endpoint": "localhost:7766"
 
     }
   ]

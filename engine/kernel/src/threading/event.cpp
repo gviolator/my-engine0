@@ -34,7 +34,7 @@ namespace my::threading
 
     void Event::set()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         m_state = true;
 
@@ -50,7 +50,7 @@ namespace my::threading
 
     void Event::reset()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         m_state = false;
     }
 

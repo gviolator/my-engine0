@@ -31,7 +31,7 @@ namespace my::test
 
                 for (unsigned i = 0; i < IterationPerThread; ++i)
                 {
-                    lock_(mutex);
+                    const std::lock_guard lock(mutex);
                     ++counter;
                 }
             });
@@ -128,9 +128,9 @@ namespace my::test
         const CheckGuard checkGuard;
 
         threading::RecursiveSpinLock mutex;
-        lock_(mutex);
-        lock_(mutex);
-        lock_(mutex);
+        const std::lock_guard lock0(mutex);
+        const std::lock_guard lock1(mutex);
+        const std::lock_guard lock2(mutex);
 
         ASSERT_EQ(checkGuard.fatalFailureCounter, 0);
     }

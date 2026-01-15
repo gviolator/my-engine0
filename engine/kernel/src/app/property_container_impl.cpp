@@ -53,8 +53,12 @@ namespace my
 
         RuntimeValuePtr current = m_propsRoot;
 
-        for (std::string_view propName : strings::split(valuePath, std::string_view{"/"}))
+        for (const std::string_view propName : strings::Split(valuePath, std::string_view{"/"}))
         {
+            if (propName.empty())
+            {
+                continue;
+            }
             auto* const currentDict = current->as<ReadonlyDictionary*>();
             if (!currentDict)
             {
@@ -82,8 +86,12 @@ namespace my
 
         RuntimeValuePtr current = m_propsRoot;
 
-        for (std::string_view propName : strings::split(valuePath, std::string_view{"/"}))
+        for (const std::string_view propName : strings::Split(valuePath, std::string_view{"/"}))
         {
+            if (propName.empty())
+            {
+                continue;
+            }
             auto* const currentDict = current->as<Dictionary*>();
             if (!currentDict)
             {
@@ -184,7 +192,7 @@ namespace my
 
     bool PropertyContainerImpl::contains(std::string_view path) const
     {
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
         return findValueAtPath(path) != nullptr;
     }
 
@@ -231,7 +239,7 @@ namespace my
     {
         MY_FATAL(m_propsRoot);
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         auto [parentPath, propName] = split_property_path(path);
 
@@ -251,7 +259,7 @@ namespace my
             return MakeError("Dictionary value is expected");
         }
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         // const_cast<> is a temporary hack:. currently RuntimeValue::assign accepts Ptr<> that require only non-const values.
         return RuntimeValue::assign(m_propsRoot, Ptr{&const_cast<RuntimeValue&>(value)}, ValueAssignOption::MergeCollection);
@@ -267,7 +275,7 @@ namespace my
             return;
         }
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         [[maybe_unused]] auto [iter, emplaceOk] = m_variableResolvers.emplace(kind, std::move(resolver));
         MY_DEBUG_ASSERT(emplaceOk, "Variable resolver ({}) already exists", kind);
     }

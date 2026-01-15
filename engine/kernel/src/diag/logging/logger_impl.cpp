@@ -92,7 +92,7 @@ namespace my::diag
 
     LoggerImpl::~LoggerImpl()
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         for (auto& subscription : m_sinks)
         {
             subscription.resetLogger();
@@ -171,7 +171,7 @@ namespace my::diag
 
     void LoggerImpl::releaseLogSink(LogSinkEntryImpl& sink)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         MY_DEBUG_ASSERT(m_sinks.contains(sink));
         m_sinks.removeElement(sink);
@@ -233,7 +233,7 @@ namespace my::diag
 #if 0
     Logger::SubscriptionHandle LoggerImpl::subscribeImpl(ILogSubscriber::Ptr subscriber, ILogMessageFilter::Ptr filter)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         m_subscribers.emplace_back(std::move(subscriber), std::move(filter), ++m_subscriberId);
         return makeSubscriptionHandle(shared_from_this(), m_subscribers.back().id);
@@ -246,7 +246,7 @@ namespace my::diag
             return;
         }
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         auto iter = std::find_if(m_subscribers.begin(), m_subscribers.end(), [subscriptionId](const SubscriberEntry& entry)
         {
@@ -262,7 +262,7 @@ namespace my::diag
 
     void LoggerImpl::setFilterImpl(const SubscriptionHandle& handle, ILogMessageFilter::Ptr)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
     }
 
     void LoggerImpl::logMessage(LogLevel criticality, std::vector<std::string> tags, SourceInfo sourceInfo, std::string text)

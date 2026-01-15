@@ -337,7 +337,7 @@ namespace my::test
         Ptr<Dictionary> dict = *serialization::jsonParseString(json);
         dict->getValue("boo");
 
-        for (auto field : strings::split(fieldNames, std::string_view{","}))
+        for (auto field : strings::Split(fieldNames, std::string_view{","}))
         {
             field = strings::trim(field);
             ASSERT_TRUE(dict->containsKey(field));

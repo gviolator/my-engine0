@@ -258,6 +258,11 @@ namespace my
         std::optional<T> m_value;
     };
 
+    // template<typename T>
+    // Result(const T&) -> Result<T>;
+
+    template<typename T>
+    Result(T&&) -> Result<std::remove_const_t<std::remove_reference_t<T>>>;
 
     /**
      */

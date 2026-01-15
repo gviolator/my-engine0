@@ -162,7 +162,7 @@ namespace my::async
         m_dataSize(dataSize),
         m_destructor(destructor)
     {
-        lock_(g_aliveTasksMutex);
+        const std::lock_guard lock(g_aliveTasksMutex);
         g_aliveTasks.emplace(this, TaskCreationInfo{});
     }
 
@@ -173,7 +173,7 @@ namespace my::async
             m_destructor(getData());
         }
 
-        lock_(g_aliveTasksMutex);
+        const std::lock_guard lock(g_aliveTasksMutex);
         g_aliveTasks.erase(this);
     }
 
@@ -483,7 +483,7 @@ namespace my::async
 
     MY_KERNEL_EXPORT void dumpAliveTasks()
     {
-        lock_(g_aliveTasksMutex);
+        const std::lock_guard lock(g_aliveTasksMutex);
 
         const size_t aliveTasksWithCapturedExecutorCount = std::count_if(g_aliveTasks.begin(), g_aliveTasks.end(), [](const auto& pair)
         {
@@ -512,7 +512,7 @@ namespace my::async
 
     MY_KERNEL_EXPORT bool hasAliveTasksWithCapturedExecutor()
     {
-        lock_(g_aliveTasksMutex);
+        const std::lock_guard lock(g_aliveTasksMutex);
 
         return std::any_of(g_aliveTasks.begin(), g_aliveTasks.end(), [](const auto& pair)
         {

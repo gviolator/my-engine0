@@ -260,7 +260,7 @@ namespace my::io
         {
             auto result = EXPR_Block->Result<std::tuple<const void*, size_t>>
             {
-                lock_(m_archiveFileSystem->m_mutex);
+                const std::lock_guard lock(m_archiveFileSystem->m_mutex);
 
                 if(m_uncompressedBuffer.empty())
                 {

@@ -231,7 +231,7 @@ namespace my
         ServiceAccessor* accessor = nullptr;
 
         {
-            shared_lock_(m_mutex);
+            const std::shared_lock lock(m_mutex);
 
             auto iter = m_instances.find(type);
             if (iter != m_instances.end())
@@ -250,7 +250,7 @@ namespace my
         void* const api = accessor ? accessor->getApi(type) : nullptr;
         if (api)
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             m_instances.emplace(type, ServiceInstanceEntry{api, accessor});
         }
 
@@ -268,7 +268,7 @@ namespace my
         // todo: use stack allocator
         std::vector<ServiceAccessor*> accessors;
         {
-            shared_lock_(m_mutex);
+            const std::shared_lock lock(m_mutex);
             for (const ServiceAccessorPtr& accessor : m_accessors)
             {
                 if (accessor->hasApi(type))
@@ -298,7 +298,7 @@ namespace my
             return;
         }
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         MY_DEBUG_ASSERT(!m_isDisposed);
 
         m_accessors.emplace_back(std::move(accessor));
@@ -309,13 +309,13 @@ namespace my
         MY_DEBUG_ASSERT(descriptor);
         MY_DEBUG_ASSERT(descriptor->getInterfaceCount() > 0);
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         m_classDescriptors.push_back(std::move(descriptor));
     }
 
     ClassDescriptorPtr ServiceProviderImpl::findClass(rtti::TypeInfo type)
     {
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
         ClassDescriptorPtr resultClass;
 
         for (const auto& classDescriptor : m_classDescriptors)
@@ -334,7 +334,7 @@ namespace my
     {
         std::vector<ClassDescriptorPtr> classes;
 
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
 
         for (const auto& classDescriptor : m_classDescriptors)
         {
@@ -377,7 +377,7 @@ namespace my
 
         const MatchPredicate predicate = anyType ? matchAny : matchAll;
 
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
 
         for (const ClassDescriptorPtr& classDescriptor : m_classDescriptors)
         {
@@ -392,7 +392,7 @@ namespace my
 
     bool ServiceProviderImpl::hasApiInternal(const rtti::TypeInfo& type)
     {
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
 
         return std::any_of(m_accessors.begin(), m_accessors.end(), [&type](ServiceAccessorPtr& accessor)
         {
@@ -404,7 +404,7 @@ namespace my
     T& ServiceProviderImpl::getInitializationInstance(T* instance)
     {
         MY_FATAL(instance);
-        shared_lock_(m_mutex);
+        const std::shared_lock lock(m_mutex);
 
         if constexpr (std::is_same_v<IServiceInitialization, T>)
         {
@@ -480,7 +480,7 @@ namespace my
 
     void ServiceProviderImpl::setInitializationProxy(const IServiceInitialization& source, IServiceInitialization* proxy)
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
 
         if (proxy)
         {
@@ -516,7 +516,7 @@ namespace my
         constexpr auto NoLazyCreation = ServiceAccessor::GetApiMode::DoNotCreate;
 
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             m_isDisposed = true;
         }
 

@@ -43,7 +43,7 @@ namespace my::lua_detail
 
     int LuaStackRoot::push(const lua::ChildVariableKey& key) const
     {
-        MY_DEBUG_ASSERT(key && key.isIndexed());
+        MY_DEBUG_ASSERT(key && key.IsIndexed());
         lua_pushvalue(m_lua, key);
         return lua_gettop(m_lua);
     }
@@ -85,7 +85,7 @@ namespace my::lua_detail
 
     int LuaGlobalRefRoot::push(const lua::ChildVariableKey& key) const
     {
-        MY_DEBUG_ASSERT(key && key.isIndexed());
+        MY_DEBUG_ASSERT(key && key.IsIndexed());
 
         {
             [[maybe_unused]] const auto t = lua_getglobal(m_lua, GlobalRefsFieldName);
@@ -94,7 +94,7 @@ namespace my::lua_detail
 
         {
             [[maybe_unused]] const int t = lua_rawgeti(m_lua, -1, key);
-            MY_DEBUG_ASSERT(t != LUA_TNIL, "Invalid reference index ({})", key.asString());
+            MY_DEBUG_ASSERT(t != LUA_TNIL, "Invalid reference index ({})", key.AsString());
             lua_remove(m_lua, -2);
         }
 
@@ -103,8 +103,8 @@ namespace my::lua_detail
 
     void LuaGlobalRefRoot::unref(const lua::ChildVariableKey& key)
     {
-        MY_DEBUG_ASSERT(key && key.isIndexed());
-        if (!key || !key.isIndexed())
+        MY_DEBUG_ASSERT(key && key.IsIndexed());
+        if (!key || !key.IsIndexed())
         {
             return;
         }

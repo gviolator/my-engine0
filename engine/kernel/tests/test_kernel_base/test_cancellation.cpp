@@ -2,7 +2,7 @@
 #include "my/async/task.h"
 #include "my/test/helpers/runtime_guard.h"
 #include "my/threading/barrier.h"
-#include "my/threading/lock_guard.h"
+//#include "my/threading/lock_guard.h"
 #include "my/utils/cancellation.h"
 #include "my/utils/stop_watch.h"
 
@@ -148,7 +148,7 @@ namespace my::test
           }, &counter));
         }
 
-        lock_(mtx);
+        const std::lock_guard lock(mtx);
         for (auto& s : threadSubscriptions)
         {
           subscriptions.emplace_back(std::move(s));
@@ -205,7 +205,7 @@ namespace my::test
           }, &counter));
         }
 
-        lock_(mtx);
+        const std::lock_guard lock(mtx);
         for (auto& s : threadSubscriptions)
         {
           subscriptions.emplace_back(std::move(s));

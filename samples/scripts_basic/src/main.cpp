@@ -56,10 +56,11 @@ namespace my
 
 Result<> setupVfs()
 {
-    io::VirtualFileSystem& fs = getServiceProvider().get<io::VirtualFileSystem>();
+    io::IVirtualFileSystem& fs = getServiceProvider().get<io::IVirtualFileSystem>();
 
-    CheckResult(fs.mount("/content", io::createNativeFileSystem("c:\\proj\\my-engine0\\build\\core_content_cache")));
+    //CheckResult(fs.mount("/content", io::createNativeFileSystem("c:\\proj\\my-engine0\\build\\core_content_cache")));
     //fs.mount("/content", io::createNativeFileSystem("c:\\proj\\my-engine0\\build\\content_shared_cache")).ignore();
+    CheckResult(fs.mount("/prog", io::createNativeFileSystem("c:\\proj\\my-engine0\\samples\\scripts_basic\\content\\build")));
 
 
     return ResultSuccess;
@@ -69,7 +70,7 @@ Result<> setupVfs()
 Result<> setupCoreScripts()
 {
     script::ScriptManager& manager = getServiceProvider().get<script::ScriptManager>();
-    manager.addScriptSearchPath("/content/prog");
+    manager.addScriptSearchPath("/prog");
 
     return ResultSuccess;
 }
@@ -102,8 +103,11 @@ int main()
     script::RealmPtr realm = createRealm();
     Ptr<ClosureValue> mainStep = EXPR_Block -> Ptr<ClosureValue>
     {
-        Ptr<ReadonlyDictionary> interopModule = *realm->executeFile("interop");
-        return interopModule->getValue("interop_appMainStep");
+        //Ptr<ReadonlyDictionary> interopModule = *realm->executeFile("interop");
+        //return interopModule->getValue("interop_appMainStep");
+
+        Ptr<ReadonlyDictionary> interopModule = *realm->executeFile("samples/scripts_basic/prog/my_component");
+        return interopModule->getValue("mainStep");
     };
 
 

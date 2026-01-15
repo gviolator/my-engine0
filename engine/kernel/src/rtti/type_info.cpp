@@ -57,7 +57,7 @@ namespace my::rtti_detail
 
         auto& registry = get_types_registry();
 
-        lock_(registry.mutex);
+        const std::lock_guard lock(registry.mutex);
 
         [[maybe_unused]] auto [iter, emplaceOk] = registry.types.try_emplace(typeHash, TypeEntry{typeName});
         MY_DEBUG_ASSERT(emplaceOk || iter->second.typeName == typeName);
@@ -73,7 +73,7 @@ namespace my::rtti
     {
         auto& reg = rtti_detail::get_types_registry();
 
-        shared_lock_(reg.mutex);
+        const std::shared_lock lock(reg.mutex);
 
         const auto iter = reg.types.find(rtti_detail::TypeId{typeHash});
         return iter != reg.types.end() ? TypeInfo{typeHash, iter->second.typeName} : TypeInfo{};
@@ -88,7 +88,7 @@ namespace my::rtti
 
         auto& reg = rtti_detail::get_types_registry();
 
-        shared_lock_(reg.mutex);
+        const std::shared_lock lock(reg.mutex);
 
         for (const auto [typeId, entry] : reg.types)
         {

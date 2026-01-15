@@ -205,7 +205,7 @@ namespace my::io
          */
         auto splitElements() const
         {
-            return strings::split(std::string_view{m_path}, std::string_view{"/"});
+            return strings::Split(std::string_view{m_path}, std::string_view{"/"});
         }
 
         /**

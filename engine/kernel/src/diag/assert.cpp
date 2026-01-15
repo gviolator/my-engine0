@@ -15,7 +15,7 @@ namespace my::diag
         class DefaultAssertHandler final : public diag::IAssertHandler
         {
         public:
-            MY_DECLARE_SINGLETON_MEMOP(DefaultAssertHandler)
+            MY_SINGLETON_MEMOPS(DefaultAssertHandler)
 
             diag::FailureActionFlag handleAssertFailure(const diag::FailureData& data) override
             {

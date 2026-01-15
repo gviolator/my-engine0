@@ -35,7 +35,7 @@ namespace my::kernel_detail
 
         size_t index = 0;
 
-        for (auto singleEnumString : strings::split(enumDefinitionString, std::string_view{","}))
+        for (auto singleEnumString : strings::Split(enumDefinitionString, std::string_view{","}))
         {
             MY_DEBUG_FATAL(index < itemCount);
             result[index++] = parseSingleEnumEntry(singleEnumString);

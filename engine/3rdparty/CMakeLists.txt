@@ -1,32 +1,60 @@
 set(ThirdPartyFolderName "${MyEngineFolder}/3rdparty")
 
-set (JSON_USE_EXCEPTION OFF)
-set (JSONCPP_WITH_TESTS OFF)
+function(configure_json)
+  set (JSON_USE_EXCEPTION OFF)
+  set (JSONCPP_WITH_TESTS OFF)
 
-if (NOT BUILD_SHARED_LIBS)
-  set(JSONCPP_STATIC_WINDOWS_RUNTIME ON)
-  set(LIBUV_BUILD_SHARED OFF)
+  if (NOT BUILD_SHARED_LIBS)
+    set(JSONCPP_STATIC_WINDOWS_RUNTIME ON)
+    set(LIBUV_BUILD_SHARED OFF)
 
-else()
-  set(JSONCPP_STATIC_WINDOWS_RUNTIME OFF)
-  set(LIBUV_BUILD_SHARED ON)
-endif()
+  else()
+    set(JSONCPP_STATIC_WINDOWS_RUNTIME OFF)
+    set(LIBUV_BUILD_SHARED ON)
+  endif()
+  add_subdirectory(jsoncpp)
+endfunction()
+configure_json()
 
-add_subdirectory(jsoncpp)
+function (configure_fmt)
+  add_subdirectory(fmt)
+
+  if (NOT BUILD_SHARED_LIBS)
+    set_property(TARGET fmt PROPERTY
+      MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  endif()
+
+  set_target_properties (fmt
+    PROPERTIES
+      FOLDER ${ThirdPartyFolderName}
+  )
+
+endfunction()
+configure_fmt()
+
 add_subdirectory(ModifiedSonyMath)
 add_subdirectory(lua)
-add_subdirectory(libuv)
+
 add_subdirectory(rpmalloc)
 
+function (configure_uv)
+  add_subdirectory(libuv)
+  if (BUILD_SHARED_LIBS)
+    add_library(my::libuv ALIAS uv)
+  else()
+    add_library(my::libuv ALIAS uv_a)
 
-if (BUILD_SHARED_LIBS)
-  add_library(my::libuv ALIAS uv)
-else()
-  add_library(my::libuv ALIAS uv_a)
+    set_property(TARGET uv_a PROPERTY
+      MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-  set_property(TARGET uv_a PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
+    set_target_properties (uv uv_a
+      PROPERTIES
+        FOLDER ${ThirdPartyFolderName}
+    )
+
+  endif()
+endfunction()
+configure_uv()
 
 # my_add_compile_options(TARGETS ${3rdPartyLibTargets})
 set_target_properties (

@@ -24,14 +24,14 @@ namespace my::kernel_detail
 
         bool isCancelled() const
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             return m_isCancelled;
         }
 
         void cancel()
         {
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
                 if (std::exchange(m_isCancelled, true))
                 {
                     return;
@@ -53,7 +53,7 @@ namespace my::kernel_detail
                 return 0;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             if (m_isCancelled)
             {
@@ -98,14 +98,14 @@ namespace my::kernel_detail
 
             void setUnsubscribed()
             {
-                lock_(mutex);
+                const std::lock_guard lock(mutex);
                 callback = nullptr;
                 callbackData = nullptr;
             }
 
             void operator()()
             {
-                lock_(mutex);
+                const std::lock_guard lock(mutex);
                 if (callback)
                 {
                     callback(callbackData);
@@ -172,7 +172,7 @@ namespace my::kernel_detail
                 return 0;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             if (isExpired())
             {
@@ -221,14 +221,14 @@ namespace my::kernel_detail
 
             void setUnsubscribed()
             {
-                lock_(mutex);
+                const std::lock_guard lock(mutex);
                 callback = nullptr;
                 callbackData = nullptr;
             }
 
             void operator()()
             {
-                lock_(mutex);
+                const std::lock_guard lock(mutex);
                 if (callback)
                 {
                     callback(callbackData);
@@ -298,7 +298,7 @@ namespace my::kernel_detail
         void invokeCallbacks()
         {
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
                 if (std::exchange(m_callbacksAreInvoked, true) == true)
                 {
                     return;

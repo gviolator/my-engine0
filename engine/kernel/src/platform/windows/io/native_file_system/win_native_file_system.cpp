@@ -116,7 +116,7 @@ namespace my::io
 
     FileSystem::OpenDirResult WinNativeFileSystem::openDirIterator(const FsPath& path)
     {
-        auto searchPath = resolveToNativePathNoCheck(path);
+        std::wstring searchPath = resolveToNativePathNoCheck(path).wstring();
         if (searchPath.empty())
         {
             return {};
@@ -129,7 +129,7 @@ namespace my::io
         }
 
         WIN32_FIND_DATAW findData;
-        searchPath.append("\\*");
+        searchPath.append(L"\\*");
 
         const HANDLE hFind = ::FindFirstFileW(searchPath.c_str(), &findData);
         if (hFind == INVALID_HANDLE_VALUE)

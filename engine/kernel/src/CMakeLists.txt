@@ -51,6 +51,7 @@ add_library(${TargetName} ${Sources} ${PublicHeaders})
 target_precompile_headers(${TargetName} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pch.h)
 
 set(ThirdPartyPublicLibs
+  fmt
   vectormath
   my::libuv
 )

@@ -211,7 +211,7 @@ namespace my::io
         MY_DEBUG_ASSERT(getAccessMode().anyIsSet(AccessMode::Read, AccessMode::Write));
         MY_DEBUG_ASSERT(offset < getSize());
 
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         if (++m_fileMappingCounter == 1)
         {
             const DWORD access = (getAccessMode() && AccessMode::Write) ? (FILE_MAP_READ | FILE_MAP_WRITE) : FILE_MAP_READ;
@@ -233,7 +233,7 @@ namespace my::io
 
         const void* const ptrToUnmap = EXPR_Block->const void*
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             MY_DEBUG_ASSERT(m_fileMappingCounter > 0);
             if (m_fileMappingCounter == 0 || --m_fileMappingCounter > 0)
             {

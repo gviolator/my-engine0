@@ -248,8 +248,10 @@ namespace my::ser_detail
             {
                 return reinterpret_cast<ValueType*>(&m_object);
             }
-
-            return nullptr;
+            else
+            {
+                return nullptr;
+            }
         }
 
     private:

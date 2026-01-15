@@ -72,7 +72,7 @@ namespace nau
                 eastl::vector<wchar_t> buffer(static_cast<size_t>(len));
                 ::GetEnvironmentVariableW(L"PATH", buffer.data(), len);
 
-                for (std::wstring_view path : strings::split(std::wstring_view{buffer.data(), buffer.size()}, std::wstring_view{L";"}))
+                for (std::wstring_view path : strings::Split(std::wstring_view{buffer.data(), buffer.size()}, std::wstring_view{L";"}))
                 {
                     fs::path pathDirectory{strings::trim(path)};
                     if (pathDirectory.empty())
@@ -119,7 +119,7 @@ namespace nau
             return fs::exists(modulePath) && fs::is_regular_file(modulePath, ec);
         };
 
-        for (const eastl::string_view moduleName : strings::split(modulesList, eastl::string_view{","}))
+        for (const eastl::string_view moduleName : strings::Split(modulesList, eastl::string_view{","}))
         {
             eastl::wstring moduleWName = utf8ToWString(toU8StringView(strings::trim(moduleName)));
             if (moduleWName.empty())

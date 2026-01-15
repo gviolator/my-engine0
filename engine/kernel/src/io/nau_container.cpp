@@ -45,7 +45,7 @@ namespace my::io
 
             MY_DEBUG_ASSERT(httpHeaderStringify.find("\n\n") != eastl::string::npos);
 
-            auto httpHeaderLineSequence = strings::split(httpHeaderStringify, eastl::string_view{"\n"});
+            auto httpHeaderLineSequence = strings::Split(httpHeaderStringify, eastl::string_view{"\n"});
             for(eastl::string_view headerLine : httpHeaderLineSequence)
             {
                 auto [key, value] = strings::cut(headerLine, ':');

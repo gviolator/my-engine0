@@ -17,8 +17,8 @@ namespace my::script
     private:
         class InvocationGuardImpl;
 
-        static int resolveImportPath(lua_State* l) noexcept;
-        static int loadImport(lua_State* l) noexcept;
+        static int NativeResolveImportPath(lua_State* l) noexcept;
+        static int NativeLoadModule(lua_State* l) noexcept;
 
         /**
             @brief keeps lua's call result on stack.

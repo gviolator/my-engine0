@@ -6,24 +6,24 @@
 #include "my/rtti/type_info.h"
 #include "my/service/service.h"
 
-namespace my
+namespace my {
+
+class LoggingService : public IServiceShutdown
 {
-    class LoggingService : public IServiceShutdown
-    {
-    public:
-        MY_RTTI_CLASS(LoggingService, IServiceShutdown)
+public:
+    MY_RTTI_CLASS(LoggingService, IServiceShutdown)
 
-        LoggingService();
+    LoggingService();
 
-        virtual ~LoggingService();
+    virtual ~LoggingService();
 
-        //virtual void addFileOutput(std::string_view filename);
+    // virtual void addFileOutput(std::string_view filename);
 
-    private:
-        async::Task<> shutdownService() override;
+private:
+    async::Task<> shutdownService() override;
 
-        std::vector<diag::LogSinkEntry> m_sinks;
-        bool m_needResetDefaultLogger = false;
-    };
+    std::vector<diag::LogSinkEntry> m_sinks;
+    bool m_needResetDefaultLogger = false;
+};
 
 }  // namespace my

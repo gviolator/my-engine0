@@ -179,14 +179,14 @@ namespace my::io
         static std::unordered_map<KnownFolder, fs::path> knownFolders;
 
         {
-            shared_lock_(knownFoldersMutex);
+            const std::shared_lock lock(knownFoldersMutex);
             if (auto folderPath = knownFolders.find(folder); folderPath != knownFolders.end())
             {
                 return folderPath->second;
             }
         }
 
-        lock_(knownFoldersMutex);
+        const std::lock_guard lock(knownFoldersMutex);
         if (auto folderPath = knownFolders.find(folder); folderPath != knownFolders.end())
         {
             return folderPath->second;

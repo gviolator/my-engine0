@@ -83,7 +83,7 @@ namespace my::diag
             {
                 if (!m_errorStream)
                 {
-                    lock_(m_mutex);
+                    const std::lock_guard lock(m_mutex);
                     std::cerr << buffer;
                 }
                 else
@@ -95,7 +95,7 @@ namespace my::diag
             {
                 if (!m_outStream)
                 {
-                    lock_(m_mutex);
+                    const std::lock_guard lock(m_mutex);
                     std::cout << buffer;
                 }
                 else

@@ -111,7 +111,7 @@ public:
      * @param size The size of the buffer.
      * @param allocator Optional allocator for the buffer.
      */
-    Buffer(size_t size);
+    explicit Buffer(size_t size);
 
     Buffer(const Buffer& buffer) = delete;
 
@@ -165,6 +165,12 @@ public:
      * @return Pointer to the appended data.
      */
     std::byte* append(size_t size);
+
+    Buffer& concat(Buffer&&);
+
+    Buffer& concat(const ReadOnlyBuffer&);
+
+    Buffer& concat(ReadOnlyBuffer&&);
 
     /**
      * @brief Resizes the buffer.

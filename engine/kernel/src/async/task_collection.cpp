@@ -19,7 +19,7 @@ namespace my::async
     TaskCollection::~TaskCollection()
     {
 #if MY_DEBUG_ASSERT_ENABLED
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         MY_DEBUG_FATAL(!m_closeAwaiter);
         MY_DEBUG_FATAL(m_tasks.empty(), "All task collection must be be awaited");
 #endif
@@ -27,7 +27,7 @@ namespace my::async
 
     bool TaskCollection::isEmpty() const
     {
-        lock_(m_mutex);
+        const std::lock_guard lock(m_mutex);
         return m_tasks.empty();
     }
 
@@ -49,7 +49,7 @@ namespace my::async
         }
 
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             MY_DEBUG_ASSERT(!m_isDisposed);
             m_tasks.emplace_back(std::move(task));
         }
@@ -61,7 +61,7 @@ namespace my::async
             auto& self = *reinterpret_cast<TaskCollection*>(selfPtr);
             auto completedTask = reinterpret_cast<CoreTask*>(taskPtr);
 
-            lock_(self.m_mutex);
+            const std::lock_guard lock(self.m_mutex);
 
             auto& tasks = self.m_tasks;
 
@@ -87,7 +87,7 @@ namespace my::async
     Task<> TaskCollection::awaitCompletionInternal(bool dispose)
     {
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             const bool alreadyDisposing = std::exchange(m_isDisposing, true);
 
             MY_DEBUG_ASSERT(!alreadyDisposing, "TaskCollection::disposeAsync called multiply times");
@@ -99,7 +99,7 @@ namespace my::async
 
         scope_on_leave
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             MY_DEBUG_ASSERT(m_isDisposing);
             m_isDisposing = false;
         };
@@ -109,7 +109,7 @@ namespace my::async
             Task<> awaiterTask;
 
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
                 if (m_tasks.empty())
                 {
                     if (dispose)

@@ -38,7 +38,7 @@ private:
 
         if (m_commitedSize.load(std::memory_order_relaxed) < requiredCommitedSize)
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             const size_t currentCommitedSize = m_commitedSize.load(std::memory_order_relaxed);
 

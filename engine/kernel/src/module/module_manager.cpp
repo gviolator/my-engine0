@@ -38,7 +38,7 @@ namespace my
      */
     class ModuleManagerImpl final : public ModuleManager
     {
-        MY_DECLARE_SINGLETON_MEMOP(ModuleManagerImpl)
+        MY_SINGLETON_MEMOPS(ModuleManagerImpl)
     public:
         ModuleManagerImpl()
         {
@@ -80,7 +80,7 @@ namespace my
                 return;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             MY_DEBUG_ASSERT(findModuleInternal(inModuleName) == nullptr, "Module ({}) already registered", inModuleName);
 
@@ -90,18 +90,16 @@ namespace my
 
         IModule* findModule(std::string_view moduleName) override
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             return findModuleInternal(moduleName);
         }
 
 #if !defined(MY_STATIC_RUNTIME)
-        Result<> loadModule(const nau::string& name, const nau::string& dllPath) override
+        Result<> loadModule(const std::string& name, const std::string& dllPath) override
         {
             namespace fs = std::filesystem;
 
-            lock_(m_mutex);
-
-            nau::hash_string hName = name;
+            const std::lock_guard lock(m_mutex);
 
             if (moduleRegistry.count(hName))
             {
@@ -177,7 +175,7 @@ namespace my
         {
 #if MY_DEBUG_ASSERT_ENABLED
             {
-                lock_(m_mutex);
+                const std::lock_guard lock(m_mutex);
                 MY_DEBUG_ASSERT(m_nextPhase == ModulesPhase::Init);
             }
 #endif
@@ -185,7 +183,7 @@ namespace my
 #if defined(MY_STATIC_RUNTIME) 
             module_detail::initializeAllStaticModules(*this);
 #endif
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             MY_DEBUG_ASSERT(m_nextPhase == ModulesPhase::Init);
 
@@ -215,7 +213,7 @@ namespace my
 
         Result<> postInitModules()
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             MY_DEBUG_ASSERT(m_nextPhase == ModulesPhase::PostInit);
 
 
@@ -246,7 +244,7 @@ namespace my
 
         void shutdownModules()
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             if (m_nextPhase != ModulesPhase::Shutdown)
             {
                 return;

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TypeScriptToLua/TypeScriptToLua/master/tsconfig-schema.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "skipLibCheck": true,
+    // "lib": ["ESNext"],
+    // "moduleResolution": "Node",
+    // "types": [],
+    "strict": true,
+    "outDir": "./content/build",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "rootDir": "../..",
+    "sourceMap": true,
+    "sourceRoot": "prog",
+
+    "paths": {
+      "@core/*": [
+        "../../engine/core_application/prog/*"
+      ],
+      "@modules/*": [
+          "../../../engine/modules/scene/prog/*",
+          "../../../engine/modules/assets/prog/*"
+      ]
+    },
+
+    "typeRoots": [
+      //"./node_modules",
+      "../../engine/core_application/prog/@types"
+    ]
+   
+
+  },
+
+  "include": [
+      "./prog/**/*.ts",
+      "../../engine/core_application/prog/preload/**/*.ts"
+  ],
+
+    
+  // ],
+
+  "tstl": {
+    "luaTarget": "5.4",
+    //"luaLibImport": "none",
+    "noImplicitSelf": false
+  
+  
+  }
+}

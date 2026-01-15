@@ -9,7 +9,7 @@
 #include <memory>
 #include <optional>
 
-#include "lua_toolkit/lua_headers.h"
+#include "lua_toolkit/lua_header.h"
 #include "lua_toolkit/lua_toolkit_config.h"
 #include "lua_toolkit/lua_utils.h"
 #include "my/dispatch/class_descriptor.h"

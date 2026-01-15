@@ -21,7 +21,7 @@ namespace my::async
     {
     public:
         MY_RTTI_CLASS(my::async::Win32TimerManager, IRuntimeComponent, IDisposable)
-        MY_DECLARE_SINGLETON_MEMOP(Win32TimerManager)
+        MY_SINGLETON_MEMOPS(Win32TimerManager)
 
         Win32TimerManager() :
             m_hTimerQueue(::CreateTimerQueue()),
@@ -88,7 +88,7 @@ namespace my::async
                 // - ...
                 if (const auto opResult = co_await state.getTask(); opResult != TimerOperationResult::Cancelled)
                 {
-                    lock_(state.mutex);
+                    const std::lock_guard lock(state.mutex);
 
                     if (!state.cancelled)
                     {
@@ -109,7 +109,7 @@ namespace my::async
                 return;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
 
             auto state = std::find_if(m_timerStateList.begin(), m_timerStateList.end(), [handle](const TimerState& state)
             {
@@ -129,7 +129,7 @@ namespace my::async
                 return;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             for (auto& timerState : m_timerStateList)
             {
                 timerState.cancel(TimerOperationResult::ShutingDown);
@@ -138,7 +138,7 @@ namespace my::async
 
         bool hasWorks() override
         {
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             return !m_timerStateList.empty();
         }
 
@@ -165,7 +165,7 @@ namespace my::async
             {
                 using namespace my::async;
 
-                lock_(manager.m_mutex);
+                const std::lock_guard lock(manager.m_mutex);
 
                 scope_on_leave
                 {
@@ -199,7 +199,7 @@ namespace my::async
             ~TimerState()
             {
                 {
-                    lock_(manager.m_mutex);
+                    const std::lock_guard lock(manager.m_mutex);
                     manager.m_timerStateList.removeElement(*this);
                 }
 
@@ -218,7 +218,7 @@ namespace my::async
             void cancel(TimerOperationResult result)
             {
                 {
-                    lock_(mutex);
+                    const std::lock_guard lock(mutex);
                     cancelled = true;
                 }
 

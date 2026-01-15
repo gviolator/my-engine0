@@ -51,7 +51,7 @@ Result<> Listener::startListen(unsigned backlog)
         }
 
         Listener& self = *static_cast<Listener*>(listenerHandle->data);
-        lock_(self.m_mutex);
+        const std::lock_guard lock(self.m_mutex);
         if (status != 0)
         {
             self.doAccept(nullptr);
@@ -95,7 +95,7 @@ Address Listener::getRemoteAddress() const
 
 Task<io::AsyncStreamPtr> Listener::accept()
 {
-    lock_(m_mutex);
+    const std::lock_guard lock(m_mutex);
 
     if (!m_uvServer)
     {

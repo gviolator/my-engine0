@@ -19,7 +19,7 @@ RuntimeThreadExecutor::RuntimeThreadExecutor() :
             decltype(m_invocations) invocations{getKernelRuntimeImpl().getUvHandleAllocator().getMemoryResource()};
 
             {
-                lock_(self.m_invocationsMutex);
+                const std::lock_guard lock(self.m_invocationsMutex);
                 if (self.m_invocations.empty())
                 {
                     return;
@@ -31,7 +31,7 @@ RuntimeThreadExecutor::RuntimeThreadExecutor() :
 
             scope_on_leave
             {
-                lock_(self.m_invocationsMutex);
+                const std::lock_guard lock(self.m_invocationsMutex);
                 self.m_inWork = false;
 
             };
@@ -53,7 +53,7 @@ void RuntimeThreadExecutor::waitAnyActivity() noexcept
 void RuntimeThreadExecutor::scheduleInvocation(Invocation invocation) noexcept
 {
     {
-        lock_(m_invocationsMutex);
+        const std::lock_guard lock(m_invocationsMutex);
         m_invocations.emplace_back(std::move(invocation));
     }
 
@@ -62,7 +62,7 @@ void RuntimeThreadExecutor::scheduleInvocation(Invocation invocation) noexcept
 
 bool RuntimeThreadExecutor::hasWorks()
 {
-    lock_(m_invocationsMutex);
+    const std::lock_guard lock(m_invocationsMutex);
     return !m_invocations.empty() || m_inWork;
 
 }

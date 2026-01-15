@@ -12,11 +12,12 @@ namespace my {
 
 class KernelRuntimeImpl final : public IKernelRuntime
 {
-    MY_DECLARE_SINGLETON_MEMOP(KernelRuntimeImpl)
+    MY_SINGLETON_MEMOPS(KernelRuntimeImpl)
 public:
     KernelRuntimeImpl();
     ~KernelRuntimeImpl();
 
+    RuntimeState getState() const override;
     void bindToCurrentThread() override;
     std::thread::id getRuntimeThreadId() const override;
     async::ExecutorPtr getRuntimeExecutor() override;
@@ -28,18 +29,10 @@ public:
     void setHandleAsInternal(const uv_handle_t* handle);
 
 private:
-    enum class State
-    {
-        Operable,
-        ShutdownProcessed,
-        ShutdownNeedCompletion,
-        ShutdownCompleted
-    };
-
     bool shutdownStep(bool doCompleteShutdown);
     void completeShutdown();
 
-    std::atomic<State> m_state = State::Operable;
+    std::atomic<RuntimeState> m_state = RuntimeState::NotInitialized;
     HostMemoryPtr m_runtimeMemory;
     AllocatorPtr m_uvHandleAllocator;
     async::ExecutorPtr m_defaultExecutor;

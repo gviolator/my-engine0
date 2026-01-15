@@ -11,9 +11,9 @@ namespace my::io
 {
     /**
      */
-    class MemoryStreamImpl final : public MemoryStream
+    class MemoryStreamImpl final : public WrittableMemoryStream
     {
-        MY_REFCOUNTED_CLASS(my::io::MemoryStreamImpl, MemoryStream)
+        MY_REFCOUNTED_CLASS(my::io::MemoryStreamImpl, WrittableMemoryStream)
     public:
         MemoryStreamImpl() = default;
         MemoryStreamImpl(Buffer buffer);
@@ -33,6 +33,8 @@ namespace my::io
         bool canWrite() const override;
 
         std::span<const std::byte> getBufferAsSpan(size_t offset, std::optional<size_t> size) const override;
+
+        Buffer releaseBuffer() override;
 
     private:
         Buffer m_buffer;
@@ -70,7 +72,8 @@ namespace my::io
 
 
     MemoryStreamImpl::MemoryStreamImpl(Buffer buffer) :
-        m_buffer(std::move(buffer))
+        m_buffer(std::move(buffer)),
+        m_pos(m_buffer.size())
     {
     }
 
@@ -176,6 +179,12 @@ namespace my::io
         const size_t actualSize = size.value_or(m_buffer.size() - actualOffset);
 
         return {m_buffer.data() + actualOffset, actualSize};
+    }
+
+    Buffer MemoryStreamImpl::releaseBuffer()
+    {
+        m_pos = 0;
+        return std::move(m_buffer);
     }
 
 

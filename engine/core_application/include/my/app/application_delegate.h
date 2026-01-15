@@ -4,19 +4,21 @@
 #include "my/rtti/rtti_object.h"
 #include "my/utils/result.h"
 
-namespace my
+namespace my {
+
+/**
+*/
+struct MY_ABSTRACT_TYPE ApplicationInitDelegate : IRefCounted
 {
-    struct MY_ABSTRACT_TYPE ApplicationInitDelegate : IRefCounted
-    {
-        MY_INTERFACE(my::ApplicationInitDelegate, IRefCounted)
+    MY_INTERFACE(my::ApplicationInitDelegate, IRefCounted)
 
-        virtual ~ApplicationInitDelegate() = default;
+    virtual ~ApplicationInitDelegate() = default;
 
-        virtual Result<> configureApplication() = 0;
+    virtual Result<> configureApplication() = 0;
 
-        virtual Result<> registerApplicationServices() = 0;
-    };
+    virtual Result<> registerApplicationServices() = 0;
+};
 
-    using ApplicationInitDelegatePtr = Ptr<ApplicationInitDelegate>;
+using ApplicationInitDelegatePtr = Ptr<ApplicationInitDelegate>;
 
 }  // namespace my

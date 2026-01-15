@@ -100,7 +100,7 @@ struct FunctorImpl<NoExcept, R, TypeList<P...>>
     {
         reset();
     }
-
+#if 0
     FunctorImpl& operator=(FunctorImpl&& other) noexcept
     {
         reset();
@@ -115,7 +115,7 @@ struct FunctorImpl<NoExcept, R, TypeList<P...>>
         reset();
         return *this;
     }
-
+#endif
     R operator()(P... args) const noexcept(NoExcept)
     {
         MY_DEBUG_ASSERT(m_invocable);
@@ -127,7 +127,7 @@ struct FunctorImpl<NoExcept, R, TypeList<P...>>
         return m_invocable != nullptr;
     }
 
-private:
+protected:
     void reset()
     {
         if (m_invocable)
@@ -162,19 +162,42 @@ public:
 template <typename R, typename... P>
 class Functor<R(P...)> : public FunctorImpl<false, R, TypeList<P...>>
 {
+    using Base = FunctorImpl<false, R, TypeList<P...>>;
+
 public:
     Functor() = default;
+    Functor(const Functor&) = delete;
+    Functor(Functor&& other) :
+        Base(std::move(static_cast<Base&>(other)))
+    {
+    }
 
     template <typename Callable>
     Functor(Callable callable, IAllocator* allocator = nullptr) :
         FunctorImpl<false, R, TypeList<P...>>(std::move(callable), allocator)
     {
     }
+
+    Functor& operator=(Functor&& other) noexcept
+    {
+        this->reset();
+        this->m_invocable = std::exchange(other.m_invocable, nullptr);
+        this->m_allocator = std::exchange(other.m_allocator, nullptr);
+        return *this;
+    }
+
+    Functor& operator=(std::nullptr_t) noexcept
+    {
+        this->reset();
+        return *this;
+    }
 };
 
 template <typename R, typename... P>
 class Functor<R(P...) noexcept> : public FunctorImpl<true, R, TypeList<P...>>
 {
+    using This = Functor<R(P...) noexcept>;
+
 public:
     Functor() = default;
 
@@ -182,6 +205,20 @@ public:
     Functor(Callable callable, IAllocator* allocator = nullptr) :
         FunctorImpl<true, R, TypeList<P...>>(std::move(callable), allocator)
     {
+    }
+
+    This& operator=(This&& other) noexcept
+    {
+        this->reset();
+        this->m_invocable = std::exchange(other.m_invocable, nullptr);
+        this->m_allocator = std::exchange(other.m_allocator, nullptr);
+        return *this;
+    }
+
+    This& operator=(std::nullptr_t) noexcept
+    {
+        this->reset();
+        return *this;
     }
 };
 

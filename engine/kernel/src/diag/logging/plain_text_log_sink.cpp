@@ -25,7 +25,7 @@ namespace my::diag
                 return;
             }
 
-            lock_(m_mutex);
+            const std::lock_guard lock(m_mutex);
             m_outStream->write(reinterpret_cast<const std::byte*>(formattedMessage.data()), formattedMessage.size()).ignore();
         }
 
