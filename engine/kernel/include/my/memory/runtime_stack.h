@@ -37,12 +37,12 @@ struct MY_ABSTRACT_TYPE IStackAllocatorInfo
     virtual uintptr_t getAllocationOffset() const = 0;
 };
 
-inline IAllocator& getRtStackAllocator()
+inline IAllocator& GetRtStackAllocator()
 {
     return RuntimeStackGuard::getAllocator();
 }
 
-inline IAllocator* getRtStackAllocatorPtr()
+inline IAllocator* GetRtStackAllocatorPtr()
 {
     return &RuntimeStackGuard::getAllocator();
 }

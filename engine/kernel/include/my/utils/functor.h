@@ -239,7 +239,7 @@ public:
 
     template <typename Callable>
     InplaceFunctor(Callable callable) :
-        Functor<F>{std::move(callable), getRtStackAllocatorPtr()}
+        Functor<F>{std::move(callable), GetRtStackAllocatorPtr()}
     {
     }
 };

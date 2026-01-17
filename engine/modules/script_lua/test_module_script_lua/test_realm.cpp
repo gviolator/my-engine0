@@ -29,13 +29,13 @@ namespace my::test
         Result<> configureApplication() override
         {
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         Result<> registerApplicationServices() override
         {
             // Register application services here if needed
-            return ResultSuccess;
+            return kResultSuccess;
         }
     };
 

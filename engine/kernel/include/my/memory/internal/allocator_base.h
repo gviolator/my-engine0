@@ -55,7 +55,7 @@ class AllocatorWithMemResource : public IAllocator
 {
 
 public:
-    std::pmr::memory_resource* getMemoryResource() const final
+    std::pmr::memory_resource* GetMemoryResource() const final
     {
         return &m_memResource;
     }

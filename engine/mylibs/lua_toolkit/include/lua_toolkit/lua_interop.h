@@ -77,7 +77,7 @@ namespace my::lua
         const auto [luaValue, _] = makeValueFromLuaStack(l, index, ValueKeepMode::OnStack);
 
         return RuntimeValue::assign(
-            makeValueRef(value, getRtStackAllocatorPtr()),
+            makeValueRef(value, GetRtStackAllocatorPtr()),
             luaValue);
     }
 

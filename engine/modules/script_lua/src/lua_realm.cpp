@@ -42,7 +42,7 @@ public:
 
     void* operator new(size_t size)
     {
-        void* const mem = getRtStackAllocator().alloc(size);
+        void* const mem = GetRtStackAllocator().alloc(size);
         MY_DEBUG_FATAL(reinterpret_cast<uintptr_t>(mem) % alignof(InvocationGuardImpl) == 0);
 
         return mem;
@@ -50,7 +50,7 @@ public:
 
     void operator delete(void* ptr, size_t)
     {
-        getRtStackAllocator().free(ptr);
+        GetRtStackAllocator().free(ptr);
     }
 
     int getOriginStackTop() const
@@ -228,7 +228,7 @@ LuaRealm::~LuaRealm()
 
 //     return execStream
 
-//     ChunkLoader loader{*stream, getRtStackAllocator(), 1024};
+//     ChunkLoader loader{*stream, GetRtStackAllocator(), 1024};
 
 //     const std::string fullFilePath = (*file)->getPath().getString();
 
@@ -246,7 +246,7 @@ LuaRealm::~LuaRealm()
 //         return MakeError("Parse error: {}", err);
 //     }
 
-//     return ResultSuccess;
+//     return kResultSuccess;
 // }
 
 template <typename Call>
@@ -295,7 +295,7 @@ InvokeResult LuaRealm::Execute(std::span<const std::byte> program, const char* c
     return ExecuteImpl([this, &program, chunkName]
     {
         rtstack_scope;
-        io::MemoryStreamPtr stream = io::createReadonlyMemoryStream(program, getRtStackAllocatorPtr());
+        io::MemoryStreamPtr stream = io::createReadonlyMemoryStream(program, GetRtStackAllocatorPtr());
         return lua::execute(m_lua, *stream, LUA_MULTRET, chunkName);
     });
 }
@@ -314,7 +314,7 @@ InvokeResult LuaRealm::ExecuteFile(const io::FsPath& path)
         lua_pushstring(m_lua, path.getCStr());
         Lua_CheckErr(m_lua, lua_pcall(m_lua, 1, LUA_MULTRET, 0));
 
-        return ResultSuccess;
+        return kResultSuccess;
     });
 }
 

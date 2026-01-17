@@ -7,7 +7,7 @@
 namespace my {
 
 RuntimeThreadExecutor::RuntimeThreadExecutor() :
-    m_invocations(getKernelRuntimeImpl().getUvHandleAllocator().getMemoryResource())
+    m_invocations(getKernelRuntimeImpl().getUvHandleAllocator().GetMemoryResource())
 {
     uv_async_init(getKernelRuntimeImpl().uv(), m_async, [](uv_async_t* const handle) noexcept
     {
@@ -16,7 +16,7 @@ RuntimeThreadExecutor::RuntimeThreadExecutor() :
 
         while (true)
         {
-            decltype(m_invocations) invocations{getKernelRuntimeImpl().getUvHandleAllocator().getMemoryResource()};
+            decltype(m_invocations) invocations{getKernelRuntimeImpl().getUvHandleAllocator().GetMemoryResource()};
 
             {
                 const std::lock_guard lock(self.m_invocationsMutex);

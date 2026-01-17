@@ -130,7 +130,7 @@ Result<> EvaluateExpression(std::string_view expression, lua_State* l, int stack
     //    return MakeError(std::string{message, len});
     //}
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 }  // namespace my::lua

@@ -41,7 +41,7 @@ namespace my
     {
         static_assert(!std::is_const_v<T>, "Const type is passed. Use remove_const_t on call site");
         rtstack_scope;
-        return RuntimeValue::assign(makeValueRef(target, getRtStackAllocatorPtr()), rtValue);
+        return RuntimeValue::assign(makeValueRef(target, GetRtStackAllocatorPtr()), rtValue);
     }
 
     template <typename T>

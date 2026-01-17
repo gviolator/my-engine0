@@ -309,7 +309,7 @@ inline Result<> checkErr(lua_State* l, int ret) noexcept
 {
     if (ret == 0)
     {
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     ErrorPtr error = MakeError(lua::ToStringView(l, -1));

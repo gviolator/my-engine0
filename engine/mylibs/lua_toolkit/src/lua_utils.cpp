@@ -227,10 +227,10 @@ Result<> load(lua_State* l, io::IStream& stream, const char* chunkName)
 {
     rtstack_scope;
 
-    ChunkLoader loader{stream, getRtStackAllocator(), 1024};
+    ChunkLoader loader{stream, GetRtStackAllocator(), 1024};
     Lua_CheckErr(l, lua_load(l, ChunkLoader::read, &loader, chunkName, "tb"));
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 Result<> execute(lua_State* l, io::IStream& stream, int retCount, const char* chunkName)
@@ -238,7 +238,7 @@ Result<> execute(lua_State* l, io::IStream& stream, int retCount, const char* ch
     CheckResult(load(l, stream, chunkName));
     Lua_CheckErr(l, lua_pcall(l, 0, retCount, 0));
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 Result<> execute(lua_State* l, std::span<const std::byte> program, int retCount, const char* chunkName)
@@ -250,7 +250,7 @@ Result<> execute(lua_State* l, std::span<const std::byte> program, int retCount,
 
     rtstack_scope;
 
-    Ptr<io::IStream> stream = io::createReadonlyMemoryStream(program, getRtStackAllocatorPtr());
+    Ptr<io::IStream> stream = io::createReadonlyMemoryStream(program, GetRtStackAllocatorPtr());
     return execute(l, *stream, retCount, chunkName);
 }
 

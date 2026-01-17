@@ -79,7 +79,7 @@ Result<> StreamSocket::readStart()
 
     if (uv_is_active(m_stream) != 0)
     {
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     const auto allocateCallback = [](uv_handle_t* handle, size_t requestSize, uv_buf_t* outBuffer) noexcept
@@ -142,7 +142,7 @@ Result<> StreamSocket::readStart()
         return MakeError(getUVErrorMessage(code));
     }
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 void StreamSocket::notifyReadAwaiter()

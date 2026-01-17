@@ -80,7 +80,7 @@ Result<> Listener::startListen(unsigned backlog)
         return MakeError(getUVErrorMessage(error));
     }
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 Address Listener::getLocalAddress() const

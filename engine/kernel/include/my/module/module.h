@@ -31,7 +31,7 @@ namespace my
     public:
         Result<> modulePostInit() override
         {
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         void moduleShutdown() override

@@ -11,7 +11,7 @@ namespace my
 
         Result<> moduleInit() override
         {
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
     };

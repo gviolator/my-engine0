@@ -94,7 +94,7 @@ std::optional<T> PropertyContainer::getValue(std::string_view path)
     rtstack_scope;
 
     ReadOnlyLock lock;
-    RuntimeValuePtr value = getRead(path, lock, getRtStackAllocatorPtr());
+    RuntimeValuePtr value = getRead(path, lock, GetRtStackAllocatorPtr());
     if (!value)
     {
         return std::nullopt;

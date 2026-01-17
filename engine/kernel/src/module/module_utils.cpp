@@ -179,7 +179,7 @@ namespace nau
         }
 #endif
 
-        return ResultSuccess;
+        return kResultSuccess;
     }
 }  // namespace nau
 #endif

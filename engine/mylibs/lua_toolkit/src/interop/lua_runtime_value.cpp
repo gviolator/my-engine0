@@ -155,13 +155,13 @@ namespace my::lua_detail
                     m_keys.push_back(childKey);
                 }
 
-                return ResultSuccess;
+                return kResultSuccess;
             }
 
             if (fieldType == LUA_TTABLE)
             {
                 CheckResult(lua::populateTable(l, -1, value))
-                return ResultSuccess;
+                return kResultSuccess;
             }
 
             return MakeError("Unexpected lua type");
@@ -200,7 +200,7 @@ namespace my::lua_detail
 
     public:
         LuaStringValue(lua_State* l, int idx, IAllocator& allocator) :
-            m_value(allocator.getMemoryResource())
+            m_value(allocator.GetMemoryResource())
         {
             MY_DEBUG_FATAL(l);
             MY_DEBUG_ASSERT(lua_type(l, idx) == LUA_TSTRING);
@@ -470,7 +470,7 @@ namespace my::lua_detail
         Result<> setAt([[maybe_unused]] size_t index, [[maybe_unused]] const RuntimeValuePtr& value) override
         {
             MY_FAILURE("LuaArrayValue::setAt not implemented");
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         void clear() override
@@ -523,7 +523,7 @@ namespace my::lua
         const int type = lua_type(l, index);
         const bool isReference = lua_detail::isReferenceType(type);
         const bool keepValueOnStack = keepMode == ValueKeepMode::OnStack;
-        IAllocator* const allocator = keepValueOnStack ? getRtStackAllocatorPtr() : getDefaultAllocatorPtr();
+        IAllocator* const allocator = keepValueOnStack ? GetRtStackAllocatorPtr() : getDefaultAllocatorPtr();
         LuaRootPtr root = isReference ? (keepValueOnStack ? LuaStackRoot::instance(l) : LuaGlobalRefRoot::instance(l)) : nullptr;
 
         ChildVariableKey childKey = root ? root->ref(index) : nullptr;
@@ -566,7 +566,7 @@ namespace my::lua
             const size_t keysCount = std::distance(fields.begin(), fields.end());
             bool isArray = keysCount > 0;  // empty table -> dict
 
-            ChildKeysArray childKeys{allocator->getMemoryResource()};
+            ChildKeysArray childKeys{allocator->GetMemoryResource()};
 
             if (keysCount > 0)
             {

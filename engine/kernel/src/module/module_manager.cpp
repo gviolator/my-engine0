@@ -69,7 +69,7 @@ namespace my
                 shutdownModules();
             }
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         void registerModule(std::string_view inModuleName, ModulePtr module) override
@@ -104,7 +104,7 @@ namespace my
             if (moduleRegistry.count(hName))
             {
                 // Module already loaded
-                return ResultSuccess;
+                return kResultSuccess;
             }
 
             eastl::wstring dllWStringPath = strings::utf8ToWString(dllPath);
@@ -149,7 +149,7 @@ namespace my
                 moduleRegistry[hName].iModule->initialize();
             }
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
 #endif
 
@@ -208,7 +208,7 @@ namespace my
             }
 
             m_nextPhase = ModulesPhase::PostInit;
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         Result<> postInitModules()
@@ -239,7 +239,7 @@ namespace my
             }
 
             m_nextPhase = ModulesPhase::Shutdown;
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         void shutdownModules()

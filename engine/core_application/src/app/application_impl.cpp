@@ -90,7 +90,7 @@ Result<> ApplicationImpl::startupServices()
             m_appWorkQueue->poll();
         }
 
-        Result<> initResult = !task.isRejected() ? ResultSuccess : task.getError();
+        Result<> initResult = !task.isRejected() ? kResultSuccess : task.getError();
         if (!initResult)
         {
             m_appState = AppState::Invalid;
@@ -111,7 +111,7 @@ Result<> ApplicationImpl::startupServices()
 
     CheckResult(m_moduleManager->doModulesPhase(ModuleManager::ModulesPhase::PostInit));
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 async::Task<> ApplicationImpl::shutdownServicesAndRuntime()

@@ -156,7 +156,7 @@ namespace nau::math
 
                 value_changes_scope;
                 m_vec.setElem(static_cast<int>(index), *castResult);
-                return ResultSuccess;
+                return kResultSuccess;
             }
             else
             {
@@ -194,7 +194,7 @@ namespace nau::math
                     const float elem = *runtimeValueCast<float>(value);
                     m_vec.setElem(static_cast<int>(*index), elem);
 
-                    return ResultSuccess;
+                    return kResultSuccess;
                 }
 
                 return NauMakeError("Unknown vec elem ({})", key);
@@ -304,7 +304,7 @@ namespace nau::math
 
                 value_changes_scope;
                 m_mat.setCol(static_cast<int>(index), *castResult);
-                return ResultSuccess;
+                return kResultSuccess;
             }
             else
             {
@@ -342,7 +342,7 @@ namespace nau::math
                     const auto elem = *runtimeValueCast<ColType>(value);
                     m_mat.setCol(static_cast<int>(*index), elem);
 
-                    return ResultSuccess;
+                    return kResultSuccess;
                 }
 
                 return NauMakeError("Unknown mat elem ({})", key);

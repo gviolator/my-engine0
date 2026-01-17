@@ -289,7 +289,7 @@ namespace my
                 dstDict->clear();
             }
 
-            return ResultSuccess;
+            return kResultSuccess;
         };
 
         if (RuntimeValueRef* const srcRefValue = src->as<RuntimeValueRef*>())

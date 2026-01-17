@@ -54,7 +54,7 @@ Result<> initAndApplyConfiguration(ApplicationInitDelegate* appDelegate)
         CheckResult(appDelegate->configureApplication());
     }
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 void shutdownCoreServices()

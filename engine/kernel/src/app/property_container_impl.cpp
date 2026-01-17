@@ -299,7 +299,7 @@ namespace my
             return MakeError("Unknown config's content type:({})", contentType);
         }
 
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     Result<> mergePropertiesFromFile(PropertyContainer& properties, const std::filesystem::path& filePath, std::string_view contentType)

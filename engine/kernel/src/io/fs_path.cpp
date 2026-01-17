@@ -303,7 +303,7 @@ namespace my::io
     Result<> parse(std::string_view str, FsPath& path)
     {
         path = FsPath{str};
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     std::string toString(const FsPath& path)

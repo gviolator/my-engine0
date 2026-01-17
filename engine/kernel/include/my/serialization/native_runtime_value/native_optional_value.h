@@ -75,7 +75,7 @@ namespace my::ser_detail
                 if(!value)
                 {
                     m_optional.reset();
-                    return ResultSuccess;
+                    return kResultSuccess;
                 }
 
                 if (!m_optional.has_value())

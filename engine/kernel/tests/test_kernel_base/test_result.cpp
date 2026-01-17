@@ -121,7 +121,7 @@ namespace my::test
         EXPECT_TRUE(result);
         EXPECT_FALSE(result.isError());
 
-        Result<> result2 = my::ResultSuccess;
+        Result<> result2 = my::kResultSuccess;
         EXPECT_TRUE(result2);
         EXPECT_FALSE(result2.isError());
     }

@@ -100,7 +100,7 @@ namespace my::json_detail
             }
         }
 
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     RuntimeValuePtr getValueFromJson(const my::Ptr<JsonValueHolderImpl>& root, Json::Value& jsonValue)
@@ -284,7 +284,7 @@ namespace my::json_detail
             CheckResult(setJsonValue(newValue, *value));
             getThisJsonValue().append(std::move(newValue));
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
     };
 

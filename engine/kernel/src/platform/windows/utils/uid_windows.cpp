@@ -67,7 +67,7 @@ namespace my
         }
 
         uid = *parseResult;
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     std::string toString(const Uid& uid)

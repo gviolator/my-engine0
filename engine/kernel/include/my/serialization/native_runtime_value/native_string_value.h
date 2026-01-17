@@ -67,7 +67,7 @@ namespace my::ser_detail
                 value_changes_scope;
                 m_string.assign(reinterpret_cast<const UnderlyingString::value_type*>(str.data()), str.length());
 
-                return ResultSuccess;
+                return kResultSuccess;
             }
             else
             {
@@ -135,7 +135,7 @@ namespace my::ser_detail
                 CheckResult(result);
 
                 this->notifyChanged();
-                return ResultSuccess;
+                return kResultSuccess;
             }
             else
             {

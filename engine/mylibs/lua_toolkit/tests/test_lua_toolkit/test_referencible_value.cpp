@@ -74,8 +74,8 @@ namespace my::test
             rtstack_scope;
             Ptr<ClosureValue> closure = value;
             DispatchArguments args = {
-                makeValueCopy(10, getRtStackAllocatorPtr()),
-                makeValueCopy(17, getRtStackAllocatorPtr())};
+                makeValueCopy(10, GetRtStackAllocatorPtr()),
+                makeValueCopy(17, GetRtStackAllocatorPtr())};
 
             // force to keep result value on heap
             // do not
@@ -94,13 +94,13 @@ namespace my::test
 
         using Str = std::basic_string<char, std::char_traits<char>, std::pmr::polymorphic_allocator<char>> ;
 
-        std::vector<Str, std::pmr::polymorphic_allocator<Str>> v {getRtStackAllocator().getMemoryResource()};
+        std::vector<Str, std::pmr::polymorphic_allocator<Str>> v {GetRtStackAllocator().GetMemoryResource()};
         v.emplace_back("Test1");
         v.emplace_back("Test2");
-        //std::vector<Str, std::pmr::polymorphic_allocator<Str>> v2 {getRtStackAllocator().getMemoryResource()};
+        //std::vector<Str, std::pmr::polymorphic_allocator<Str>> v2 {GetRtStackAllocator().GetMemoryResource()};
 
 
-        std::vector<Str, std::pmr::polymorphic_allocator<Str>> v2 {getDefaultAllocator().getMemoryResource()};//= std::move(v);
+        std::vector<Str, std::pmr::polymorphic_allocator<Str>> v2 {getDefaultAllocator().GetMemoryResource()};//= std::move(v);
         v2 = std::move(v);
         
         v2.reserve(5);

@@ -336,11 +336,11 @@ namespace my::ser_detail
                 value_changes_scope;
 
                 typename ContainerType::value_type newElement;
-                CheckResult(RuntimeValue::assign(makeValueRef(newElement), value))
+                CheckResult(RuntimeValue::assign(makeValueRef(newElement), value));
                 [[maybe_unused]] auto [iter, emplaceOk] = m_collection.emplace(std::move(newElement));
                 MY_DEBUG_ASSERT(emplaceOk, "Fail to emplace element (expects that collection holds only unique values)");
                 
-                return emplaceOk ? ResultSuccess : MakeError("Fail to append (unique) value");
+                return emplaceOk ? kResultSuccess : MakeError("Fail to append (unique) value");
             }
         }
 

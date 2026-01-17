@@ -71,7 +71,7 @@ void KernelRuntimeImpl::bindToCurrentThread()
     UV_VERIFY(uv_loop_init(&m_uv));
     const size_t uvHandleBlockSize = getUvHandleMaxSize();
     m_uvHandleAllocator = createFixedSizeBlockAllocator(m_runtimeMemory, uvHandleBlockSize, false);
-    m_internalHandles = decltype(m_internalHandles){m_uvHandleAllocator->getMemoryResource()};
+    m_internalHandles = decltype(m_internalHandles){m_uvHandleAllocator->GetMemoryResource()};
 
     ITimerManager::setDefaultInstance();
 

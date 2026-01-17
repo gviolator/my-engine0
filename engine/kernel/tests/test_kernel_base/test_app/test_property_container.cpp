@@ -72,7 +72,7 @@ protected:
     static testing::AssertionResult mergeFromJson(PropertyContainer& props, std::string_view json)
     {
         rtstack_scope;
-        auto stream = io::createReadonlyMemoryStream({reinterpret_cast<const std::byte*>(json.data()), json.size()}, getRtStackAllocatorPtr());
+        auto stream = io::createReadonlyMemoryStream({reinterpret_cast<const std::byte*>(json.data()), json.size()}, GetRtStackAllocatorPtr());
         if (auto parseRes = mergePropertiesFromStream(props, *stream, "application/json"); !parseRes)
         {
             return testing::AssertionFailure() << parseRes.getError()->getMessage().c_str();

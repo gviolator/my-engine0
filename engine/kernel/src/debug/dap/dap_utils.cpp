@@ -85,7 +85,7 @@ Buffer makeDapHttpResponsePacket(std::string_view path, RuntimeValuePtr body)
 
     {
         rtstack_scope;
-        MemoryStreamPtr contentStream = createMemoryStream(AccessMode::Write, getRtStackAllocatorPtr());
+        MemoryStreamPtr contentStream = createMemoryStream(AccessMode::Write, GetRtStackAllocatorPtr());
 
         constexpr bool PrettyPrint = true;  // TODO: make only for debug
         serialization::jsonWrite(*contentStream, body, serialization::JsonSettings{.pretty = PrettyPrint, .writeNulls = false}).ignore();

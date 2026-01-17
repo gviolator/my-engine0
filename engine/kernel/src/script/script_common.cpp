@@ -4,8 +4,8 @@
 
 namespace my::script
 {
-    InvocationScopeGuard::InvocationScopeGuard(Realm& realm, InvokeOptsFlag opts) :
-        m_handle(realm.openInvocationScope(opts))
+    InvocationScopeGuard::InvocationScopeGuard(IRealm& realm, InvokeOptsFlag opts) :
+        m_handle(realm.OpenInvocationScope(opts))
     {
     }
 

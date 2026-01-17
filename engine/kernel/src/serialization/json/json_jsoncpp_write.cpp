@@ -191,7 +191,7 @@ namespace my::serialization
         std::ostream stream(&buf);
         getJsonWriter(settings).write(value, &stream);
 
-        return ResultSuccess;
+        return kResultSuccess;
     }
 
     Result<> jsonWrite(io::IStream& writer, const RuntimeValuePtr& value, JsonSettings settings)

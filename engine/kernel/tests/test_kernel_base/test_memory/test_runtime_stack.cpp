@@ -9,7 +9,7 @@ namespace my::test
     TEST(TestRuntimeStack, InitAllocator)
     {
         rtstack_init(2_Mb);
-        EXPECT_TRUE(getRtStackAllocator().is<IStackAllocatorInfo>());
+        EXPECT_TRUE(GetRtStackAllocator().is<IStackAllocatorInfo>());
     }
 
     TEST(TestRuntimeStack, GetAllocatorInScope)
@@ -18,13 +18,13 @@ namespace my::test
         {
             rtstack_scope;
 
-            EXPECT_TRUE(getRtStackAllocator().is<IStackAllocatorInfo>());
+            EXPECT_TRUE(GetRtStackAllocator().is<IStackAllocatorInfo>());
         }
     }
 
     TEST(TestRuntimeStack, GetAllocatorNoInit)
     {
-        EXPECT_FALSE(getRtStackAllocator().is<IStackAllocatorInfo>());
+        EXPECT_FALSE(GetRtStackAllocator().is<IStackAllocatorInfo>());
     }
 
     TEST(TestRuntimeStack, Allocate)
@@ -33,11 +33,11 @@ namespace my::test
         rtstack_init(2_Mb);
 
         
-        auto ptr0 = getRtStackAllocator().alloc(128);
+        auto ptr0 = GetRtStackAllocator().alloc(128);
         EXPECT_NE(ptr0, nullptr);
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(ptr0) % alignof(std::max_align_t) == 0);
 
-        auto ptr1 = getRtStackAllocator().alloc(128);
+        auto ptr1 = GetRtStackAllocator().alloc(128);
         EXPECT_NE(ptr1, nullptr);
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(ptr1) % alignof(std::max_align_t) == 0);
 
@@ -55,7 +55,7 @@ namespace my::test
         constexpr size_t Alignment2 = 16;
         constexpr size_t AllocCount = 100;
 
-        auto& allocator = getRtStackAllocator();
+        auto& allocator = GetRtStackAllocator();
 
         for (size_t i = 0; i < AllocCount; ++i)
         {
@@ -83,18 +83,18 @@ namespace my::test
 
         const auto getStackOffset = []
         {
-            return getRtStackAllocator().as<const IStackAllocatorInfo&>().getAllocationOffset();
+            return GetRtStackAllocator().as<const IStackAllocatorInfo&>().getAllocationOffset();
         };
 
         rtstack_init(2_Mb);
 
-        [[maybe_unused]] void* const ptr0 = getRtStackAllocator().alloc(128);
+        [[maybe_unused]] void* const ptr0 = GetRtStackAllocator().alloc(128);
 
         const uintptr_t top0 = getStackOffset();
 
         {
             rtstack_scope;
-            [[maybe_unused]] void* const ptr1 = getRtStackAllocator().alloc(128);
+            [[maybe_unused]] void* const ptr1 = GetRtStackAllocator().alloc(128);
             ASSERT_NE(top0, getStackOffset());
         }
 
@@ -139,7 +139,7 @@ namespace my::test
 
         for (size_t i = 0; i < AllocationCount; ++i)
         {
-            void* const ptr = getRtStackAllocator().alloc(AllocationSize);
+            void* const ptr = GetRtStackAllocator().alloc(AllocationSize);
             ASSERT_NE(ptr, nullptr);
             memset(ptr, 0, AllocationSize);
         }

@@ -200,7 +200,7 @@ namespace my
 
             enumValue = static_cast<EnumType>(*parseResult);
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
     };
 }  // namespace my

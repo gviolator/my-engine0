@@ -38,7 +38,7 @@ async::Task<> sendResponse(io::IAsyncStream& stream, const std::derived_from<dap
     Buffer packet;
     {
         rtstack_scope;
-        auto value = makeValueRef(responseMessage, getRtStackAllocatorPtr());
+        auto value = makeValueRef(responseMessage, GetRtStackAllocatorPtr());
         packet = makeDapHttpResponsePacket("/dap", std::move(value));
     }
 
@@ -53,7 +53,7 @@ async::Task<> sendEvent(io::IAsyncStream& stream, const std::derived_from<dap::E
     Buffer packet;
     {
         rtstack_scope;
-        auto value = makeValueRef(message, getRtStackAllocatorPtr());
+        auto value = makeValueRef(message, GetRtStackAllocatorPtr());
         packet = makeDapHttpResponsePacket("/dap", std::move(value));
     }
 

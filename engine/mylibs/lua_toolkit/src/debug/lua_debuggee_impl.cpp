@@ -155,7 +155,7 @@ async::Task<> LuaDebuggeeImpl::disconnect()
 
 Result<> LuaDebuggeeImpl::configureLaunch(RuntimeValuePtr configuration)
 {
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 Result<> LuaDebuggeeImpl::configureAttach(RuntimeValuePtr configuration)
@@ -172,7 +172,7 @@ Result<> LuaDebuggeeImpl::configureAttach(RuntimeValuePtr configuration)
     std::vector<debug::SourceMapPtr> sourceMaps;
     CollectSourceMaps(getServiceProvider().get<io::FileSystem>(), "/scripts/compiled", sourceMaps);
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 Result<> LuaDebuggeeImpl::configurationDone()
@@ -199,7 +199,7 @@ Result<> LuaDebuggeeImpl::configurationDone()
         }
     }, LUA_MASKRET | LUA_MASKCALL | LUA_MASKLINE, 0);
 
-    return ResultSuccess;
+    return kResultSuccess;
 }
 
 void LuaDebuggeeImpl::requestPause()

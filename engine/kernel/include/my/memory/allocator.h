@@ -41,7 +41,7 @@ struct MY_ABSTRACT_TYPE IAllocator : IRefCounted
         return "";
     }
 
-    virtual std::pmr::memory_resource* getMemoryResource() const;
+    virtual std::pmr::memory_resource* GetMemoryResource() const = 0;
 };
 
 using AllocatorPtr = my::Ptr<IAllocator>;

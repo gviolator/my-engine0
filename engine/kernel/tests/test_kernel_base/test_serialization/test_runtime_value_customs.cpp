@@ -130,7 +130,7 @@ namespace my::math
             CheckResult(castResult)
 
             m_vec.setElem(index, *castResult);
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         std::string_view getKey(size_t index) const override
@@ -158,7 +158,7 @@ namespace my::math
                 const float elem = *runtimeValueCast<float>(value);
                 m_vec.setElem(static_cast<int>(*index), elem);
 
-                return ResultSuccess;
+                return kResultSuccess;
             }
 
             return MakeError("Unknown vec elem ({})", key);

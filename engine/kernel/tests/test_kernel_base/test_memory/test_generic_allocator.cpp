@@ -43,7 +43,7 @@ TEST_P(TestGenericAllocator, StdContainer)
 
     const bool threadSafe = this->GetParam();
     const AllocatorPtr allocator = createDefaultGenericAllocator(threadSafe);
-    std::pmr::memory_resource* const memResource = allocator->getMemoryResource();
+    std::pmr::memory_resource* const memResource = allocator->GetMemoryResource();
     ASSERT_NE(memResource, nullptr);
 
     Container container{memResource};

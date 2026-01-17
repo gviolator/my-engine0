@@ -15,7 +15,7 @@ namespace my::script
         {
             MY_MODULE_EXPORT_SERVICE(LuaScriptManager);
             MY_MODULE_EXPORT_CLASS(LuaRealm);
-            return ResultSuccess;
+            return kResultSuccess;
         }
     };
 }  // namespace my::script

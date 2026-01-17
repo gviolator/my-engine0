@@ -17,12 +17,12 @@ namespace my
         {
             // m_sink = diag::getDefaultLogger().addSink(diag::createConsoleSink());
 
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         Result<> registerApplicationServices() override
         {
-            return ResultSuccess;
+            return kResultSuccess;
         }
 
         diag::LogSinkEntry m_sink;
