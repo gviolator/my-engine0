@@ -27,6 +27,12 @@ target_link_libraries(${TargetName} PUBLIC
   LuaToolkit
 )
 
+target_link_libraries(${TargetName} PRIVATE
+  AppModule
+)
+
+
+
 source_group(TREE ${ModuleRoot}/src PREFIX Sources FILES ${Sources})
 
 # install(DIRECTORY ${ModuleRoot}/include

@@ -10,6 +10,6 @@ std::vector<Address> testAddressList()
     int port = 8745;
 
     return {
-        *addressFromString(std::format("inet://127.0.0.1:{}", port))};
+        *AddressFromString(std::format("inet://127.0.0.1:{}", port))};
 }
 }  // namespace my::test

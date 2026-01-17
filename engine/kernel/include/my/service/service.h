@@ -1,44 +1,42 @@
 // #my_engine_source_file
 
-
 #pragma once
-#include <vector>
-
 #include "my/async/task_base.h"
 #include "my/kernel/kernel_config.h"
 #include "my/rtti/rtti_object.h"
 
-namespace my
+#include <vector>
+
+
+namespace my {
+/**
+ */
+struct MY_ABSTRACT_TYPE IServiceInitialization : virtual IRttiObject
 {
-    /**
-     */
-    struct MY_ABSTRACT_TYPE IServiceInitialization : virtual IRttiObject
+    MY_INTERFACE(my::IServiceInitialization, IRttiObject)
+
+    virtual async::Task<> preInitService()
     {
-        MY_INTERFACE(my::IServiceInitialization, IRttiObject)
+        return async::Task<>::makeResolved();
+    }
 
-
-        virtual async::Task<> preInitService()
-        {
-            return async::Task<>::makeResolved();
-        }
-
-        virtual async::Task<> initService()
-        {
-            return async::Task<>::makeResolved();
-        }
-
-        virtual std::vector<rtti::TypeInfo> getServiceDependencies() const
-        {
-            return {};
-        }
-    };
-
-    /**
-     */
-    struct MY_ABSTRACT_TYPE IServiceShutdown : virtual IRttiObject
+    virtual async::Task<> initService()
     {
-        MY_INTERFACE(my::IServiceShutdown, IRttiObject)
+        return async::Task<>::makeResolved();
+    }
 
-        virtual async::Task<> shutdownService() = 0;
-    };
+    virtual std::vector<rtti::TypeInfo> getServiceDependencies() const
+    {
+        return {};
+    }
+};
+
+/**
+ */
+struct MY_ABSTRACT_TYPE IServiceShutdown : virtual IRttiObject
+{
+    MY_INTERFACE(my::IServiceShutdown, IRttiObject)
+
+    virtual async::Task<> shutdownService() = 0;
+};
 }  // namespace my

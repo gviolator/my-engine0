@@ -143,7 +143,7 @@ namespace my::test
         }
 
         {
-            std::unique_ptr uniquePtr = uniPtr.release<std::unique_ptr<WithDestructor>>();
+            std::unique_ptr uniquePtr = uniPtr.ToSmartPointer<std::unique_ptr<WithDestructor>>();
             ASSERT_FALSE(uniPtr);
             ASSERT_TRUE(uniquePtr);
         }
@@ -207,7 +207,7 @@ namespace my::test
             ASSERT_TRUE(uniPtr);
         }
 
-        Ptr ptr = uniPtr.release<Ptr<RcService>>();
+        Ptr ptr = uniPtr.ToSmartPointer<Ptr<RcService>>();
         ptr.reset();
         ASSERT_TRUE(isDestructed);
     }
@@ -222,7 +222,7 @@ namespace my::test
 
         ASSERT_TRUE(uniPtr);
 
-        Ptr ptr = uniPtr.release<Ptr<RcService>>();
+        Ptr ptr = uniPtr.ToSmartPointer<Ptr<RcService>>();
         ASSERT_FALSE(uniPtr);
         ASSERT_TRUE(ptr);
 

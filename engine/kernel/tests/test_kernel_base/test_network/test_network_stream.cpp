@@ -23,7 +23,7 @@ TEST_F(TestNetworkClient, Test1)
     threading::Event serverReady;
     auto serverTask = [](threading::Event& signal) -> async::Task<>
     {
-        Ptr<network::IListener> listener = co_await network::listen(*network::addressFromString("inet://*:12345"));
+        Ptr<network::IListener> listener = co_await network::listen(*network::AddressFromString("inet://*:12345"));
         signal.set();
         io::AsyncStreamPtr client = co_await listener->accept();
         std::cout << "Accepted\n";
@@ -37,7 +37,7 @@ TEST_F(TestNetworkClient, Test1)
 
     async::Task<> clientTask = []() -> async::Task<>
     {
-        io::AsyncStreamPtr client = co_await network::connect(*network::addressFromString("inet://127.0.0.1:12345"), {}, Expiration::never());
+        io::AsyncStreamPtr client = co_await network::connect(*network::AddressFromString("inet://127.0.0.1:12345"), {}, Expiration::never());
         if (!client)
         {
             std::cout << "Bad client\n";

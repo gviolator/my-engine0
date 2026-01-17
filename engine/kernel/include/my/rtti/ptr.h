@@ -317,7 +317,7 @@ private:
     }
 
     template <typename U>
-    friend std::tuple<U*, void (*)(U*) noexcept, uintptr_t> release_ptr(Ptr<T> smartPtr)
+    friend std::tuple<U*, void (*)(U*) noexcept, uintptr_t> release_ptr(Ptr<T>&& smartPtr)
     {
         constexpr uintptr_t PtrMarker = 102;
 

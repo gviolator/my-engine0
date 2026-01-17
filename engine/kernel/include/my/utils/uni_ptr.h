@@ -105,6 +105,20 @@ namespace my
         {
             return m_value != nullptr;
         }
+        
+        template<typename Self>
+        T* operator -> (this Self&& self) noexcept
+        {
+            MY_DEBUG_FATAL(self.m_value);
+            // return m_value;
+            return self.m_value;
+        }
+
+        // T* operator -> () const noexcept
+        // {
+        //     MY_DEBUG_FATAL(m_value);
+        //     return m_value;
+        // }
 
         void reset() noexcept
         {
@@ -120,7 +134,7 @@ namespace my
         }
 
         template <typename Pointer>
-        Pointer release()
+        Pointer ToSmartPointer()
         {
             scope_on_leave
             {

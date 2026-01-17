@@ -84,8 +84,8 @@ private:
     Ptr<IAddress> m_address;
 };
 
-MY_KERNEL_EXPORT Result<Address> addressFromString(std::string_view);
+MY_KERNEL_EXPORT Result<Address> AddressFromString(std::string_view);
 
-MY_KERNEL_EXPORT async::Task<Address> resolveAddress(std::string_view);
+MY_KERNEL_EXPORT async::Task<Address> ResolveAddress(std::string_view);
 
 }  // namespace my::network

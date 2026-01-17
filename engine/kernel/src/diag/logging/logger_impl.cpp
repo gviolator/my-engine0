@@ -174,7 +174,7 @@ namespace my::diag
         const std::lock_guard lock(m_mutex);
 
         MY_DEBUG_ASSERT(m_sinks.contains(sink));
-        m_sinks.removeElement(sink);
+        m_sinks.remove(sink);
     }
 
     void LoggerImpl::addFilter([[maybe_unused]] LogFilterPtr filter)

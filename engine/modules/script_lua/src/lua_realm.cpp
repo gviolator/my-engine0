@@ -1,5 +1,6 @@
 // #my_engine_source_file
 #include "lua_realm.h"
+#include "lua_script_manager.h"
 
 // #include "helpers/chunk_loader.h"
 #include "lua_script_manager.h"
@@ -8,6 +9,7 @@
 #include "my/io/memory_stream.h"
 #include "my/memory/runtime_stack.h"
 #include "my/service/service_provider.h"
+
 
 using namespace my::io;
 
@@ -78,7 +80,7 @@ int LuaRealm::NativeResolveImportPath(lua_State* l) noexcept
 
     // in lua modules uses dots ('.') for path separators
     std::replace(importPath.begin(), importPath.end(), '.', '/');
-    Result<FsPath> resolvedPathResult = getServiceProvider().get<LuaScriptManager>().resolveScriptPath(importPath);
+    Result<FsPath> resolvedPathResult = getServiceProvider().get<LuaScriptManager>().ResolvePath(importPath);
     Lua_CheckResult(l, resolvedPathResult);
 
     lua_pushstring(l, resolvedPathResult->getCStr());
@@ -89,7 +91,6 @@ int LuaRealm::NativeResolveImportPath(lua_State* l) noexcept
 int LuaRealm::NativeLoadModule(lua_State* l) noexcept
 {
     std::string importPath{lua::ToStringView(l, -1)};
-    
 
     const int top = lua_gettop(l);
     FsPath filePath = lua::ToStringView(l, -1);
@@ -105,7 +106,7 @@ int LuaRealm::NativeLoadModule(lua_State* l) noexcept
     io::StreamPtr stream = file->createStream();
     Result<> execResult = lua::execute(l, *stream, LUA_MULTRET, filePath.getCStr());
     Lua_CheckResult(l, execResult);
-    lua_pushnil(l); // no error
+    lua_pushnil(l);  // no error
     const int top2 = lua_gettop(l);
     MY_DEBUG_ASSERT(top2 >= top);
 
@@ -186,7 +187,7 @@ LuaRealm::LuaRealm()
 
     lua_pushcclosure(m_lua, [](lua_State* l) noexcept
     {
-        const std::string text {lua::ToStringView(l, -1)};
+        const std::string text{lua::ToStringView(l, -1)};
         mylog(text);
 
         return 0;
@@ -201,10 +202,14 @@ LuaRealm::LuaRealm()
             lua_pushcclosure(m_lua, luaRequire, 1);
             lua_setglobal(m_lua, "require");
     */
+
+    getServiceProvider().get<LuaScriptManager>().RegisterRealm(*this);
 }
 
 LuaRealm::~LuaRealm()
 {
+    getServiceProvider().get<LuaScriptManager>().UnregisterRealm(*this);
+
     if (m_lua)
     {
         lua_close(m_lua);
@@ -245,7 +250,7 @@ LuaRealm::~LuaRealm()
 // }
 
 template <typename Call>
-InvokeResult LuaRealm::executeImpl(Call call)
+InvokeResult LuaRealm::ExecuteImpl(Call call)
 {
     static_assert(std::is_invocable_r_v<Result<>, Call>);
 
@@ -279,7 +284,7 @@ InvokeResult LuaRealm::executeImpl(Call call)
     return InvokeResult{std::move(value)};
 }
 
-InvokeResult LuaRealm::execute(std::span<const std::byte> program, const char* chunkName)
+InvokeResult LuaRealm::Execute(std::span<const std::byte> program, const char* chunkName)
 {
     // MY_DEBUG_FATAL(m_lua);
     if (program.empty())
@@ -287,7 +292,7 @@ InvokeResult LuaRealm::execute(std::span<const std::byte> program, const char* c
         return MakeError("empty program");
     }
 
-    return executeImpl([this, &program, chunkName]
+    return ExecuteImpl([this, &program, chunkName]
     {
         rtstack_scope;
         io::MemoryStreamPtr stream = io::createReadonlyMemoryStream(program, getRtStackAllocatorPtr());
@@ -295,7 +300,7 @@ InvokeResult LuaRealm::execute(std::span<const std::byte> program, const char* c
     });
 }
 
-InvokeResult LuaRealm::executeFile(const io::FsPath& path)
+InvokeResult LuaRealm::ExecuteFile(const io::FsPath& path)
 {
     // MY_DEBUG_FATAL(m_lua);
     if (path.isEmpty())
@@ -303,7 +308,7 @@ InvokeResult LuaRealm::executeFile(const io::FsPath& path)
         return MakeError("empty program");
     }
 
-    return executeImpl([this, &path]() -> Result<>
+    return ExecuteImpl([this, &path]() -> Result<>
     {
         lua_getglobal(m_lua, "require");
         lua_pushstring(m_lua, path.getCStr());
@@ -313,12 +318,12 @@ InvokeResult LuaRealm::executeFile(const io::FsPath& path)
     });
 }
 
-Result<> LuaRealm::compile(io::IStream& programSource, io::IStream& compilationOutput)
+Result<> LuaRealm::Compile(io::IStream& programSource, io::IStream& compilationOutput)
 {
     return MakeError("Not impl");
 }
 
-void LuaRealm::registerClass(ClassDescriptorPtr classDescriptor)
+void LuaRealm::RegisterClass(ClassDescriptorPtr classDescriptor)
 {
 }
 /*
@@ -368,12 +373,17 @@ void LuaRealm::registerClass(ClassDescriptorPtr classDescriptor)
         return nullptr;
     }
 */
-Result<std::unique_ptr<IDispatch>> LuaRealm::createClassInstance(std::string_view className)
+
+void LuaRealm::EnableDebug([[maybe_unused]] bool enableDebug)
+{
+}
+
+Result<std::unique_ptr<IDispatch>> LuaRealm::CreateClassInstance(std::string_view className)
 {
     return MakeError("Not Implmeneted");
 }
 
-script_detail::InvocationGuardHandlePtr LuaRealm::openInvocationScope(InvokeOptsFlag opts)
+script_detail::InvocationGuardHandlePtr LuaRealm::OpenInvocationScope(InvokeOptsFlag opts)
 {
     auto invocationGuard = std::make_unique<InvocationGuardImpl>(*this, opts);
 #ifdef MY_DEBUG_ASSERT_ENABLED

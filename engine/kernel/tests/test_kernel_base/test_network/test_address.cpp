@@ -7,27 +7,27 @@ namespace my::test {
 
 TEST(TestNetworkAddress, Inet4FromString)
 {
-    Result<Address> addr = addressFromString("inet://127.0.0.1:7077");
+    Result<Address> addr = AddressFromString("inet://127.0.0.1:7077");
     ASSERT_TRUE(addr);
     ASSERT_EQ(addr->getKind(), AddressKind::Inet);
 }
 
 TEST(TestNetworkAddress, Inet4NoPortFromString)
 {
-    Result<Address> addr = addressFromString("inet://127.0.0.1");
+    Result<Address> addr = AddressFromString("inet://127.0.0.1");
     ASSERT_TRUE(addr);
     ASSERT_EQ(addr->getKind(), AddressKind::Inet);
 }
 
 TEST(TestNetworkAddress, Inet4InvalidString)
 {
-    Result<Address> addr = addressFromString("inet://127.0");
+    Result<Address> addr = AddressFromString("inet://127.0");
     ASSERT_FALSE(addr);
 }
 
 TEST(TestNetworkAddress, Inet6FromString)
 {
-    Result<Address> addr = addressFromString("inet6://[::1]:8088");
+    Result<Address> addr = AddressFromString("inet6://[::1]:8088");
     ASSERT_TRUE(addr);
     ASSERT_EQ(addr->getKind(), AddressKind::Inet6);
 }
@@ -35,13 +35,13 @@ TEST(TestNetworkAddress, Inet6FromString)
 TEST(TestNetworkAddress, Inet6NoPortFromString)
 {
     {
-        Result<Address> addr = addressFromString("inet6://[::1]");
+        Result<Address> addr = AddressFromString("inet6://[::1]");
         ASSERT_TRUE(addr);
         ASSERT_EQ(addr->getKind(), AddressKind::Inet6);
     }
 
     {
-        Result<Address> addr = addressFromString("inet6://::1");
+        Result<Address> addr = AddressFromString("inet6://::1");
         ASSERT_TRUE(addr);
         ASSERT_EQ(addr->getKind(), AddressKind::Inet6);
     }

@@ -533,28 +533,34 @@ namespace my::lua
         assert_lstack_unchanged(l);
 
         RuntimeValuePtr value;
-
-        if (type == LUA_TSTRING)
+        switch (type)
+        {
+        case LUA_TSTRING:
         {
             value = rtti::createInstanceWithAllocator<LuaStringValue>(allocator, l, index, *allocator);
+            break;
         }
-        else if (type == LUA_TNUMBER)
+        case LUA_TNUMBER:
         {
             value = rtti::createInstanceWithAllocator<LuaNumericValue>(allocator, l, index);
+            break;
         }
-        else if (type == LUA_TBOOLEAN)
+        case LUA_TBOOLEAN:
         {
             value = rtti::createInstanceWithAllocator<LuaBooleanValue>(allocator, l, index);
+            break;
         }
-        else if (type == LUA_TNIL)
+        case LUA_TNIL:
         {
             value = rtti::createInstanceWithAllocator<LuaNilValue>(allocator, l, index);
+            break;
         }
-        else if (type == LUA_TFUNCTION)
+        case LUA_TFUNCTION:
         {
             value = rtti::createInstanceWithAllocator<lua_detail::LuaClosureValue>(allocator, std::move(root), std::move(childKey));
+            break;
         }
-        else if (type == LUA_TTABLE)
+        case LUA_TTABLE:
         {
             const lua::TableEnumerator fields{l, index};
             const size_t keysCount = std::distance(fields.begin(), fields.end());
@@ -593,8 +599,13 @@ namespace my::lua
             {
                 value = rtti::createInstanceWithAllocator<LuaTableValue, RuntimeValue>(allocator, std::move(root), std::move(childKey), std::move(childKeys));
             }
+
+            break;
         }
 
+        default:
+        }
+        
         MY_DEBUG_FATAL(value, "Do not known how to represent lua type:({})", type);
         const bool needKeepStackValue = keepValueOnStack && isReference;
         return {std::move(value), needKeepStackValue};

@@ -200,7 +200,7 @@ namespace my::async
             {
                 {
                     const std::lock_guard lock(manager.m_mutex);
-                    manager.m_timerStateList.removeElement(*this);
+                    manager.m_timerStateList.remove(*this);
                 }
 
                 if (hTimer)

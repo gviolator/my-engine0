@@ -57,7 +57,7 @@ namespace my::test
 
   //--erasers
   // void clear()
-  // void removeElement(T& element)
+  // void remove(T& element)
   // iterator erase(iterator& first, iterator last)
   // iterator erase(iterator& pos)
 
@@ -114,7 +114,7 @@ namespace my::test
         // erasers
         ASSERT_NO_THROW(list.clear());
         MyValue notInList{};
-        ASSERT_ANY_THROW(list.removeElement(notInList));
+        ASSERT_ANY_THROW(list.remove(notInList));
 
         ASSERT_ANY_THROW(list.erase(listBegin, listEnd));
 
@@ -507,12 +507,12 @@ namespace my::test
   {
     IntrusiveList<MyValue> originList;
 
-    {  // check removeElement
+    {  // check remove
       MyValue val;
 
       ASSERT_NO_THROW(originList.insert(originList.begin(), val));
 
-      ASSERT_NO_THROW(originList.removeElement(val));
+      ASSERT_NO_THROW(originList.remove(val));
 
       ASSERT_NO_FATAL_FAILURE(TEST_CheckEmptiness(originList));
     }

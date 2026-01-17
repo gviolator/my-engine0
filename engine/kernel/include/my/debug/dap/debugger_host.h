@@ -10,6 +10,8 @@
 #include "my/rtti/ptr.h"
 #include "my/rtti/type_info.h"
 #include "my/runtime/async_disposable.h"
+#include "my/utils/cancellation.h"
+#include "my/utils/uni_ptr.h"
 
 #include <memory>
 #include <tuple>
@@ -37,13 +39,13 @@ struct MY_ABSTRACT_TYPE IDebuggerHost
 
     virtual ~IDebuggerHost() = default;
 
-    virtual std::vector<DebugLocation> getDebugLocations() = 0;
+    virtual std::vector<DebugLocation> GetDebugLocations() = 0;
 
-    virtual async::Task<StartDebugSessionResult> startDebugSession(std::string locationId, const dap::InitializeRequestArguments& initArgs, IDebugSession& session) = 0;
+    virtual async::Task<StartDebugSessionResult> StartDebugSession(std::string locationId, const dap::InitializeRequestArguments& initArgs, IDebugSession& session) = 0;
 };
 
-MY_KERNEL_EXPORT async::Task<Ptr<IAsyncDisposable>> runDebuggerHost(network::Address listenAddress, std::unique_ptr<IDebuggerHost>);
-
-// MY_KERNEL_EXPORT
+MY_KERNEL_EXPORT
+async::Task<Ptr<IAsyncDisposable>> RunDebuggerHost(network::Address listenAddress, UniPtr<IDebuggerHost>);
+//async::Task<> RunDebuggerHost(network::Address listenAddress, UniPtr<IDebuggerHost> host, Cancellation cancel);
 
 }  // namespace my::dap

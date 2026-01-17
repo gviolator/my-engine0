@@ -15,7 +15,7 @@ constexpr auto Kind_Inet = "inet"sv;
 constexpr auto Kind_Inet6 = "inet6"sv;
 constexpr auto Kind_IPC = "ipc"sv;
 
-Result<Ptr<IAddress>> createInetAddress(std::string_view address)
+Result<Ptr<IAddress>> CreateInetAddress(std::string_view address)
 {
     constexpr auto Ipv4Re = R"-(^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d{1,5}))?$)-";
     constexpr auto Ipv4AnyRe = R"-(^\*(:(\d{1,5}))?$)-";
@@ -61,7 +61,7 @@ Result<Ptr<IAddress>> createInetAddress(std::string_view address)
     return rtti::createInstance<InetAddress>(sockAddr);
 }
 
-Result<Ptr<IAddress>> createInet6Address(std::string_view address)
+Result<Ptr<IAddress>> CreateInet6Address(std::string_view address)
 {
     constexpr auto Ipv6Re = R"-(^([0-9a-fA-F:]*))-";
     constexpr auto Ipv6WithPortRe = R"-(^\[([0-9a-fA-F:]*)\](:(\d{1,5}))?$)-";
@@ -109,7 +109,7 @@ Result<Ptr<IAddress>> createInet6Address(std::string_view address)
     return rtti::createInstance<InetAddress>(sockAddr);
 }
 
-Result<Address> parseIpcAddress(std::string_view line)
+Result<Address> ParseIpcAddress(std::string_view line)
 {
     return Address{};
 }
@@ -264,7 +264,7 @@ bool operator!=(const AddressIterator& lhs, const AddressIterator& rhs)
     return lhs.address != rhs.address || lhs.index != rhs.index;
 }
 
-Result<Address> addressFromString(std::string_view addressStr)
+Result<Address> AddressFromString(std::string_view addressStr)
 {
     std::match_results<std::string_view::iterator> match;
     if (!std::regex_match(addressStr.begin(), addressStr.end(), match, std::regex{"^([A-Za-z0-9\\+_-]+)://(.+)$", DefaultMatchOptions}))
@@ -279,15 +279,15 @@ Result<Address> addressFromString(std::string_view addressStr)
 
     if (strings::icaseEqual(kind, Kind_Inet))
     {
-        addressResult = createInetAddress(address);
+        addressResult = CreateInetAddress(address);
     }
     else if (strings::icaseEqual(kind, Kind_Inet6))
     {
-        addressResult = createInet6Address(address);
+        addressResult = CreateInet6Address(address);
     }
     else if (strings::icaseEqual(kind, Kind_IPC))
     {
-        return parseIpcAddress(address);
+        return ParseIpcAddress(address);
     }
     else
     {
@@ -298,7 +298,7 @@ Result<Address> addressFromString(std::string_view addressStr)
     return Address{std::move(*addressResult)};
 }
 
-async::Task<Address> resolveAddress(std::string_view)
+async::Task<Address> ResolveAddress(std::string_view)
 {
     co_return Address{};
 }

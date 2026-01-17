@@ -27,7 +27,7 @@ class DebuggerHostRunner final : public IRefCounted,
     MY_REFCOUNTED_CLASS(my::dap::DebuggerHostRunner, IRefCounted, IAsyncDisposable)
 
 public:
-    DebuggerHostRunner(std::unique_ptr<IDebuggerHost>&& host, const Ptr<IListener>& listener) :
+    DebuggerHostRunner(UniPtr<IDebuggerHost>&& host, const Ptr<IListener>& listener) :
         m_host(std::move(host)),
         m_listener(listener)
     {
@@ -44,7 +44,7 @@ private:
 
     Task<> initAndRunDebugSession(io::AsyncStreamPtr client);
 
-    std::unique_ptr<IDebuggerHost> m_host;
+    UniPtr<IDebuggerHost> m_host;
     Ptr<IListener> m_listener;
     Task<> m_task;
     std::atomic<bool> m_isDisposed = false;
@@ -338,7 +338,7 @@ Task<> DebuggerHostRunner::initAndRunDebugSession(io::AsyncStreamPtr commandStre
                 MY_DEBUG_ASSERT(!debuggee);
 
                 GenericResponseMessage<Capabilities> response{session.nextSeqId(), std::move(*request)};
-                std::tie(response.body, debuggee) = co_await m_host->startDebugSession("_", initializeArgs, session);
+                std::tie(response.body, debuggee) = co_await m_host->StartDebugSession("_", initializeArgs, session);
                 session.setDebuggee(*debuggee);
 
                 co_await sendResponse(*commandStream, response);
@@ -427,7 +427,7 @@ Task<> DebuggerHostRunner::initAndRunDebugSession(io::AsyncStreamPtr commandStre
 //     }(*this, std::move(listenAddress), std::move(host));
 // }
 
-Task<Ptr<IAsyncDisposable>> runDebuggerHost(network::Address listenAddress, std::unique_ptr<IDebuggerHost> debuggerHost)
+Task<Ptr<IAsyncDisposable>> RunDebuggerHost(network::Address listenAddress, UniPtr<IDebuggerHost> debuggerHost)
 {
     Ptr<network::IListener> listener = co_await network::listen(std::move(listenAddress));
 

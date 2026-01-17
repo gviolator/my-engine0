@@ -94,7 +94,7 @@ namespace my::lua_detail
             MY_FATAL_FAILURE("Invoke Failed");
         }
 
-        if (Ptr<> resultValue = result->release<Ptr<>>())
+        if (Ptr<> resultValue = result->ToSmartPointer<Ptr<>>())
         {
             if (!lua::pushRuntimeValue(l, resultValue))
             {  // TODO: make an error
@@ -131,7 +131,7 @@ namespace my::lua_detail
 
         if (objectPtr)
         {
-            [[maybe_unused]] auto pushRes = lua::pushObject(l, objectPtr->release<Ptr<>>(), ClassDescriptorPtr{classDescriptor});
+            [[maybe_unused]] auto pushRes = lua::pushObject(l, objectPtr->ToSmartPointer<Ptr<>>(), ClassDescriptorPtr{classDescriptor});
             MY_DEBUG_ASSERT(pushRes);
 
             return 1;

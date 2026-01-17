@@ -237,7 +237,7 @@ namespace my::core_detail
                     Result<UniPtr<IRttiObject>> instance = ctor->invoke(nullptr, {});
                     MY_DEBUG_FATAL(instance);
 
-                    m_instance = (*instance).release<Ptr<>>();
+                    m_instance = (*instance).ToSmartPointer<Ptr<>>();
 
                     // IRefCounted* const refCounted = (*instance)->as<IRefCounted*>();
                     // MY_DEBUG_FATAL(refCounted, "Only refcounted objects currently are supported");
